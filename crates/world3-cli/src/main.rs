@@ -1,3 +1,5 @@
+mod plot;
+
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -33,6 +35,10 @@ enum Commands {
         #[arg(long)]
         output: Option<PathBuf>,
 
+        /// Write a multi-panel PNG chart to this path
+        #[arg(long)]
+        png: Option<PathBuf>,
+
         /// Start year
         #[arg(long, default_value_t = 1900.0)]
         start: f64,
@@ -57,7 +63,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Simulate { preset, output, start, end, dt } => {
+        Commands::Simulate { preset, output, png, start, end, dt } => {
             let mut params = preset_params(&preset)?;
             params.start_year = start;
             params.end_year = end;
@@ -84,6 +90,11 @@ fn main() -> Result<()> {
                 eprintln!("Wrote {}", path.display());
             } else {
                 print_summary(&sim);
+            }
+
+            if let Some(path) = png {
+                plot::render_chart(&sim, &path, plot::default_chart_config())?;
+                eprintln!("Wrote chart {}", path.display());
             }
         }
 
