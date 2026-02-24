@@ -110,7 +110,7 @@ impl OdeSolver for Rk4Solver {
 
             // Divergence check
             let pop = next.population.population;
-            if !pop.is_finite() || pop < 0.0 || pop > 1e13 {
+            if !pop.is_finite() || !(0.0..=1e13).contains(&pop) {
                 return Err(SolverError::Diverged {
                     year: next.time,
                     variable: "population".into(),
