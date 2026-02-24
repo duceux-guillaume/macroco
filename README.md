@@ -2,12 +2,13 @@
 
 Online live macroeconomic model based on the World 3 system dynamics model (Meadows et al., *Limits to Growth*). Extended with modern indicators: climate, energy mix, biodiversity, inequality.
 
-**Status: Phase 3 of 6 complete** — core simulation engine, CLI, HTTP + WebSocket API
+**Status: Phase 5 of 6 complete** — core simulation engine, CLI, HTTP + WebSocket API, SvelteKit + D3 frontend
 
 ## Prerequisites
 
 - Rust 1.75+
 - cargo
+- Node.js 18+ and npm (for frontend)
 
 ## Build
 
@@ -202,6 +203,41 @@ npx wscat -c ws://localhost:8080/api/v1/ws
 }
 ```
 
+## Frontend
+
+The SvelteKit + D3 frontend provides an interactive UI with 6 synchronized D3 charts (population, capital, agriculture, resources, pollution, combined overview), parameter sliders for all scenario knobs, scenario comparison, and live WebSocket streaming of simulation steps.
+
+### Setup
+
+```bash
+cd frontend
+npm install
+```
+
+### Environment
+
+Create `frontend/.env` (or set environment variables):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PUBLIC_API_BASE` | `http://localhost:8080/api/v1` | Backend REST base URL |
+| `PUBLIC_WS_BASE` | `ws://localhost:8080/api/v1/ws` | Backend WebSocket URL |
+
+### Development server
+
+```bash
+cd frontend
+npm run dev
+# Opens at http://localhost:5173
+```
+
+### Type-checking
+
+```bash
+cd frontend
+npm run check
+```
+
 ## Architecture Overview
 
 ```
@@ -214,7 +250,8 @@ crates/
                       scenario CRUD, synchronous simulation runs, and streaming WebSocket
                       simulation with debounced parameter updates.
   world3-ingestion/   [PLANNED] Live data pipeline — World Bank, NOAA, FAO, UN, BP (Phase 4).
-frontend/             [PLANNED] SvelteKit + D3 charts, parameter sliders (Phase 5).
+frontend/             [IMPLEMENTED] SvelteKit + D3 frontend. 6 interactive charts,
+                      parameter sliders, scenario comparison, WebSocket live updates.
 data/
   lookup_tables/      World 3 piecewise-linear tables (JSON). Required at runtime.
   presets/            Named scenario parameter sets (BAU, Technology, Stabilized).
@@ -228,7 +265,7 @@ docs/
 - [ ] **Phase 2** — Modern extensions + calibration: 4 extension sectors (climate, energy, biodiversity, inequality), historical CSV calibration
 - [x] **Phase 3** — API server: Axum REST + WebSocket, streaming simulation
 - [ ] **Phase 4** — Live data ingestion: 7 data sources, SQLite cache, broadcast
-- [ ] **Phase 5** — Frontend: SvelteKit + D3, stores, parameter sliders, scenario comparison
+- [x] **Phase 5** — Frontend: SvelteKit + D3, stores, parameter sliders, scenario comparison
 - [ ] **Phase 6** — Polish + deployment: benchmarks, sensitivity analysis, Docker Compose, CI
 
 ## License
