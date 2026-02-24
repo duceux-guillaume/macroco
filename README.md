@@ -2,7 +2,7 @@
 
 Online live macroeconomic model based on the World 3 system dynamics model (Meadows et al., *Limits to Growth*). Extended with modern indicators: climate, energy mix, biodiversity, inequality.
 
-**Status: Phase 1 of 6 complete** — core simulation engine + CLI
+**Status: Phase 3 of 6 complete** — core simulation engine, CLI, HTTP + WebSocket API
 
 ## Prerequisites
 
@@ -92,6 +92,116 @@ cargo run --bin world3-cli -- presets
 | `technology` | **Comprehensive Technology** — Resource efficiency 4×, strong pollution control (80%), improved agriculture, 75% family planning efficacy from 2000. No social or behavioral changes. |
 | `stabilized` | **Stabilized World** — Full combination of technology, pollution control, family planning (95% from 1975), land protection, and resource efficiency. Closest to a sustainable trajectory in Meadows et al. |
 
+## API Server
+
+### Starting the server
+
+```bash
+RUST_LOG=info cargo run --bin world3-api
+# Listens on 0.0.0.0:8080 by default
+```
+
+### Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `8080` | TCP port |
+| `RUST_LOG` | `info` | Log level (e.g. `debug`, `info,world3_api=debug`) |
+
+### REST endpoints
+
+All endpoints are under `/api/v1`:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Health check — `{"status":"ok","version":"0.1.0"}` |
+| GET | `/params/schema` | Parameter descriptors for all scenario sliders |
+| GET | `/presets` | List the 3 built-in preset scenarios |
+| GET | `/scenarios` | List all scenarios (presets + user-created) |
+| POST | `/scenarios` | Create a new scenario from a `ScenarioParams` body |
+| GET | `/scenarios/:id` | Get a scenario with its last simulation output |
+| PUT | `/scenarios/:id/params` | Replace a scenario's parameters |
+| DELETE | `/scenarios/:id` | Delete a scenario (403 if preset) |
+| POST | `/scenarios/:id/run` | Run a simulation; returns full `SimulationOutput` |
+| GET | `/ws` | WebSocket endpoint (upgrade) |
+
+> **Note:** Preset IDs are generated at server startup (time-based hash) and change on each restart. Always call `/api/v1/presets` to discover current IDs — never hardcode them.
+
+### curl examples
+
+```bash
+# Health check
+curl http://localhost:8080/api/v1/health
+
+# Get preset IDs
+curl http://localhost:8080/api/v1/presets
+
+# Run a preset simulation (replace <ID> with ID from /presets)
+curl -s -X POST http://localhost:8080/api/v1/scenarios/<ID>/run | jq '.states | length'
+
+# Create a custom scenario
+curl -s -X POST http://localhost:8080/api/v1/scenarios \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"My scenario","params":{"resource_technology_factor":2.0}}' | jq .
+
+# Delete a custom scenario (returns 403 for presets)
+curl -s -X DELETE http://localhost:8080/api/v1/scenarios/<ID>
+```
+
+### WebSocket usage
+
+Connect to `ws://localhost:8080/api/v1/ws`, then drive the simulation with JSON messages.
+
+**Flow:** connect → discover preset IDs via REST → send `start_simulation` → receive `sim_step` × 201 → receive `sim_complete`.
+
+**Client → server messages:**
+
+| `"type"` | Extra fields | Description |
+|----------|-------------|-------------|
+| `start_simulation` | `scenario_id`, optional `params` | Start (or restart) a simulation |
+| `update_params` | `scenario_id`, `params` | Debounced 50 ms restart with new parameters |
+| `stop_simulation` | _(none)_ | Halt current simulation |
+
+**Server → client messages:**
+
+| `"type"` | Extra fields | Description |
+|----------|-------------|-------------|
+| `sim_step` | `year`, `state` | One message per time step (1900–2100) |
+| `sim_complete` | `scenario_id`, `total_steps` | Emitted after the final step |
+| `sim_error` | `message` | Emitted on solver failure |
+| `params_ack` | `scenario_id` | Immediate acknowledgement of `update_params` |
+
+**wscat example:**
+
+```bash
+npx wscat -c ws://localhost:8080/api/v1/ws
+# then paste (replace <ID> with a real preset ID):
+{"type":"start_simulation","scenario_id":"<ID>"}
+```
+
+### SimulationOutput shape
+
+```json
+{
+  "scenario_id": "uuid",
+  "scenario_name": "Business as Usual",
+  "timeline": [1900, 1901, ..., 2100],
+  "states": [
+    {
+      "year": 1900,
+      "population": { "total": 1.6e9, "cohort_0_14": ..., "cohort_15_44": ..., "cohort_45_64": ..., "cohort_65_plus": ... },
+      "capital":     { "industrial_capital": ..., "service_capital": ..., "industrial_output": ..., "service_output_per_capita": ... },
+      "agriculture": { "arable_land": ..., "food": ..., "food_per_capita": ..., "land_yield": ... },
+      "resources":   { "nnr_fraction": ... },
+      "pollution":   { "persistent_pollution": ..., "pollution_index": ... }
+    },
+    ...
+  ],
+  "params": { ... },
+  "computed_at": "2026-02-24T12:00:00Z"
+}
+```
+
 ## Architecture Overview
 
 ```
@@ -100,7 +210,9 @@ crates/
                       5 sector ODEs (population, capital, agriculture, resources, pollution),
                       RK4 solver, lookup tables.
   world3-cli/         [IMPLEMENTED] Batch simulation and validation CLI.
-  world3-api/         [PLANNED] Axum HTTP + WebSocket server (Phase 3).
+  world3-api/         [IMPLEMENTED] Axum HTTP + WebSocket server. REST endpoints for
+                      scenario CRUD, synchronous simulation runs, and streaming WebSocket
+                      simulation with debounced parameter updates.
   world3-ingestion/   [PLANNED] Live data pipeline — World Bank, NOAA, FAO, UN, BP (Phase 4).
 frontend/             [PLANNED] SvelteKit + D3 charts, parameter sliders (Phase 5).
 data/
@@ -114,7 +226,7 @@ docs/
 
 - [x] **Phase 1** — Core simulation engine: `world3-core`, `world3-cli`, 5 original World 3 sectors, RK4 solver, validation
 - [ ] **Phase 2** — Modern extensions + calibration: 4 extension sectors (climate, energy, biodiversity, inequality), historical CSV calibration
-- [ ] **Phase 3** — API server: Axum REST + WebSocket, streaming simulation
+- [x] **Phase 3** — API server: Axum REST + WebSocket, streaming simulation
 - [ ] **Phase 4** — Live data ingestion: 7 data sources, SQLite cache, broadcast
 - [ ] **Phase 5** — Frontend: SvelteKit + D3, stores, parameter sliders, scenario comparison
 - [ ] **Phase 6** — Polish + deployment: benchmarks, sensitivity analysis, Docker Compose, CI
