@@ -132,8 +132,7 @@ impl WorldState {
     /// computed by the derivative function before use.
     pub fn from_vec(time: f64, v: &[f64]) -> Self {
         assert_eq!(v.len(), Self::N);
-        let mut s = WorldState::default();
-        s.time = time;
+        let mut s = WorldState { time, ..Default::default() };
 
         s.population.cohort_0_14 = v[0].max(0.0);
         s.population.cohort_15_44 = v[1].max(0.0);
