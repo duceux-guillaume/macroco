@@ -1,0 +1,21 @@
+[package]
+name = "world3-ingestion"
+description = "Live data ingestion pipeline for World 3 calibration"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+world3-core = { path = "../world3-core" }
+
+tokio = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+moka = { workspace = true }
+sqlx = { workspace = true }
+csv = { workspace = true }

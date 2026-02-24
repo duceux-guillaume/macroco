@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "id": "stabilized-preset",
+    "name": "Stabilized World",
+    "description": "Combination of technology, pollution control, family planning, land protection, and resource efficiency. Closest to a sustainable trajectory in Meadows et al.",
+    "color_hex": "#457b9d",
+    "created_at": "2026-01-01T00:00:00Z"
+  },
+  "family_planning_year": 1975.0,
+  "family_planning_efficacy": 0.95,
+  "health_investment_multiplier": 1.5,
+  "industrial_depreciation_rate": 0.05,
+  "service_depreciation_rate": 0.05,
+  "technology_growth_rate": 0.015,
+  "investment_rate": 0.12,
+  "agricultural_technology": 2.0,
+  "land_protection_fraction": 0.3,
+  "subsistence_food_per_capita": 230.0,
+  "resource_efficiency": 4.0,
+  "initial_nnr_fraction": 1.0,
+  "pollution_control": 0.8,
+  "start_year": 1900.0,
+  "end_year": 2100.0,
+  "time_step": 1.0
+}
