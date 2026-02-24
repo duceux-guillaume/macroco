@@ -19,8 +19,11 @@ data/
   historical/         # Bundled historical CSVs used as seed/fallback data.
   presets/            # Named scenario parameter sets (BAU, Technology, Stabilized, LtG 1972).
 docs/
-  world3_equations.md # All differential equations with references to original model.
-  api_reference.md    # REST + WebSocket API documentation.
+  simulation-engine.md # World 3 model architecture, sectors, solver
+  cli.md               # CLI commands and flags reference
+  api-server.md        # REST + WebSocket API documentation
+  chart-output.md      # PNG chart rendering feature
+  examples/            # Generated example charts
 ```
 
 ## Commands

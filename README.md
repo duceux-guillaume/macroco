@@ -39,6 +39,7 @@ cargo run --bin world3-cli -- simulate [OPTIONS]
 | `--start <YEAR>` | `1900` | Simulation start year |
 | `--end <YEAR>` | `2100` | Simulation end year |
 | `--dt <YEARS>` | `1.0` | Time step in years |
+| `--chart <FILE>` | _(none)_ | Render a normalized PNG chart of all key variables |
 
 **Examples:**
 
@@ -51,6 +52,9 @@ cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 
 # Custom time range and step
 cargo run --bin world3-cli -- simulate --preset stabilized --start 1970 --end 2100 --dt 0.5
+
+# Generate a normalized PNG chart
+cargo run --bin world3-cli -- simulate --preset bau --chart bau_chart.png
 ```
 
 **CSV output columns (22 fields):**
@@ -238,6 +242,17 @@ cd frontend
 npm run check
 ```
 
+## Documentation
+
+See [`docs/`](docs/) for detailed feature documentation:
+
+- [Simulation Engine](docs/simulation-engine.md) — World 3 model, sectors, solver
+- [CLI Reference](docs/cli.md) — Commands, flags, output formats
+- [API Server](docs/api-server.md) — REST endpoints, WebSocket streaming
+- [Chart Output](docs/chart-output.md) — PNG chart rendering
+
+![BAU Standard Run](docs/examples/bau_standard_run.png)
+
 ## Architecture Overview
 
 ```
@@ -256,7 +271,11 @@ data/
   lookup_tables/      World 3 piecewise-linear tables (JSON). Required at runtime.
   presets/            Named scenario parameter sets (BAU, Technology, Stabilized).
 docs/
-  world3_equations.md All differential equations with references to original model.
+  simulation-engine.md World 3 model architecture, sectors, solver
+  cli.md               CLI commands and flags reference
+  api-server.md        REST + WebSocket API documentation
+  chart-output.md      PNG chart rendering feature
+  examples/            Generated example charts
 ```
 
 ## Development Phases

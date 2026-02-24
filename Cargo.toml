@@ -49,6 +49,9 @@ clap = { version = "4", features = ["derive"] }
 # CSV parsing
 csv = "1"
 
+# Charting
+plotters = "0.3"
+
 [workspace.package]
 version = "0.1.0"
 edition = "2021"

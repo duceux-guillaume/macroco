@@ -1,8 +1,7 @@
-mod plot;
-
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use plotters::prelude::*;
+use std::path::{Path, PathBuf};
 use world3_core::{
     model::{
         params::ScenarioParams,
@@ -35,10 +34,6 @@ enum Commands {
         #[arg(long)]
         output: Option<PathBuf>,
 
-        /// Write a multi-panel PNG chart to this path
-        #[arg(long)]
-        png: Option<PathBuf>,
-
         /// Start year
         #[arg(long, default_value_t = 1900.0)]
         start: f64,
@@ -50,6 +45,10 @@ enum Commands {
         /// Time step (years)
         #[arg(long, default_value_t = 1.0)]
         dt: f64,
+
+        /// Output chart image (PNG) file path
+        #[arg(long)]
+        chart: Option<PathBuf>,
     },
 
     /// Validate BAU run against Meadows 1972 reference checkpoints
@@ -63,7 +62,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Simulate { preset, output, png, start, end, dt } => {
+        Commands::Simulate { preset, output, start, end, dt, chart } => {
             let mut params = preset_params(&preset)?;
             params.start_year = start;
             params.end_year = end;
@@ -92,9 +91,9 @@ fn main() -> Result<()> {
                 print_summary(&sim);
             }
 
-            if let Some(path) = png {
-                plot::render_chart(&sim, &path, plot::default_chart_config())?;
-                eprintln!("Wrote chart {}", path.display());
+            if let Some(chart_path) = chart {
+                render_chart(&sim, &chart_path)?;
+                eprintln!("Wrote chart {}", chart_path.display());
             }
         }
 
@@ -242,6 +241,88 @@ fn write_csv(sim: &SimulationOutput, path: &PathBuf) -> Result<()> {
     }
 
     wtr.flush()?;
+    Ok(())
+}
+
+/// Render a normalized Limits-to-Growth style chart as PNG.
+fn render_chart(sim: &SimulationOutput, path: &Path) -> Result<()> {
+    // Extract raw series
+    let years: Vec<f64> = sim.states.iter().map(|s| s.time).collect();
+    let population: Vec<f64> = sim.states.iter().map(|s| s.population.population).collect();
+    let resources: Vec<f64> = sim.states.iter().map(|s| s.resources.fraction_remaining).collect();
+    let food_pc: Vec<f64> = sim.states.iter().map(|s| s.agriculture.food_per_capita).collect();
+    let ind_out_pc: Vec<f64> = sim
+        .states
+        .iter()
+        .map(|s| s.capital.industrial_output_per_capita)
+        .collect();
+    let svc_out_pc: Vec<f64> = sim
+        .states
+        .iter()
+        .map(|s| s.capital.service_output_per_capita)
+        .collect();
+    let pollution: Vec<f64> = sim.states.iter().map(|s| s.pollution.pollution_index).collect();
+
+    // Normalize each series to 0–1 by dividing by max (resources already 0–1)
+    let normalize = |v: &[f64]| -> Vec<f64> {
+        let max = v.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        if max <= 0.0 {
+            return vec![0.0; v.len()];
+        }
+        v.iter().map(|x| x / max).collect()
+    };
+
+    let series: Vec<(&str, Vec<f64>, RGBColor)> = vec![
+        ("Resources", resources, RGBColor(42, 157, 143)),        // #2a9d8f
+        ("Food / capita", normalize(&food_pc), RGBColor(233, 196, 106)), // #e9c46a
+        ("Population", normalize(&population), RGBColor(139, 94, 60)),   // #8b5e3c
+        ("Services / cap", normalize(&svc_out_pc), RGBColor(69, 123, 157)), // #457b9d
+        ("Ind. output / cap", normalize(&ind_out_pc), RGBColor(230, 57, 70)), // #e63946
+        ("Pollution", normalize(&pollution), RGBColor(108, 117, 125)),   // #6c757d
+    ];
+
+    let x_min = years.first().copied().unwrap_or(1900.0);
+    let x_max = years.last().copied().unwrap_or(2100.0);
+
+    let root = BitMapBackend::new(path, (1200, 800)).into_drawing_area();
+    root.fill(&WHITE)?;
+
+    let title = format!("{} — Normalized", sim.params.meta.name);
+    let mut chart = ChartBuilder::on(&root)
+        .caption(&title, ("sans-serif", 28).into_font())
+        .margin(20)
+        .x_label_area_size(40)
+        .y_label_area_size(50)
+        .build_cartesian_2d(x_min..x_max, 0.0..1.05)?;
+
+    chart
+        .configure_mesh()
+        .x_desc("Year")
+        .y_desc("Normalized value")
+        .x_labels(10)
+        .y_labels(10)
+        .draw()?;
+
+    for (label, data, color) in &series {
+        chart
+            .draw_series(LineSeries::new(
+                years.iter().copied().zip(data.iter().copied()),
+                ShapeStyle::from(color).stroke_width(2),
+            ))?
+            .label(*label)
+            .legend(move |(x, y)| {
+                PathElement::new(vec![(x, y), (x + 20, y)], ShapeStyle::from(color).stroke_width(2))
+            });
+    }
+
+    chart
+        .configure_series_labels()
+        .position(SeriesLabelPosition::UpperRight)
+        .background_style(WHITE.mix(0.8))
+        .border_style(BLACK)
+        .draw()?;
+
+    root.present()?;
     Ok(())
 }
 
