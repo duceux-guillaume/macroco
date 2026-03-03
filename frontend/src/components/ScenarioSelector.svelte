@@ -7,6 +7,10 @@
 	let presets = $derived($scenarios.filter((s) => s.is_preset));
 	let custom = $derived($scenarios.filter((s) => !s.is_preset));
 
+	let allPresetsActive = $derived(
+		presets.length > 0 && presets.every((s) => $activeScenarioIds.has(s.id))
+	);
+
 	function selectScenario(id: string) {
 		focusedScenarioId.set(id);
 		// Ensure active
@@ -25,6 +29,16 @@
 				});
 			});
 		}
+	}
+
+	function compareAll() {
+		activeScenarioIds.update((ids) => {
+			const next = new Set(ids);
+			for (const s of presets) {
+				next.add(s.id);
+			}
+			return next;
+		});
 	}
 
 	async function handleNewScenario() {
@@ -58,7 +72,6 @@
 			const scenario = await createScenario(defaultParams);
 			const id = scenario.params.meta.id;
 
-			// Add to stores
 			scenarios.update((list) => [
 				...list,
 				{
@@ -75,7 +88,6 @@
 				return next;
 			});
 
-			// Run simulation
 			const output = await runScenario(id);
 			simulationResults.update((results) => {
 				const next = new Map(results);
@@ -101,10 +113,25 @@
 				onclick={() => selectScenario(s.id)}
 			>
 				<span class="dot" style="background: {s.color_hex}"></span>
-				{s.name}
+				<div class="scenario-info">
+					<span class="scenario-name">{s.name}</span>
+					{#if s.description}
+						<span class="scenario-desc">{s.description}</span>
+					{/if}
+				</div>
 			</button>
 		{/each}
 	</div>
+
+	{#if presets.length > 1}
+		<button
+			class="compare-btn"
+			class:active={allPresetsActive}
+			onclick={compareAll}
+		>
+			Compare All
+		</button>
+	{/if}
 
 	{#if custom.length > 0}
 		<h3>Custom</h3>
@@ -117,7 +144,9 @@
 					onclick={() => selectScenario(s.id)}
 				>
 					<span class="dot" style="background: {s.color_hex}"></span>
-					{s.name}
+					<div class="scenario-info">
+						<span class="scenario-name">{s.name}</span>
+					</div>
 				</button>
 			{/each}
 		</div>
@@ -146,7 +175,7 @@
 	}
 	.scenario-btn {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: 8px;
 		padding: 6px 8px;
 		border: 1px solid transparent;
@@ -170,6 +199,47 @@
 		height: 10px;
 		border-radius: 50%;
 		flex-shrink: 0;
+		margin-top: 3px;
+	}
+	.scenario-info {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		min-width: 0;
+	}
+	.scenario-name {
+		font-size: 13px;
+		color: var(--text);
+	}
+	.scenario-desc {
+		font-size: 11px;
+		color: var(--text-secondary);
+		line-height: 1.3;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+	.compare-btn {
+		padding: 6px 12px;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: none;
+		cursor: pointer;
+		font-size: 12px;
+		color: var(--text-secondary);
+		transition: all 0.1s;
+	}
+	.compare-btn:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.compare-btn.active {
+		border-color: var(--accent);
+		color: var(--accent);
+		background: var(--surface-active);
 	}
 	.new-btn {
 		margin-top: 4px;

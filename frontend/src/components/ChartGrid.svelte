@@ -2,13 +2,13 @@
 	import { chartConfigs } from '$lib/charts/chart-config';
 	import TimeSeriesChart from '$lib/charts/TimeSeriesChart.svelte';
 	import { activeSimData } from '$lib/stores/simulation';
-	import { scenarioColors } from '$lib/stores/scenarios';
+	import { scenarioColors, focusedScenarioId } from '$lib/stores/scenarios';
 </script>
 
 <div class="chart-grid">
 	{#each chartConfigs as config (config.id)}
 		<div class="chart-cell">
-			<TimeSeriesChart {config} data={$activeSimData} colors={$scenarioColors} />
+			<TimeSeriesChart {config} data={$activeSimData} colors={$scenarioColors} focusedScenarioId={$focusedScenarioId} />
 		</div>
 	{/each}
 </div>

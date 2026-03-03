@@ -5,6 +5,27 @@ Online live macroeconomic model based on the World 3 system dynamics model (Mead
 
 **Stack:** Rust backend (Axum) + SvelteKit/TypeScript frontend + D3 v7. Deployed via Docker Compose.
 
+## Current Objective
+Milestone 1: Interactive Limits to Growth. The frontend must be a self-contained
+educational experience. Every chart variable has a human-readable explanation.
+Users can change assumptions and immediately understand consequences.
+
+Priority order:
+1. Quick start guide (docs/quick-start.md + run.sh)
+2. Model guide documentation (docs/model-guide.md)
+3. Variable description content module (frontend/src/lib/content/)
+4. Rich chart tooltips
+5. Variable info panels
+6. Simulation controls
+7. Chart annotations
+8. Preset comparison UX
+
+Design principles:
+- Documentation-first: every variable, parameter, and feedback loop has beginner + expert explanation
+- Frontend content from single source of truth (variable-descriptions.ts)
+- No backend changes needed for UX enhancements
+- Maintain dark theme, D3 direct rendering, existing component patterns
+
 ## Repository Structure
 
 ```
@@ -14,11 +35,14 @@ crates/
   world3-ingestion/   # Live data pipeline. Fetches World Bank, NOAA, FAO, UN, BP. SQLite cache.
   world3-cli/         # Batch simulation / validation CLI.
 frontend/             # SvelteKit app. D3 charts, parameter sliders, scenario management.
+  src/lib/content/    # Variable descriptions, chart annotations — single source of truth for all UI text.
 data/
   lookup_tables/      # World 3 piecewise-linear tables (JSON). Must be present at runtime.
   historical/         # Bundled historical CSVs used as seed/fallback data.
   presets/            # Named scenario parameter sets (BAU, Technology, Stabilized, LtG 1972).
 docs/
+  quick-start.md       # Beginner-friendly setup guide
+  model-guide.md       # World 3 model explanation (beginner + expert tracks)
   simulation-engine.md # World 3 model architecture, sectors, solver
   cli.md               # CLI commands and flags reference
   api-server.md        # REST + WebSocket API documentation
@@ -29,10 +53,13 @@ docs/
 ## Commands
 
 ```bash
+# Quick start (backend + frontend)
+./run.sh
+
 # Build everything
 cargo build --workspace
 
-# Run simulation CLI (Phase 1 validation)
+# Run simulation CLI
 cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 
 # Validate against Meadows 1972 reference trajectories
@@ -76,10 +103,13 @@ cd frontend && npm run check && npm test
 - Svelte reactive stores (`$:`) drive all chart updates — avoid imperative D3 re-render calls outside the reactive block.
 - D3 is used directly (not wrapped in a chart library) because World 3 output requires custom multi-axis, phase-plane, and animated transition patterns.
 - WS client auto-reconnects with 2s backoff. All WS messages are typed against `WsClientMsg` / `WsServerMsg`.
+- All variable/parameter descriptions live in `frontend/src/lib/content/variable-descriptions.ts` — single source of truth.
+- Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
 
-## Model Sectors (9 total)
-Original World 3: Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
-Extensions: Climate (CO₂/EBM temperature) · Energy Mix · Biodiversity (LPI) · Inequality (Gini/HDI)
+## Model Sectors (5 — original World 3)
+Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
+
+Future extensions (Milestone 2): Climate (CO₂/EBM temperature) · Energy Mix · Biodiversity (LPI) · Inequality (Gini/HDI)
 
 ## Environment Variables
 
@@ -105,13 +135,11 @@ The "standard run" (BAU preset, 1900–2100, no policy interventions) must repro
 
 Run `cargo run --bin world3-cli -- validate` to check against bundled reference trajectories.
 
-## Development Phases
-1. **Phase 1 — Core Simulation Engine** (current): Rust workspace, `world3-core`, `world3-cli`, all 5 original World 3 sectors, RK4 solver, validation.
-2. **Phase 2 — Modern Extensions + Calibration**: 4 extension sectors, historical CSV calibration, preset scenarios.
-3. **Phase 3 — API Server**: Axum REST + WebSocket, `spawn_blocking`, streaming simulation.
-4. **Phase 4 — Live Data Ingestion**: `world3-ingestion` crate, 7 data sources, SQLite cache, broadcast.
-5. **Phase 5 — Frontend**: SvelteKit + D3, stores, parameter sliders, scenario comparison.
-6. **Phase 6 — Polish + Deployment**: Benchmarks, sensitivity analysis, Docker Compose, CI.
+## Product Milestones
+1. **Milestone 1 — Interactive Limits to Growth** (current): Documentation, tooltips, info panels, simulation controls, annotations, preset comparison.
+2. **Milestone 2 — Modern Extensions**: 4 extension sectors (climate, energy, biodiversity, inequality), historical CSV calibration.
+3. **Milestone 3 — Live Data Pipeline**: `world3-ingestion` crate, 7 data sources, SQLite cache, broadcast.
+4. **Milestone 4 — Production Deployment**: Docker Compose, CI/CD, benchmarks, sensitivity analysis.
 
 ## License
 GPL v3 — see LICENSE file.
