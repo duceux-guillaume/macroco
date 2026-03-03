@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Listening on {addr}");
     let server = axum::serve(listener, app).with_graceful_shutdown(shutdown_signal());
 
-    // Drain timeout: Fly.io sends SIGTERM and expects exit within kill_timeout (10s).
+    // Drain timeout: Fly.io sends SIGTERM and expects exit within kill_timeout (20s).
     // If long-running connections (e.g. WebSockets) don't close in time, exit cleanly
     // rather than waiting for SIGKILL.
     match tokio::time::timeout(std::time::Duration::from_secs(15), server).await {
