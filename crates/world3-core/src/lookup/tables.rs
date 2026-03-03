@@ -117,6 +117,27 @@ pub struct WorldLookupTables {
     /// y: development cost multiplier
     pub land_development_cost: LookupTable,
 
+    /// Urban-industrial land per capita (UILPC) — World3-03 table
+    /// x: IOPC [1975 USD/person/yr], y: hectares/person for urban/industrial use
+    pub urban_industrial_land_per_capita: LookupTable,
+
+    /// Land fertility degradation rate (LFDR) — World3-03 table
+    /// x: pollution index (1970 = 1), y: annual degradation fraction
+    pub land_fertility_degradation: LookupTable,
+
+    /// Land fertility regeneration time (LFRT) — World3-03 table
+    /// x: land yield ratio (actual / inherent), y: regeneration time [years]
+    pub land_fertility_regeneration_time: LookupTable,
+
+    /// Fraction allocated to land maintenance (FALM) — World3-03 table
+    /// x: food ratio, y: fraction of agricultural output to land maintenance
+    pub fraction_land_maintenance: LookupTable,
+
+    /// Compensatory multiplier from perceived life expectancy (CMPLE) — World3-03
+    /// x: perceived life expectancy [years]
+    /// y: multiplier on desired family size (>1 when perceived LE is low)
+    pub compensatory_fertility: LookupTable,
+
     /// Food ratio needed for full fertility (FRNF)
     /// x: food per capita / subsistence food
     /// y: fertility fraction
@@ -229,22 +250,21 @@ impl WorldLookupTables {
                 vec![0.13, 0.11, 0.09, 0.07, 0.06, 0.05, 0.04],
             ),
 
-            // Desired completed family size
-            // World3-03: DCFS = dcfsn × SFSN(DIOPC) × FRSN(FIE)
-            //   dcfsn = 3.8, SFSN ranges 0.5-1.25
-            // Simplified to direct lookup from perceived IOPC capturing the combined
-            // effect of social norms + compensatory fertility (CMPLE).
-            // World3-03 uses dcfsn=3.8 × SFSN(DIOPC) × CMPLE(perceived_LE). Our
-            // model lacks CMPLE, so values are raised ~20% at low/moderate income
-            // to compensate for the missing compensatory fertility effect.
-            // Key calibration:
-            //   IOPC=$44 (1900): ~5.7 (high fertility, compensatory + subsistence norms)
-            //   IOPC=$200 (1970): ~4.5 (transition beginning, still high compensation)
-            //   IOPC=$800: ~2.1 (post-transition, compensation minimal)
+            // Desired completed family size (DCFS)
+            // World3-03: DCFS = dcfsn × SFSN(DIOPC), where dcfsn=3.8, SFSN 0.5-1.25.
+            // Simplified to direct lookup from perceived IOPC capturing dcfsn × sfsn.
+            // CMPLE (compensatory fertility from perceived LE) is now applied separately.
+            // Values at low income are reduced (CMPLE provides ~1.25× compensation there),
+            // but mid-to-high income values stay near previous calibration because
+            // CMPLE ≈ 1.0 at higher LE (perceived_LE lags 20yr behind actual LE).
+            // Key calibration (before CMPLE):
+            //   IOPC=$44 (1900): 3.60 × CMPLE(33)≈1.22 → effective ~4.39
+            //   IOPC=$200 (1960): 3.75 × CMPLE(40)≈1.10 → effective ~4.13
+            //   IOPC=$800: 2.10 × CMPLE(60)≈0.95 → effective ~2.00
             desired_family_size: LookupTable::new(
                 "desired_family_size",
                 vec![0.0, 50.0, 100.0, 200.0, 400.0, 600.0, 800.0, 1200.0, 1600.0],
-                vec![4.40, 4.35, 4.25, 4.00, 3.00, 2.40, 2.05, 1.90, 1.80],
+                vec![3.60, 3.58, 3.55, 3.75, 3.00, 2.45, 2.10, 1.95, 1.85],
             ),
 
             // Family planning multiplier on fertility
@@ -371,8 +391,59 @@ impl WorldLookupTables {
                 vec![100.0, 117.0, 137.0, 161.0, 192.0, 232.0, 282.0, 344.0, 418.0, 507.0, 616.0],
             ),
 
+            // Compensatory multiplier from perceived LE (CMPLE)
+            // World3-03: when perceived LE is low (high infant mortality), women
+            // have more children to compensate for expected child deaths.
+            // At perceived_LE=30 (1900 conditions): CMPLE≈1.25 (25% more births)
+            // At perceived_LE=50 (improving health): CMPLE≈1.0 (no compensation)
+            // At perceived_LE=60+ (modern health): CMPLE<1.0 (confidence in survival)
+            compensatory_fertility: LookupTable::new(
+                "compensatory_fertility",
+                vec![20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![1.40, 1.25, 1.10, 1.0, 0.95, 0.92, 0.90],
+            ),
+
             // Food ratio effect on fertility
             // x: food per capita / subsistence food per capita
+            // Urban-industrial land per capita (UILPC)
+            // World3-03: maps IOPC to hectares per person needed for urban/industrial use.
+            // At subsistence (IOPC≈$40): 0.005 ha/person (rural, low urbanization)
+            // At 1970 levels (IOPC≈$200): 0.05 ha/person (significant urbanization)
+            // At high income (IOPC≈$1600): 0.16 ha/person (sprawl, infrastructure)
+            urban_industrial_land_per_capita: LookupTable::new(
+                "urban_industrial_land_per_capita",
+                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1600.0],
+                vec![0.005, 0.05, 0.09, 0.11, 0.13, 0.15, 0.16],
+            ),
+
+            // Land fertility degradation rate (LFDR)
+            // World3-03 LFDR1t: pollution-driven soil degradation.
+            // At low pollution: no degradation. At high pollution: rapid degradation.
+            land_fertility_degradation: LookupTable::new(
+                "land_fertility_degradation",
+                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0],
+                vec![0.0, 0.04, 0.10, 0.20, 0.30, 0.40],
+            ),
+
+            // Land fertility regeneration time (LFRT)
+            // World3-03: time to regenerate fertility depends on current yield intensity.
+            // Low yield (extensive farming): slow regeneration. High yield: faster with investment.
+            land_fertility_regeneration_time: LookupTable::new(
+                "land_fertility_regeneration_time",
+                vec![0.0, 0.02, 0.04, 0.06, 0.08, 0.10],
+                vec![20.0, 13.0, 8.0, 4.0, 2.0, 2.0],
+            ),
+
+            // Fraction allocated to land maintenance (FALM)
+            // World3-03: fraction of agricultural output devoted to maintaining soil quality.
+            // When food ratio is low (scarcity): less maintenance (survival priority).
+            // When food ratio is high (abundance): more maintenance possible.
+            fraction_land_maintenance: LookupTable::new(
+                "fraction_land_maintenance",
+                vec![0.0, 1.0, 2.0, 3.0, 4.0],
+                vec![0.0, 0.04, 0.07, 0.09, 0.10],
+            ),
+
             food_fertility_multiplier: LookupTable::new(
                 "food_fertility_multiplier",
                 vec![0.0, 0.5, 1.0, 1.5, 2.0],

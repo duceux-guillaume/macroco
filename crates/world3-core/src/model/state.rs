@@ -45,6 +45,9 @@ pub struct PopulationState {
     pub life_expectancy: f64,
     /// Total fertility rate [children / woman]
     pub fertility_rate: f64,
+    /// Perceived life expectancy (20-year delay) [years]
+    /// World3-03: PLE — drives compensatory fertility via CMPLE.
+    pub perceived_le: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -70,6 +73,10 @@ pub struct AgricultureState {
     pub arable_land: f64,
     /// Potentially arable but not yet developed [hectares]
     pub potentially_arable_land: f64,
+    /// Urban-industrial land [hectares] — World3-03: uil, uili=8.2e6
+    pub urban_industrial_land: f64,
+    /// Land fertility [kg / hectare / year] — World3-03: lfert, lferti=600
+    pub land_fertility: f64,
     /// Annual food production [vegetable-equivalent kg / year]
     pub food: f64,
     /// Food per capita [kg / person / year]
@@ -108,7 +115,39 @@ pub struct PollutionState {
 
 impl WorldState {
     /// The number of state variables (excluding `time`, which is tracked separately).
-    pub const N: usize = 12;
+    pub const N: usize = 15;
+
+    /// Human Welfare Index (0–1 scale) — World3-03 composite indicator.
+    ///
+    /// Geometric mean of life expectancy index and income index, inspired by
+    /// UNDP HDI methodology adapted for World3 variables. Education is proxied
+    /// by income since World3 doesn't model it separately.
+    ///
+    /// - LEI = (LE - 25) / 60, clamped to [0, 1]
+    /// - II  = (ln(IOPC) - ln(20)) / (ln(5000) - ln(20)), clamped to [0, 1]
+    ///   (bounds in 1975 USD: $20 subsistence, $5000 high development)
+    /// - HWI = sqrt(LEI × II)
+    pub fn hwi(&self) -> f64 {
+        let lei = ((self.population.life_expectancy - 25.0) / 60.0).clamp(0.0, 1.0);
+        let iopc = self.capital.industrial_output_per_capita.max(1.0);
+        let ii = ((iopc.ln() - 20.0_f64.ln()) / (5000.0_f64.ln() - 20.0_f64.ln()))
+            .clamp(0.0, 1.0);
+        (lei * ii).sqrt()
+    }
+
+    /// Ecological Footprint (1.0 = Earth's biocapacity) — World3-03 composite indicator.
+    ///
+    /// EF = (arable_land + UIL + absorption_land) / biocapacity_1970
+    ///
+    /// `absorption_land` represents the hypothetical land area needed to absorb
+    /// current persistent pollution. Scaled so pollution_index=1.0 (1970 level)
+    /// corresponds to ~0.3 billion hectares of absorption capacity.
+    pub fn ecological_footprint(&self) -> f64 {
+        const BIOCAPACITY_1970: f64 = 1.91e9; // hectares
+        let land_use = self.agriculture.arable_land + self.agriculture.urban_industrial_land;
+        let absorption_land = self.pollution.pollution_index * 0.3e9;
+        (land_use + absorption_land) / BIOCAPACITY_1970
+    }
 
     /// Extract the integrable state variables into a flat `Vec<f64>`.
     /// `time` is not included — the solver manages time separately.
@@ -123,18 +162,22 @@ impl WorldState {
             self.capital.industrial_capital,
             self.capital.service_capital,
             self.capital.perceived_iopc,
-            // Agriculture (2 stocks)
+            // Agriculture (4 stocks)
             self.agriculture.arable_land,
             self.agriculture.potentially_arable_land,
+            self.agriculture.urban_industrial_land,
+            self.agriculture.land_fertility,
             // Resources (1 stock)
             self.resources.nonrenewable_resources,
             // Pollution (2 stocks: appeared + pipeline)
             self.pollution.persistent_pollution,
             self.pollution.pollution_appearance_buffer,
+            // Population delay (1 stock: perceived LE)
+            self.population.perceived_le,
         ]
     }
 
-    /// Reconstruct state from a flat vec (only the 12 ODE stocks).
+    /// Reconstruct state from a flat vec (only the 15 ODE stocks).
     /// Derived/auxiliary fields are left at their defaults — they will be
     /// computed by the derivative function before use.
     pub fn from_vec(time: f64, v: &[f64]) -> Self {
@@ -155,12 +198,16 @@ impl WorldState {
 
         s.agriculture.arable_land = v[7].max(0.0);
         s.agriculture.potentially_arable_land = v[8].max(0.0);
+        s.agriculture.urban_industrial_land = v[9].max(0.0);
+        s.agriculture.land_fertility = v[10].max(1.0); // never zero
 
-        s.resources.nonrenewable_resources = v[9].max(0.0);
-        s.resources.fraction_remaining = v[9].clamp(0.0, 1.0);
+        s.resources.nonrenewable_resources = v[11].max(0.0);
+        s.resources.fraction_remaining = v[11].clamp(0.0, 1.0);
 
-        s.pollution.persistent_pollution = v[10].max(0.0);
-        s.pollution.pollution_appearance_buffer = v[11].max(0.0);
+        s.pollution.persistent_pollution = v[12].max(0.0);
+        s.pollution.pollution_appearance_buffer = v[13].max(0.0);
+
+        s.population.perceived_le = v[14].max(5.0); // never below minimum LE
         s
     }
 
@@ -201,11 +248,14 @@ impl std::ops::Add for WorldState {
         self.population.cohort_15_44 += rhs.population.cohort_15_44;
         self.population.cohort_45_64 += rhs.population.cohort_45_64;
         self.population.cohort_65_plus += rhs.population.cohort_65_plus;
+        self.population.perceived_le += rhs.population.perceived_le;
         self.capital.industrial_capital += rhs.capital.industrial_capital;
         self.capital.service_capital += rhs.capital.service_capital;
         self.capital.perceived_iopc += rhs.capital.perceived_iopc;
         self.agriculture.arable_land += rhs.agriculture.arable_land;
         self.agriculture.potentially_arable_land += rhs.agriculture.potentially_arable_land;
+        self.agriculture.urban_industrial_land += rhs.agriculture.urban_industrial_land;
+        self.agriculture.land_fertility += rhs.agriculture.land_fertility;
         self.resources.nonrenewable_resources += rhs.resources.nonrenewable_resources;
         self.pollution.persistent_pollution += rhs.pollution.persistent_pollution;
         self.pollution.pollution_appearance_buffer += rhs.pollution.pollution_appearance_buffer;
@@ -220,11 +270,14 @@ impl std::ops::Mul<f64> for WorldState {
         self.population.cohort_15_44 *= rhs;
         self.population.cohort_45_64 *= rhs;
         self.population.cohort_65_plus *= rhs;
+        self.population.perceived_le *= rhs;
         self.capital.industrial_capital *= rhs;
         self.capital.service_capital *= rhs;
         self.capital.perceived_iopc *= rhs;
         self.agriculture.arable_land *= rhs;
         self.agriculture.potentially_arable_land *= rhs;
+        self.agriculture.urban_industrial_land *= rhs;
+        self.agriculture.land_fertility *= rhs;
         self.resources.nonrenewable_resources *= rhs;
         self.pollution.persistent_pollution *= rhs;
         self.pollution.pollution_appearance_buffer *= rhs;

@@ -1,6 +1,6 @@
 //! Top-level derivative function: `dy/dt = f(t, y, params)`.
 //!
-//! This function computes the rate of change for all 10 ODE stocks.
+//! This function computes the rate of change for all 15 ODE stocks.
 //! Sector computation order is fixed to satisfy dependencies:
 //!
 //!   1. Resources (other sectors need fraction_remaining for cost multiplier)
@@ -25,8 +25,8 @@ use crate::model::{
 /// Returns a `WorldState` where all stock fields hold *rates of change*
 /// (units: [stock_unit / year]), not values. The `time` field is unused.
 ///
-/// Auxiliary fields on the returned state are zeroed — only the 10 ODE
-/// stocks (cohorts, capitals, arable land, resources, pollution) carry data.
+/// Auxiliary fields on the returned state are zeroed — only the 15 ODE
+/// stocks (cohorts, perceived_le, capitals, land, resources, pollution) carry data.
 pub fn derivatives(
     state: &WorldState,
     params: &ScenarioParams,
@@ -41,7 +41,8 @@ pub fn derivatives(
     // fractions. Pre-seed with a base-yield estimate; agriculture will refine later.
     if s.agriculture.food_per_capita <= 0.0 {
         let pop = s.population.population.max(1.0);
-        s.agriculture.food_per_capita = s.agriculture.arable_land * 600.0 / pop;
+        let base_yield = s.agriculture.land_fertility.max(1.0);
+        s.agriculture.food_per_capita = s.agriculture.arable_land * base_yield / pop;
     }
 
     // --- Step 1: Resource auxiliaries ---
@@ -74,6 +75,7 @@ pub fn derivatives(
     d.population.cohort_15_44 = pop_deriv.d_cohort_15_44;
     d.population.cohort_45_64 = pop_deriv.d_cohort_45_64;
     d.population.cohort_65_plus = pop_deriv.d_cohort_65_plus;
+    d.population.perceived_le = pop_deriv.d_perceived_le;
 
     d.capital.industrial_capital = cap_deriv.d_industrial_capital;
     d.capital.service_capital = cap_deriv.d_service_capital;
@@ -81,6 +83,8 @@ pub fn derivatives(
 
     d.agriculture.arable_land = agri_deriv.d_arable_land;
     d.agriculture.potentially_arable_land = agri_deriv.d_potentially_arable_land;
+    d.agriculture.urban_industrial_land = agri_deriv.d_urban_industrial_land;
+    d.agriculture.land_fertility = agri_deriv.d_land_fertility;
 
     d.resources.nonrenewable_resources = d_nnr;
 

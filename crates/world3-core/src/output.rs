@@ -73,6 +73,11 @@ fn extract_field(state: &WorldState, path: &str) -> Option<f64> {
         "pollution.persistent_pollution" => Some(state.pollution.persistent_pollution),
         "pollution.pollution_appearance_buffer" => Some(state.pollution.pollution_appearance_buffer),
         "pollution.pollution_index" => Some(state.pollution.pollution_index),
+        "agriculture.urban_industrial_land" => Some(state.agriculture.urban_industrial_land),
+        "agriculture.land_fertility" => Some(state.agriculture.land_fertility),
+        "population.perceived_le" => Some(state.population.perceived_le),
+        "hwi" => Some(state.hwi()),
+        "ecological_footprint" => Some(state.ecological_footprint()),
         _ => None,
     }
 }
