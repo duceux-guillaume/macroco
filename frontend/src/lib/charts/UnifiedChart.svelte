@@ -4,6 +4,7 @@
 	import { extractSeries, normalizeSeries, type NormalizedPoint } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId } from '../stores/info';
+	import { hoveredYear } from '../stores/simulation';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
 	import type { WorldState } from '../types';
@@ -305,6 +306,7 @@
 
 				tooltipYear = year;
 				tooltipItems = items;
+				hoveredYear.set(year);
 
 				// Position tooltip
 				const px = margin.left + xScale(year);
@@ -318,6 +320,7 @@
 			.on('mouseleave', () => {
 				tooltipLine.style('display', 'none');
 				tooltipVisible = false;
+				hoveredYear.set(null);
 			});
 	});
 </script>

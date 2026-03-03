@@ -11,6 +11,9 @@ export const streamingBuffer = writable<Map<string, WorldState[]>>(new Map());
 /** The scenario ID currently being simulated via WebSocket. */
 export const simulatingScenarioId = writable<string | null>(null);
 
+/** Year currently hovered on the unified chart — syncs hover across all charts. */
+export const hoveredYear = writable<number | null>(null);
+
 /** Active scenario data for charts (completed results filtered by active IDs). */
 export const activeSimData = derived(
 	[simulationResults, activeScenarioIds],
