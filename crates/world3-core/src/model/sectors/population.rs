@@ -148,3 +148,61 @@ pub fn population_derivatives(
         d_perceived_le,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lookup::tables::WorldLookupTables;
+    use crate::model::params::ScenarioParams;
+    use crate::model::state::WorldState;
+
+    fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
+        let mut s = WorldState::initial_1900();
+        let params = ScenarioParams::bau();
+        let tables = WorldLookupTables::load();
+        // Pre-populate auxiliary fields needed by population
+        s.agriculture.food_per_capita = 400.0;
+        s.agriculture.food_per_capita_smooth = 400.0;
+        s.capital.industrial_output_per_capita = 43.75;
+        s.capital.service_output_per_capita = 20.0;
+        s.pollution.pollution_index = 0.05;
+        (s, params, tables)
+    }
+
+    #[test]
+    fn test_population_derivatives_1900() {
+        let (mut s, params, tables) = setup();
+        let d = population_derivatives(&mut s, &params, &tables);
+        // At 1900: birth_rate > death_rate (population growing)
+        assert!(s.population.birth_rate > s.population.death_rate,
+            "birth_rate {} should exceed death_rate {} at 1900",
+            s.population.birth_rate, s.population.death_rate);
+        // Life expectancy should be in 28-40 range at 1900
+        assert!(s.population.life_expectancy >= 28.0 && s.population.life_expectancy <= 45.0,
+            "LE {} outside expected 1900 range", s.population.life_expectancy);
+        // Net population growth positive
+        let net = d.d_cohort_0_14 + d.d_cohort_15_44 + d.d_cohort_45_64 + d.d_cohort_65_plus;
+        assert!(net > 0.0, "net population change should be positive at 1900");
+    }
+
+    #[test]
+    fn test_mortality_tables_used() {
+        let (mut s, params, tables) = setup();
+        population_derivatives(&mut s, &params, &tables);
+        // Death rate should be reasonable (not 0, not 1)
+        assert!(s.population.death_rate > 0.001 && s.population.death_rate < 0.1,
+            "death_rate {} seems unreasonable", s.population.death_rate);
+    }
+
+    #[test]
+    fn test_perceived_le_delay() {
+        let (mut s, params, tables) = setup();
+        // Set perceived_le lower than actual computed LE
+        s.population.perceived_le = 20.0;
+        let d = population_derivatives(&mut s, &params, &tables);
+        // LE should be > perceived_le, so d_perceived_le > 0 (converging up)
+        assert!(d.d_perceived_le > 0.0,
+            "d_perceived_le {} should be positive when perceived_le < actual LE",
+            d.d_perceived_le);
+    }
+}

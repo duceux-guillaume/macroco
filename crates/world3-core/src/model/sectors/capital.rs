@@ -35,13 +35,9 @@ pub fn capital_derivatives(
     let pop = state.population.population.max(1.0);
 
     // ----- Industrial output -----
-    // Capital-output ratio rises as resources deplete
-    let cor_multiplier = tables
-        .capital_output_ratio_resources
-        .eval(state.resources.fraction_remaining);
-
-    // Effective ICOR (higher = less output per unit capital)
-    let icor = ICOR_1970 * cor_multiplier;
+    // World3-03: ICOR is constant at 3.0. Resource scarcity feeds back only
+    // through FCAOR (capital fraction allocated to resource extraction), not ICOR.
+    let icor = ICOR_1970;
 
     // Technology progress: output per unit capital improves over time
     let tech_years = (state.time - 1970.0).max(0.0);
@@ -71,8 +67,10 @@ pub fn capital_derivatives(
     // ----- Allocation fractions -----
     // World3-03: investment is the residual after consumption, services, and agriculture.
     // fioai = 1 - fioac - fioas - fioaa
+    // Uses smoothed food per capita (FSPD=2yr delay) to prevent oscillation
+    // in the agriculture-capital allocation feedback loop.
     let food_ratio = if params.subsistence_food_per_capita > 0.0 {
-        state.agriculture.food_per_capita / params.subsistence_food_per_capita
+        state.agriculture.food_per_capita_smooth / params.subsistence_food_per_capita
     } else {
         1.0
     };
@@ -117,5 +115,43 @@ pub fn capital_derivatives(
         d_industrial_capital: d_industrial,
         d_service_capital: d_service,
         d_perceived_iopc,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lookup::tables::WorldLookupTables;
+    use crate::model::params::ScenarioParams;
+    use crate::model::state::WorldState;
+
+    fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
+        let mut s = WorldState::initial_1900();
+        let params = ScenarioParams::bau();
+        let tables = WorldLookupTables::load();
+        s.agriculture.food_per_capita_smooth = 400.0;
+        s.resources.fraction_remaining = 1.0;
+        (s, params, tables)
+    }
+
+    #[test]
+    fn test_residual_investment() {
+        let (mut s, params, tables) = setup();
+        capital_derivatives(&mut s, &params, &tables);
+        // Industrial output should be positive
+        assert!(s.capital.industrial_output > 0.0);
+        assert!(s.capital.industrial_output_per_capita > 0.0);
+    }
+
+    #[test]
+    fn test_perceived_iopc_delay() {
+        let (mut s, params, tables) = setup();
+        // Set perceived_iopc lower than what actual IOPC will be
+        s.capital.perceived_iopc = 10.0;
+        let d = capital_derivatives(&mut s, &params, &tables);
+        // IOPC should be higher than perceived, so d_perceived_iopc > 0
+        assert!(d.d_perceived_iopc > 0.0,
+            "d_perceived_iopc {} should be positive when perceived < actual",
+            d.d_perceived_iopc);
     }
 }

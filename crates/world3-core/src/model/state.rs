@@ -85,6 +85,10 @@ pub struct AgricultureState {
     pub land_yield: f64,
     /// Agricultural capital inputs [1975 USD / hectare / year]
     pub agricultural_inputs_per_hectare: f64,
+    /// Smoothed food per capita [kg / person / year] — World3-03 FSPD=2yr delay.
+    /// ODE stock: d(fpc_smooth)/dt = (fpc - fpc_smooth) / FSPD.
+    /// Used by capital sector for allocation fractions (breaks oscillation).
+    pub food_per_capita_smooth: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -115,7 +119,7 @@ pub struct PollutionState {
 
 impl WorldState {
     /// The number of state variables (excluding `time`, which is tracked separately).
-    pub const N: usize = 15;
+    pub const N: usize = 16;
 
     /// Human Welfare Index (0–1 scale) — World3-03 composite indicator.
     ///
@@ -162,11 +166,12 @@ impl WorldState {
             self.capital.industrial_capital,
             self.capital.service_capital,
             self.capital.perceived_iopc,
-            // Agriculture (4 stocks)
+            // Agriculture (5 stocks)
             self.agriculture.arable_land,
             self.agriculture.potentially_arable_land,
             self.agriculture.urban_industrial_land,
             self.agriculture.land_fertility,
+            self.agriculture.food_per_capita_smooth,
             // Resources (1 stock)
             self.resources.nonrenewable_resources,
             // Pollution (2 stocks: appeared + pipeline)
@@ -200,15 +205,62 @@ impl WorldState {
         s.agriculture.potentially_arable_land = v[8].max(0.0);
         s.agriculture.urban_industrial_land = v[9].max(0.0);
         s.agriculture.land_fertility = v[10].max(1.0); // never zero
+        s.agriculture.food_per_capita_smooth = v[11].max(0.0);
 
-        s.resources.nonrenewable_resources = v[11].max(0.0);
-        s.resources.fraction_remaining = v[11].clamp(0.0, 1.0);
+        s.resources.nonrenewable_resources = v[12].max(0.0);
+        s.resources.fraction_remaining = v[12].clamp(0.0, 1.0);
 
-        s.pollution.persistent_pollution = v[12].max(0.0);
-        s.pollution.pollution_appearance_buffer = v[13].max(0.0);
+        s.pollution.persistent_pollution = v[13].max(0.0);
+        s.pollution.pollution_appearance_buffer = v[14].max(0.0);
 
-        s.population.perceived_le = v[14].max(5.0); // never below minimum LE
+        s.population.perceived_le = v[15].max(5.0); // never below minimum LE
         s
+    }
+
+    /// World 3 initial conditions for year 1900.
+    /// Values calibrated to broadly match Meadows 1972 standard run starting point.
+    pub fn initial_1900() -> Self {
+        WorldState {
+            time: 1900.0,
+            population: PopulationState {
+                population: 1.6e9,
+                // World3-03 initial cohorts (Meadows 2004): p1i=6.5e8, p2i=7.0e8, p3i=1.9e8, p4i=6.0e7
+                cohort_0_14: 6.5e8,
+                cohort_15_44: 7.0e8,
+                cohort_45_64: 1.9e8,
+                cohort_65_plus: 6.0e7,
+                perceived_le: 33.0, // Initial perceived LE matches 1900 computed LE
+                ..Default::default()
+            },
+            capital: CapitalState {
+                industrial_capital: 2.1e11,  // World3-03: ici = 2.1e11 (1975 USD)
+                service_capital: 1.44e11,    // World3-03: sci = 1.44e11 (1975 USD)
+                // 1900 IOPC ≈ IC/ICOR/POP = 2.1e11 / 3.0 / 1.6e9 ≈ 43.75
+                perceived_iopc: 43.75,
+                ..Default::default()
+            },
+            agriculture: AgricultureState {
+                arable_land: 0.9e9,            // hectares
+                potentially_arable_land: 2.3e9,
+                urban_industrial_land: 8.2e6,  // World3-03: uili = 8.2e6 hectares
+                land_fertility: 600.0,         // World3-03: lferti = 600 kg/ha/yr
+                food_per_capita: 400.0,        // initial estimate; overwritten by agriculture sector
+                food_per_capita_smooth: 400.0, // matches initial fpc estimate
+                ..Default::default()
+            },
+            resources: ResourceState {
+                nonrenewable_resources: 1.0, // 100% remaining in 1900
+                fraction_remaining: 1.0,
+            },
+            pollution: PollutionState {
+                persistent_pollution: 0.05,
+                // Steady-state buffer: at 1900, generation ≈ pp / assimilation_time
+                // ≈ 0.05 / 20 = 0.0025/yr. Buffer = generation × delay = 0.0025 × 20 = 0.05.
+                pollution_appearance_buffer: 0.05,
+                pollution_index: 0.05,
+                ..Default::default()
+            },
+        }
     }
 
     /// Return a zero state (for use as a derivative accumulator)
@@ -256,6 +308,7 @@ impl std::ops::Add for WorldState {
         self.agriculture.potentially_arable_land += rhs.agriculture.potentially_arable_land;
         self.agriculture.urban_industrial_land += rhs.agriculture.urban_industrial_land;
         self.agriculture.land_fertility += rhs.agriculture.land_fertility;
+        self.agriculture.food_per_capita_smooth += rhs.agriculture.food_per_capita_smooth;
         self.resources.nonrenewable_resources += rhs.resources.nonrenewable_resources;
         self.pollution.persistent_pollution += rhs.pollution.persistent_pollution;
         self.pollution.pollution_appearance_buffer += rhs.pollution.pollution_appearance_buffer;
@@ -278,9 +331,124 @@ impl std::ops::Mul<f64> for WorldState {
         self.agriculture.potentially_arable_land *= rhs;
         self.agriculture.urban_industrial_land *= rhs;
         self.agriculture.land_fertility *= rhs;
+        self.agriculture.food_per_capita_smooth *= rhs;
         self.resources.nonrenewable_resources *= rhs;
         self.pollution.persistent_pollution *= rhs;
         self.pollution.pollution_appearance_buffer *= rhs;
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_to_vec_from_vec_roundtrip() {
+        let s = WorldState::initial_1900();
+        let v = s.to_vec();
+        let s2 = WorldState::from_vec(s.time, &v);
+        let v2 = s2.to_vec();
+        for (a, b) in v.iter().zip(v2.iter()) {
+            assert_relative_eq!(a, b, epsilon = 1e-10);
+        }
+    }
+
+    #[test]
+    fn test_world_state_n() {
+        assert_eq!(WorldState::N, 16);
+        let s = WorldState::initial_1900();
+        assert_eq!(s.to_vec().len(), WorldState::N);
+    }
+
+    #[test]
+    fn test_from_vec_clamping() {
+        let v = vec![-1.0; WorldState::N];
+        let s = WorldState::from_vec(1900.0, &v);
+        // Populations clamped to 0
+        assert_eq!(s.population.cohort_0_14, 0.0);
+        assert_eq!(s.population.cohort_15_44, 0.0);
+        assert_eq!(s.population.cohort_45_64, 0.0);
+        assert_eq!(s.population.cohort_65_plus, 0.0);
+        // Land fertility clamped to 1
+        assert_eq!(s.agriculture.land_fertility, 1.0);
+        // Perceived LE clamped to 5
+        assert_eq!(s.population.perceived_le, 5.0);
+        // Resources clamped to 0
+        assert_eq!(s.resources.nonrenewable_resources, 0.0);
+    }
+
+    #[test]
+    fn test_hwi_known_values() {
+        let mut s = WorldState::initial_1900();
+        // LE=25 → LEI=0 → HWI=0
+        s.population.life_expectancy = 25.0;
+        s.capital.industrial_output_per_capita = 200.0;
+        assert_relative_eq!(s.hwi(), 0.0, epsilon = 1e-10);
+
+        // LE=55, IOPC=$200
+        s.population.life_expectancy = 55.0;
+        let lei = (55.0 - 25.0) / 60.0; // 0.5
+        let ii = (200.0_f64.ln() - 20.0_f64.ln()) / (5000.0_f64.ln() - 20.0_f64.ln());
+        let expected = (lei * ii).sqrt();
+        assert_relative_eq!(s.hwi(), expected, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_hwi_bounds() {
+        let mut s = WorldState::initial_1900();
+        // Extreme low
+        s.population.life_expectancy = 5.0;
+        s.capital.industrial_output_per_capita = 1.0;
+        assert!(s.hwi() >= 0.0);
+        assert!(s.hwi() <= 1.0);
+
+        // Extreme high
+        s.population.life_expectancy = 90.0;
+        s.capital.industrial_output_per_capita = 10000.0;
+        assert!(s.hwi() >= 0.0);
+        assert!(s.hwi() <= 1.0);
+    }
+
+    #[test]
+    fn test_ecological_footprint_1970() {
+        let mut s = WorldState::initial_1900();
+        s.agriculture.arable_land = 1.2e9;
+        s.agriculture.urban_industrial_land = 50e6;
+        s.pollution.pollution_index = 1.0;
+        let ef = s.ecological_footprint();
+        // EF = (1.2e9 + 50e6 + 1.0 * 0.3e9) / 1.91e9
+        let expected = (1.2e9 + 50e6 + 0.3e9) / 1.91e9;
+        assert_relative_eq!(ef, expected, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_add_mul_ops() {
+        let s = WorldState::initial_1900();
+        let double = s.clone() + s.clone();
+        let mul2 = s.clone() * 2.0;
+        let v_double = double.to_vec();
+        let v_mul2 = mul2.to_vec();
+        for (a, b) in v_double.iter().zip(v_mul2.iter()) {
+            assert_relative_eq!(a, b, epsilon = 1e-10);
+        }
+    }
+
+    #[test]
+    fn test_zero_derivative() {
+        let d = WorldState::zero_derivative(1900.0);
+        let v = d.to_vec();
+        for (i, val) in v.iter().enumerate() {
+            assert_eq!(*val, 0.0, "stock {i} should be zero in zero_derivative");
+        }
+    }
+
+    #[test]
+    fn test_initial_1900_population_sum() {
+        let s = WorldState::initial_1900();
+        let cohort_sum = s.population.cohort_0_14 + s.population.cohort_15_44
+            + s.population.cohort_45_64 + s.population.cohort_65_plus;
+        assert_relative_eq!(s.population.population, cohort_sum, epsilon = 1e-6);
     }
 }

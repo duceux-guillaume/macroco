@@ -106,7 +106,7 @@ export const variableDescriptions: Record<string, VariableInfo> = {
 		beginner:
 			'The total stock of factories, machines, and infrastructure. Grows when investment exceeds wear-and-tear (depreciation). Produces the industrial output that drives the economy.',
 		expert:
-			'd(IC)/dt = industrial_output × investment_rate − IC × depreciation_rate. Productive capital adjusted by resource extraction fraction and technology multiplier.',
+			'd(IC)/dt = industrial_output × frac_to_investment − IC × depreciation_rate. Investment is the residual after consumption, services, and agriculture allocation.',
 		feedbackLoops: ['resource-collapse', 'demographic-transition'],
 		relatedVariables: [
 			'capital.industrial_output',
@@ -318,15 +318,6 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 			'Annual improvement in how efficiently capital produces output. Compounds over time — even small rates have big long-term effects.',
 		expert:
 			'tech_multiplier = (1 + rate)^max(time−1970, 0). Applied to productive capital before ICOR division.'
-	},
-	investment_rate: {
-		name: 'Investment Rate',
-		unit: 'fraction',
-		sector: 'Capital',
-		beginner:
-			'What fraction of industrial output is reinvested in building new capital. Higher = faster growth but less available for services and agriculture.',
-		expert:
-			'Fraction of industrial_output allocated to gross investment. d(IC)/dt investment term = IO × investment_rate.'
 	},
 	agricultural_technology: {
 		name: 'Agricultural Technology',

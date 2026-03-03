@@ -164,13 +164,14 @@ service_output = service_capital / 1.0   (SCOR = 1.0)
 ```
 frac_to_agriculture = industrial_fraction_to_agriculture(food_per_capita / subsistence_food)
 frac_to_services = industrial_fraction_to_services(spc_normalized)
-frac_to_investment = investment_rate (parameter, default 0.12)
+frac_to_consumption = consumption_fraction(iopc)
+frac_to_investment = 1 - frac_to_consumption - frac_to_services - frac_to_agriculture  (residual)
 ```
 
 **Capital dynamics:**
 
 ```
-d(industrial_capital)/dt = industrial_output × investment_rate - industrial_capital × depreciation_rate
+d(industrial_capital)/dt = industrial_output × frac_to_investment - industrial_capital × depreciation_rate
 d(service_capital)/dt = industrial_output × frac_to_services - service_capital × depreciation_rate
 ```
 

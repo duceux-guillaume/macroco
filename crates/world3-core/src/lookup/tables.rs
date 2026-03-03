@@ -71,11 +71,6 @@ pub struct WorldLookupTables {
     /// Simplified: x = IOPC [USD/person/yr], y = consumption fraction
     pub consumption_fraction: LookupTable,
 
-    /// Industrial capital output ratio (ICOR) as function of resource fraction
-    /// x: fraction of non-renewable resources remaining [0..1]
-    /// y: capital-output ratio multiplier
-    pub capital_output_ratio_resources: LookupTable,
-
     /// Fraction of industrial output allocated to agriculture (FIOAA)
     /// x: food ratio (food per capita / subsistence food)
     /// y: fraction of industrial output to agriculture [0..1]
@@ -306,15 +301,6 @@ impl WorldLookupTables {
             // x: fraction of NNR remaining [0..1]
             // y: multiplier on capital-output ratio
             //
-            // World3-03: ICOR1 = 3.0 (constant). Resource scarcity feeds back ONLY
-            // through FCAOR (capital allocated to resource extraction), not through ICOR.
-            // This table is flat at 1.0 to match World3-03 behavior.
-            capital_output_ratio_resources: LookupTable::new(
-                "capital_output_ratio_resources",
-                vec![0.0, 0.5, 1.0],
-                vec![1.0, 1.0, 1.0],
-            ),
-
             // Fraction of industrial output to agriculture (FIOAA1)
             // World3-03: FIOAA1 indexed by IFPC/FPC ratio, where IFPC > subsistence.
             // Our x-axis uses food_ratio (FPC/subsistence). Because indicated food
@@ -403,8 +389,6 @@ impl WorldLookupTables {
                 vec![1.40, 1.25, 1.10, 1.0, 0.95, 0.92, 0.90],
             ),
 
-            // Food ratio effect on fertility
-            // x: food per capita / subsistence food per capita
             // Urban-industrial land per capita (UILPC)
             // World3-03: maps IOPC to hectares per person needed for urban/industrial use.
             // At subsistence (IOPC≈$40): 0.005 ha/person (rural, low urbanization)

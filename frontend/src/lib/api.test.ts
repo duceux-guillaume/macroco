@@ -44,7 +44,6 @@ const testParams: ScenarioParams = {
 	industrial_depreciation_rate: 0.05,
 	service_depreciation_rate: 0.05,
 	technology_growth_rate: 0.0,
-	investment_rate: 0.2,
 	agricultural_technology: 1.0,
 	land_protection_fraction: 0.0,
 	subsistence_food_per_capita: 230,

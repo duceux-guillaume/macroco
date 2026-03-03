@@ -23,8 +23,6 @@ pub struct ScenarioParams {
     pub service_depreciation_rate: f64,
     /// Technology progress rate (TFP growth multiplier) [0..0.03, default 0.002]
     pub technology_growth_rate: f64,
-    /// Fraction of industrial output reinvested in industry [0..0.4, default 0.12]
-    pub investment_rate: f64,
 
     // ---- Agriculture ----
     /// Agricultural technology multiplier [0.5..3.0, default 1.0]
@@ -66,7 +64,6 @@ impl Default for ScenarioParams {
             // World3-03: alsc1 = 20 yr → depreciation = 1/20
             service_depreciation_rate: 0.05,
             technology_growth_rate: 0.002,
-            investment_rate: 0.12,
             agricultural_technology: 1.0,
             land_protection_fraction: 0.0,
             subsistence_food_per_capita: 230.0,
@@ -218,14 +215,6 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             description: "Annual improvement in industrial output per unit capital.".into(),
         },
         ParameterDescriptor {
-            field: "investment_rate".into(),
-            label: "Investment Rate".into(),
-            unit: "fraction".into(),
-            min: 0.0, max: 0.4, default: 0.12, step: 0.01,
-            sector: "capital".into(),
-            description: "Fraction of industrial output reinvested in industrial capital.".into(),
-        },
-        ParameterDescriptor {
             field: "agricultural_technology".into(),
             label: "Agricultural Technology".into(),
             unit: "multiplier".into(),
@@ -258,4 +247,54 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             description: "Fraction by which pollution generation is reduced per unit output.".into(),
         },
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_matches_bau() {
+        let d = ScenarioParams::default();
+        let b = ScenarioParams::bau();
+        // Critical fields must match (meta differs)
+        assert_eq!(d.family_planning_efficacy, b.family_planning_efficacy);
+        assert_eq!(d.industrial_depreciation_rate, b.industrial_depreciation_rate);
+        assert_eq!(d.service_depreciation_rate, b.service_depreciation_rate);
+        assert_eq!(d.technology_growth_rate, b.technology_growth_rate);
+        assert_eq!(d.resource_efficiency, b.resource_efficiency);
+        assert_eq!(d.pollution_control, b.pollution_control);
+        assert_eq!(d.agricultural_technology, b.agricultural_technology);
+    }
+
+    #[test]
+    fn test_presets_valid_ranges() {
+        let descriptors = parameter_descriptors();
+        let presets = [
+            ScenarioParams::bau(),
+            ScenarioParams::comprehensive_technology(),
+            ScenarioParams::stabilized_world(),
+        ];
+        for preset in &presets {
+            for desc in &descriptors {
+                let val = match desc.field.as_str() {
+                    "family_planning_year" => preset.family_planning_year,
+                    "family_planning_efficacy" => preset.family_planning_efficacy,
+                    "health_investment_multiplier" => preset.health_investment_multiplier,
+                    "industrial_depreciation_rate" => preset.industrial_depreciation_rate,
+                    "technology_growth_rate" => preset.technology_growth_rate,
+                    "agricultural_technology" => preset.agricultural_technology,
+                    "land_protection_fraction" => preset.land_protection_fraction,
+                    "resource_efficiency" => preset.resource_efficiency,
+                    "pollution_control" => preset.pollution_control,
+                    _ => continue,
+                };
+                assert!(
+                    val >= desc.min && val <= desc.max,
+                    "Preset '{}' field '{}': value {} outside [{}, {}]",
+                    preset.meta.name, desc.field, val, desc.min, desc.max
+                );
+            }
+        }
+    }
 }

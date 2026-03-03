@@ -36,9 +36,10 @@ pub fn derivatives(
     let mut s = state.clone();
 
     // --- Step 0: Pre-seed food_per_capita from stocks ---
-    // When RK4 creates intermediate states via from_vec(), auxiliary fields are
-    // zeroed. Capital needs a reasonable food_per_capita to compute allocation
-    // fractions. Pre-seed with a base-yield estimate; agriculture will refine later.
+    // food_per_capita is auxiliary (zeroed by from_vec()); pre-seed with a base-yield
+    // estimate so population sector gets a reasonable food_ratio.
+    // food_per_capita_smooth is a proper ODE stock (preserved by from_vec/to_vec),
+    // so it does NOT need pre-seeding here.
     if s.agriculture.food_per_capita <= 0.0 {
         let pop = s.population.population.max(1.0);
         let base_yield = s.agriculture.land_fertility.max(1.0);
@@ -85,6 +86,7 @@ pub fn derivatives(
     d.agriculture.potentially_arable_land = agri_deriv.d_potentially_arable_land;
     d.agriculture.urban_industrial_land = agri_deriv.d_urban_industrial_land;
     d.agriculture.land_fertility = agri_deriv.d_land_fertility;
+    d.agriculture.food_per_capita_smooth = agri_deriv.d_food_per_capita_smooth;
 
     d.resources.nonrenewable_resources = d_nnr;
 
