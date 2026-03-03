@@ -4,7 +4,7 @@
 	import { extractSeries, normalizeSeries, type NormalizedPoint } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId } from '../stores/info';
-	import { hoveredYear } from '../stores/simulation';
+	import { hoveredYear, brushedXDomain } from '../stores/simulation';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
 	import type { WorldState } from '../types';
@@ -27,6 +27,7 @@
 	let tooltipItems = $state<Array<{ label: string; color: string; rawValue: string; unit: string; trend: string }>>([]);
 
 	const margin = { top: 32, right: 160, bottom: 32, left: 48 };
+	let isBrushing = false;
 
 	function getFormatter(format: string): (v: number) => string {
 		switch (format) {
@@ -247,7 +248,45 @@
 			(exit) => exit.remove()
 		);
 
-		// Tooltip overlay
+		// Brush (below tooltip overlay)
+		const brushGroup = g.selectAll<SVGGElement, null>('g.brush')
+			.data([null])
+			.join('g')
+			.attr('class', 'brush');
+
+		const brush = d3.brushX<null>()
+			.extent([[0, 0], [innerW, innerH]])
+			.on('start', () => {
+				isBrushing = true;
+			})
+			.on('end', (event: d3.D3BrushEvent<null>) => {
+				isBrushing = false;
+				if (!event.selection) {
+					brushedXDomain.set(null);
+					return;
+				}
+				const [x0, x1] = event.selection as [number, number];
+				const yearStart = Math.round(xScale.invert(x0));
+				const yearEnd = Math.round(xScale.invert(x1));
+				if (yearEnd - yearStart < 5) {
+					// Too small a selection — clear
+					brushGroup.call(brush.move, null);
+					brushedXDomain.set(null);
+					return;
+				}
+				brushedXDomain.set([yearStart, yearEnd]);
+			});
+
+		brushGroup.call(brush);
+
+		// Style brush selection
+		brushGroup.select('.selection')
+			.attr('fill', 'var(--accent)')
+			.attr('fill-opacity', 0.15)
+			.attr('stroke', 'var(--accent)')
+			.attr('stroke-opacity', 0.4);
+
+		// Tooltip overlay (above brush so mousemove still works)
 		const overlay = g.selectAll<SVGRectElement, null>('rect.overlay')
 			.data([null])
 			.join('rect')
@@ -270,6 +309,8 @@
 
 		overlay
 			.on('mousemove', (event: MouseEvent) => {
+				if (isBrushing) return;
+
 				const [mx] = d3.pointer(event);
 				const year = Math.round(xScale.invert(mx));
 
