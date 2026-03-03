@@ -138,6 +138,13 @@ pub async fn run_scenario(
 
     let states = result.map_err(|e| ApiError::SimulationFailed(e.to_string()))?;
 
+    // Filter out warmup states before start_year
+    let start_year = {
+        let store = state.scenarios.read().await;
+        store.get(&id).map(|s| s.params.start_year).unwrap_or(1900.0)
+    };
+    let states: Vec<_> = states.into_iter().filter(|s| s.time >= start_year).collect();
+
     // Build output
     let output = {
         let store = state.scenarios.read().await;

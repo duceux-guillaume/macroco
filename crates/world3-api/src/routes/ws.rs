@@ -184,6 +184,7 @@ fn spawn_sim_task(
     params: world3_core::ScenarioParams,
     tx: mpsc::Sender<WsServerMsg>,
 ) -> JoinHandle<()> {
+    let start_year = params.start_year;
     tokio::spawn(async move {
         let solver = Arc::clone(&state.solver);
         let initial = initial_conditions_1900();
@@ -192,8 +193,12 @@ fn spawn_sim_task(
 
         match result {
             Ok(Ok(states)) => {
-                let n = states.len();
+                let mut n = 0usize;
                 for s in states {
+                    if s.time < start_year {
+                        continue;
+                    }
+                    n += 1;
                     let year = s.time;
                     if tx
                         .send(WsServerMsg::SimStep { year, state: s })
