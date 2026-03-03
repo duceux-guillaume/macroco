@@ -112,6 +112,6 @@
   - *Context:* Milestone 4 targets a single `docker compose up` command to run the full stack (API server + frontend + ingestion).
   - *Priority:* medium
 
-- [ ] **REQ-017: Frontend test suite**
-  - *Context:* The frontend currently has no tests (`package.json` test script is a placeholder). Svelte component and integration tests are needed.
+- [x] **REQ-017: Frontend test suite**
+  - *Context:* Vitest unit test suite: 8 test files, ~150 tests covering format/extract utils, chart configs, variable descriptions, annotations, stores, and API client. CI pipeline runs tests on every PR.
   - *Priority:* low

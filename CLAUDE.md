@@ -77,7 +77,8 @@ docker compose up
 # Tests
 cargo test --workspace
 cargo clippy --workspace -- -D warnings
-cd frontend && npm run check && npm test
+cd frontend && npm run check && npm test   # vitest unit tests
+cd frontend && npm run test:watch          # vitest in watch mode
 ```
 
 ## Key Architecture Decisions
