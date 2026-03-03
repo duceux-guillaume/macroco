@@ -1,6 +1,6 @@
 app = "macroco"
 primary_region = "cdg"
-kill_timeout = "10s"
+kill_timeout = "20s"
 
 [env]
   PORT = "8080"
