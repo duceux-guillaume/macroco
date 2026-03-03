@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
 import { simulationResults, activeSimData } from './simulation';
 import {
@@ -11,6 +11,14 @@ import {
 import { paramsSchema, schemaBySector } from './schema';
 import { makeWorldState } from '../test-helpers';
 import type { ScenarioSummary, ParameterDescriptor } from '../types';
+
+beforeEach(() => {
+	simulationResults.set(new Map());
+	activeScenarioIds.set(new Set());
+	scenarios.set([]);
+	focusedScenarioId.set(null);
+	paramsSchema.set([]);
+});
 
 describe('activeSimData', () => {
 	it('filters by activeScenarioIds', () => {

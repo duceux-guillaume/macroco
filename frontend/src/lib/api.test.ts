@@ -145,7 +145,7 @@ describe('updateParams', () => {
 
 describe('deleteScenario', () => {
 	it('uses DELETE method', async () => {
-		const fetch = mockFetch(undefined);
+		const fetch = mockFetch(null);
 		vi.stubGlobal('fetch', fetch);
 
 		await deleteScenario('test-id');
