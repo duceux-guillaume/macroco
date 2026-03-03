@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ConnectionStatus from './ConnectionStatus.svelte';
+	import SimulationControls from './SimulationControls.svelte';
 	import ScenarioSelector from './ScenarioSelector.svelte';
 	import ParameterSliders from './ParameterSliders.svelte';
 </script>
@@ -9,6 +10,10 @@
 		<h1>Macroco</h1>
 		<p class="subtitle">World 3 Simulator</p>
 		<ConnectionStatus />
+	</div>
+
+	<div class="sidebar-section">
+		<SimulationControls />
 	</div>
 
 	<div class="sidebar-section">

@@ -2,19 +2,26 @@
 
 Online live macroeconomic model based on the World 3 system dynamics model (Meadows et al., *Limits to Growth*). Extended with modern indicators: climate, energy mix, biodiversity, inequality.
 
-**Status: Phase 5 of 6 complete** — core simulation engine, CLI, HTTP + WebSocket API, SvelteKit + D3 frontend
+**Status: Milestone 1 in progress** — interactive Limits to Growth experience with documentation, tooltips, and scenario comparison.
 
-## Prerequisites
+## Getting Started
 
-- Rust 1.75+
-- cargo
-- Node.js 18+ and npm (for frontend)
+- **[Quick Start Guide](docs/quick-start.md)** — Install prerequisites and run the app locally in 5 minutes
+- **[Model Guide](docs/model-guide.md)** — Understand the World 3 model (beginner + expert tracks)
+- **[CLI Reference](docs/cli.md)** — Run batch simulations from the command line
+- **[API Documentation](docs/api-server.md)** — REST + WebSocket endpoints
 
-## Build
+## Quick Start
+
+> New here? See the full [Quick Start Guide](docs/quick-start.md) with screenshots.
 
 ```bash
-cargo build --workspace
+git clone <repo-url> && cd macroco
+./run.sh
+# Open http://localhost:5173
 ```
+
+Requires Rust 1.75+ and Node.js 18+. The first build takes 2–3 minutes.
 
 ## CLI Usage
 
@@ -246,6 +253,8 @@ npm run check
 
 See [`docs/`](docs/) for detailed feature documentation:
 
+- [Quick Start Guide](docs/quick-start.md) — Get up and running in 5 minutes
+- [Model Guide](docs/model-guide.md) — World 3 model explanation (beginner + expert)
 - [Simulation Engine](docs/simulation-engine.md) — World 3 model, sectors, solver
 - [CLI Reference](docs/cli.md) — Commands, flags, output formats
 - [API Server](docs/api-server.md) — REST endpoints, WebSocket streaming
@@ -264,13 +273,15 @@ crates/
   world3-api/         [IMPLEMENTED] Axum HTTP + WebSocket server. REST endpoints for
                       scenario CRUD, synchronous simulation runs, and streaming WebSocket
                       simulation with debounced parameter updates.
-  world3-ingestion/   [PLANNED] Live data pipeline — World Bank, NOAA, FAO, UN, BP (Phase 4).
+  world3-ingestion/   [PLANNED] Live data pipeline — World Bank, NOAA, FAO, UN, BP.
 frontend/             [IMPLEMENTED] SvelteKit + D3 frontend. 6 interactive charts,
                       parameter sliders, scenario comparison, WebSocket live updates.
 data/
   lookup_tables/      World 3 piecewise-linear tables (JSON). Required at runtime.
   presets/            Named scenario parameter sets (BAU, Technology, Stabilized).
 docs/
+  quick-start.md       Beginner-friendly setup guide
+  model-guide.md       World 3 model explanation (beginner + expert tracks)
   simulation-engine.md World 3 model architecture, sectors, solver
   cli.md               CLI commands and flags reference
   api-server.md        REST + WebSocket API documentation
@@ -278,14 +289,32 @@ docs/
   examples/            Generated example charts
 ```
 
-## Development Phases
+## Product Milestones
 
-- [x] **Phase 1** — Core simulation engine: `world3-core`, `world3-cli`, 5 original World 3 sectors, RK4 solver, validation
-- [ ] **Phase 2** — Modern extensions + calibration: 4 extension sectors (climate, energy, biodiversity, inequality), historical CSV calibration
-- [x] **Phase 3** — API server: Axum REST + WebSocket, streaming simulation
-- [ ] **Phase 4** — Live data ingestion: 7 data sources, SQLite cache, broadcast
-- [x] **Phase 5** — Frontend: SvelteKit + D3, stores, parameter sliders, scenario comparison
-- [ ] **Phase 6** — Polish + deployment: benchmarks, sensitivity analysis, Docker Compose, CI
+### Milestone 1 — Interactive Limits to Growth (current)
+A well-documented, interactive exploration of the original World 3 model.
+
+Completed:
+- [x] Core simulation engine (5 sectors, 10 ODE stocks, RK4 solver)
+- [x] CLI for batch simulation and validation
+- [x] API server with REST + WebSocket streaming
+- [x] SvelteKit + D3 frontend with 6 charts, parameter sliders, scenario comparison
+- [x] Quick start guide for beginners (docs/quick-start.md + run.sh)
+- [x] Model guide documentation (beginner + expert)
+- [x] Rich chart tooltips with variable descriptions
+- [x] Variable info panels (click chart title for deep-dive)
+- [x] Simulation controls (start/end year, timestep)
+- [x] Chart annotations (peaks, thresholds)
+- [x] Preset comparison UX
+
+### Milestone 2 — Modern Extensions
+Climate, energy mix, biodiversity, and inequality sectors. Historical calibration.
+
+### Milestone 3 — Live Data Pipeline
+World Bank, NOAA, FAO, UN, BP ingestion. SQLite cache. Real-world initial conditions.
+
+### Milestone 4 — Production Deployment
+Docker Compose, CI/CD, benchmarks, sensitivity analysis.
 
 ## License
 
