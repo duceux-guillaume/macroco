@@ -20,7 +20,7 @@
 
 - [x] **REQ-004: Scenario presets**
   - *Context:* Named parameter sets allow reproducible runs and comparison against canonical scenarios.
-  - *Done:* Three presets in `data/presets/`: Business as Usual, Comprehensive Technology, Stabilized World.
+  - *Done:* Three presets (Business as Usual, Comprehensive Technology, Stabilized World) constructed in Rust code; JSON copies in `data/presets/`.
 
 - [x] **REQ-005: Validation against Meadows 1972**
   - *Context:* The standard BAU run must reproduce the qualitative dynamics of Meadows 1972 Fig. 35.
@@ -101,7 +101,7 @@
   - *Priority:* medium
 
 - [ ] **REQ-014: Data mapping layer**
-  - *Context:* A `mapping.rs` module must translate raw external observations into `WorldState` initial conditions, serving as the single source of truth for real-world-to-model conversion.
+  - *Context:* Milestone 3 requires a `mapping.rs` module to translate raw external observations into `WorldState` initial conditions, serving as the single source of truth for real-world-to-model conversion.
   - *Priority:* medium
 
 - [ ] **REQ-015: Performance benchmarks and sensitivity analysis**
