@@ -56,6 +56,7 @@ fly.toml              # Fly.io app configuration
 ## Commands
 
 ```bash
+# NOTE: Dockerfile uses rust:1.85+ (required for edition2024 transitive deps)
 # Quick start — builds frontend, serves everything on http://localhost:8080
 ./run.sh
 
@@ -104,6 +105,8 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - `AppState` holds: solver, lookup tables, scenario store (`RwLock<HashMap<Uuid, Scenario>>`), live data snapshot, ingestion broadcast sender.
 - WebSocket sessions stream simulation steps via `mpsc` channel from blocking task to async handler.
 - Parameter updates from the frontend are debounced 50ms server-side; current task is aborted and replaced.
+- In production, serves static frontend via `tower-http::ServeDir` with SPA fallback (`STATIC_DIR` env var). API at `/api/v1/*`, frontend at all other paths.
+- Graceful shutdown handles SIGTERM + Ctrl-C with 15s drain timeout (fly.toml `kill_timeout = 20s`).
 
 ### Data Ingestion (`world3-ingestion`)
 - `DataSource` trait: each source implements `fetch() → RawSourceData` and declares its `update_interval`.
@@ -111,6 +114,8 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - `mapping.rs` is the single source of truth for translating real-world observations into `WorldState` initial conditions.
 
 ### Frontend
+- `frontend/src/lib/env.ts` provides `getApiBase()` / `getWsBase()` — returns relative URLs in production (empty `PUBLIC_*` vars), absolute URLs in dev. All API/WS imports use this, not `$env/static/public` directly.
+- `frontend/.env.production` has empty `PUBLIC_API_BASE=` and `PUBLIC_WS_BASE=` to trigger same-origin fallback.
 - Svelte reactive stores (`$:`) drive all chart updates — avoid imperative D3 re-render calls outside the reactive block.
 - D3 is used directly (not wrapped in a chart library) because World 3 output requires custom multi-axis, phase-plane, and animated transition patterns.
 - WS client auto-reconnects with 2s backoff. All WS messages are typed against `WsClientMsg` / `WsServerMsg`.
@@ -152,6 +157,12 @@ The "standard run" (BAU preset, 1900–2100, no policy interventions) must repro
 - Industrial output per capita peaks and collapses before 2100
 
 Run `cargo run --bin world3-cli -- validate` to check against bundled reference trajectories.
+
+## CI/CD
+- GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
+- Deploy gated on `environment: production` with required status checks
+- `frontend-test` job runs: `npm run check`, `npm test`, `npm run build`
+- Ruleset on main: PR required (1 approval), rebase-only, linear history, no force push
 
 ## Product Milestones
 1. **Milestone 1 — Interactive Limits to Growth** (current): Documentation, tooltips, info panels, simulation controls, annotations, preset comparison.
