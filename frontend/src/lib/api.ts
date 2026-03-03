@@ -1,4 +1,4 @@
-import { PUBLIC_API_BASE } from '$env/static/public';
+import { getApiBase } from './env';
 import type {
 	ParameterDescriptor,
 	Scenario,
@@ -8,7 +8,7 @@ import type {
 } from './types';
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-	const res = await fetch(`${PUBLIC_API_BASE}${path}`, {
+	const res = await fetch(`${getApiBase()}${path}`, {
 		headers: { 'Content-Type': 'application/json' },
 		...init
 	});

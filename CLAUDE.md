@@ -3,7 +3,7 @@
 ## Project Overview
 Online live macroeconomic model based on the World 3 system dynamics model (Meadows et al., *Limits to Growth*). Extended with modern indicators: climate, energy mix, biodiversity, inequality.
 
-**Stack:** Rust backend (Axum) + SvelteKit/TypeScript frontend + D3 v7. Deployed via Docker Compose.
+**Stack:** Rust backend (Axum) + SvelteKit/TypeScript frontend + D3 v7. Deployed on Fly.io.
 
 ## Current Objective
 Milestone 1: Interactive Limits to Growth. The frontend must be a self-contained
@@ -47,14 +47,20 @@ docs/
   cli.md               # CLI commands and flags reference
   api-server.md        # REST + WebSocket API documentation
   chart-output.md      # PNG chart rendering feature
+  deployment.md        # Fly.io deployment guide
   examples/            # Generated example charts
+Dockerfile            # Multi-stage build (Rust + Node + slim runtime)
+fly.toml              # Fly.io app configuration
 ```
 
 ## Commands
 
 ```bash
-# Quick start (backend + frontend)
+# Quick start — builds frontend, serves everything on http://localhost:8080
 ./run.sh
+
+# Quick start — frontend hot-reload mode (backend :8080 + Vite :5173)
+./run.sh --dev
 
 # Build everything
 cargo build --workspace
@@ -65,14 +71,18 @@ cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 # Validate against Meadows 1972 reference trajectories
 cargo run --bin world3-cli -- validate
 
-# Run API server (development)
-RUST_LOG=debug cargo run --bin world3-api
+# Run API server (serving static frontend)
+STATIC_DIR=frontend/build RUST_LOG=debug cargo run --bin world3-api
 
-# Run frontend (development, separate terminal)
+# Run frontend dev server (separate terminal, for hot-reload)
 cd frontend && npm run dev
 
-# Full stack via Docker Compose
-docker compose up
+# Docker build and run
+docker build -t macroco .
+docker run -p 8080:8080 macroco
+
+# Deploy to Fly.io
+flyctl deploy --remote-only
 
 # Tests
 cargo test --workspace
@@ -123,12 +133,13 @@ Future extensions (Milestone 2): Climate (CO₂/EBM temperature) · Energy Mix �
 ```env
 # Backend
 RUST_LOG=info,world3_api=debug
+STATIC_DIR=./static    # path to frontend build output (default: ./static)
 DATABASE_URL=sqlite:///data/cache.db
 CORS_ORIGINS=http://localhost:5173
 FAO_API_KEY=           # optional — FAO FAOSTAT
 IEA_API_KEY=           # optional — IEA detailed energy data
 
-# Frontend
+# Frontend (dev mode only — production uses same-origin relative URLs)
 PUBLIC_API_BASE=http://localhost:8080/api/v1
 PUBLIC_WS_BASE=ws://localhost:8080/api/v1/ws
 ```
