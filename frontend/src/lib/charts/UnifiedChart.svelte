@@ -5,6 +5,7 @@
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId } from '../stores/info';
 	import { hoveredYear, brushedXDomain } from '../stores/simulation';
+	import { visibleVariables, compareMode, compareVariable } from '../stores/chart-ui';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
 	import type { WorldState } from '../types';
@@ -44,51 +45,144 @@
 		height = h;
 	}
 
-	function handleLegendClick(fieldPath: string) {
+	function handleLegendToggle(fieldPath: string) {
+		visibleVariables.update((set) => {
+			const next = new Set(set);
+			if (next.has(fieldPath)) {
+				// Don't allow hiding all variables
+				if (next.size > 1) next.delete(fieldPath);
+			} else {
+				next.add(fieldPath);
+			}
+			return next;
+		});
+	}
+
+	function handleLegendInfoClick(e: MouseEvent, fieldPath: string) {
+		e.stopPropagation();
 		selectedVariableId.set(fieldPath);
 	}
 
-	// Precompute series per variable for the focused scenario
-	interface VariableSeries {
-		config: UnifiedVariableConfig;
-		normalizedPoints: NormalizedPoint[];
+	// Shared line data type for both modes
+	interface LineDatum {
+		id: string;
+		color: string;
+		points: Array<{ year: number; normalized: number }>;
 		rawPoints: Array<{ year: number; value: number }>;
+		label: string;
+		format: string;
 	}
 
 	$effect(() => {
 		if (!containerEl || width <= 0 || height <= 0) return;
 
 		const _data = data;
+		const _colors = colors;
 		const _focusedId = focusedScenarioId;
+		const _compareMode = $compareMode;
+		const _compareVariable = $compareVariable;
+		const _visibleVars = $visibleVariables;
 
 		const innerW = width - margin.left - margin.right;
 		const innerH = height - margin.top - margin.bottom;
 		if (innerW <= 0 || innerH <= 0) return;
 
-		// Pick the focused scenario (or first available)
-		const scenarioId = _focusedId ?? _data.keys().next().value;
-		if (!scenarioId) return;
-		const states = _data.get(scenarioId);
-		if (!states || states.length === 0) return;
+		let linesData: LineDatum[] = [];
+		let legendData: Array<{ id: string; label: string; color: string; fieldPath: string; visible: boolean }> = [];
+		let useNormalizedY = true;
 
-		// Extract and normalize all 6 variables
-		const allVarSeries: VariableSeries[] = [];
-		for (const varConfig of unifiedVariables) {
-			const rawPoints = extractSeries(states, varConfig.fieldPath);
-			if (rawPoints.length === 0) continue;
-			const { points: normalizedPoints } = normalizeSeries(rawPoints);
-			allVarSeries.push({ config: varConfig, normalizedPoints, rawPoints });
+		if (_compareMode) {
+			// Compare mode: 1 variable x N scenarios (native scale, scenario colors)
+			const varConfig = unifiedVariables.find((v) => v.fieldPath === _compareVariable) ?? unifiedVariables[0];
+			const fmt = getFormatter(varConfig.format);
+			useNormalizedY = false;
+
+			for (const [scenarioId, states] of _data) {
+				const rawPoints = extractSeries(states, varConfig.fieldPath);
+				if (rawPoints.length === 0) continue;
+				const color = _colors.get(scenarioId) ?? '#888';
+				linesData.push({
+					id: scenarioId,
+					color,
+					points: rawPoints.map((p) => ({ year: p.year, normalized: p.value })),
+					rawPoints,
+					label: scenarioId.slice(0, 8),
+					format: varConfig.format
+				});
+			}
+
+			// Legend shows scenarios
+			for (const [scenarioId] of _data) {
+				const color = _colors.get(scenarioId) ?? '#888';
+				legendData.push({
+					id: scenarioId,
+					label: scenarioId.slice(0, 8),
+					color,
+					fieldPath: varConfig.fieldPath,
+					visible: true
+				});
+			}
+		} else {
+			// Normal mode: all variables for focused scenario, normalized
+			const scenarioId = _focusedId ?? _data.keys().next().value;
+			if (!scenarioId) return;
+			const states = _data.get(scenarioId);
+			if (!states || states.length === 0) return;
+
+			for (const varConfig of unifiedVariables) {
+				const rawPoints = extractSeries(states, varConfig.fieldPath);
+				if (rawPoints.length === 0) continue;
+				const { points: normalizedPoints } = normalizeSeries(rawPoints);
+				const visible = _visibleVars.has(varConfig.fieldPath);
+				if (visible) {
+					linesData.push({
+						id: varConfig.id,
+						color: varConfig.color,
+						points: normalizedPoints,
+						rawPoints,
+						label: varConfig.shortLabel,
+						format: varConfig.format
+					});
+				}
+			}
+
+			// Legend always shows all 6 variables (with visibility state)
+			legendData = unifiedVariables.map((v) => ({
+				id: v.id,
+				label: v.label,
+				color: v.color,
+				fieldPath: v.fieldPath,
+				visible: _visibleVars.has(v.fieldPath)
+			}));
 		}
 
-		if (allVarSeries.length === 0) return;
+		if (linesData.length === 0 && !_compareMode) return;
 
-		// X domain from first series (all share the same time range)
-		const xExtent = d3.extent(allVarSeries[0].rawPoints, (d) => d.year) as [number, number];
+		// X domain from all lines
+		const allYears = linesData.flatMap((l) => l.rawPoints.map((p) => p.year));
+		if (allYears.length === 0) return;
+		const xExtent = d3.extent(allYears) as [number, number];
 
 		const xScale = d3.scaleLinear().domain(xExtent).range([0, innerW]);
-		const yScale = d3.scaleLinear().domain([0, 1]).range([innerH, 0]);
 
-		const line = d3.line<NormalizedPoint>()
+		// Y scale
+		let yScale: d3.ScaleLinear<number, number>;
+		let yTickFormat: (d: d3.NumberValue) => string;
+
+		if (useNormalizedY) {
+			yScale = d3.scaleLinear().domain([0, 1]).range([innerH, 0]);
+			yTickFormat = d3.format('.1f');
+		} else {
+			const allVals = linesData.flatMap((l) => l.points.map((p) => p.normalized));
+			const yExtent = d3.extent(allVals) as [number, number];
+			const yPad = (yExtent[1] - yExtent[0]) * 0.05 || 1;
+			yScale = d3.scaleLinear().domain([Math.max(0, yExtent[0] - yPad), yExtent[1] + yPad]).range([innerH, 0]);
+			const varConfig = unifiedVariables.find((v) => v.fieldPath === _compareVariable) ?? unifiedVariables[0];
+			const fmt = getFormatter(varConfig.format);
+			yTickFormat = (d) => fmt(d as number);
+		}
+
+		const line = d3.line<{ year: number; normalized: number }>()
 			.x((d) => xScale(d.year))
 			.y((d) => yScale(d.normalized));
 
@@ -115,21 +209,15 @@
 			.attr('transform', `translate(0,${innerH})`)
 			.call(d3.axisBottom(xScale).tickFormat(d3.format('d')).ticks(Math.min(innerW / 80, 10)));
 
-		// Y axis (normalized 0-1)
+		// Y axis
 		g.selectAll<SVGGElement, null>('g.y-axis')
 			.data([null])
 			.join('g')
 			.attr('class', 'y-axis')
-			.call(d3.axisLeft(yScale).ticks(5).tickFormat(d3.format('.1f')));
+			.call(d3.axisLeft(yScale).ticks(5).tickFormat(yTickFormat));
 
-		// Lines — one per variable
-		const linesData = allVarSeries.map((vs) => ({
-			id: vs.config.id,
-			color: vs.config.color,
-			points: vs.normalizedPoints
-		}));
-
-		const lines = g.selectAll<SVGPathElement, typeof linesData[number]>('path.var-line')
+		// Lines
+		const lines = g.selectAll<SVGPathElement, LineDatum>('path.var-line')
 			.data(linesData, (d) => d.id);
 
 		lines.join(
@@ -150,12 +238,16 @@
 			(exit) => exit.remove()
 		);
 
-		// Annotations (from all visible variables)
+		// Annotations (only in normal mode, for visible variables)
 		const annotations: Array<{ year: number; label: string; color: string }> = [];
-		for (const vs of allVarSeries) {
-			const anns = getAnnotations(vs.config.id, vs.config.fieldPath, _data, _focusedId);
-			for (const a of anns) {
-				annotations.push({ year: a.year, label: `${vs.config.shortLabel} ${a.label}`, color: vs.config.color });
+		if (!_compareMode) {
+			for (const ld of linesData) {
+				const varConfig = unifiedVariables.find((v) => v.id === ld.id);
+				if (!varConfig) continue;
+				const anns = getAnnotations(varConfig.id, varConfig.fieldPath, _data, _focusedId);
+				for (const a of anns) {
+					annotations.push({ year: a.year, label: `${varConfig.shortLabel} ${a.label}`, color: varConfig.color });
+				}
 			}
 		}
 
@@ -214,8 +306,8 @@
 			.attr('transform', `translate(${margin.left + innerW + 16}, ${margin.top + 8})`);
 
 		const legendItems = legendGroup
-			.selectAll<SVGGElement, typeof allVarSeries[number]>('g.legend-item')
-			.data(allVarSeries, (d) => d.config.id);
+			.selectAll<SVGGElement, typeof legendData[number]>('g.legend-item')
+			.data(legendData, (d) => d.id);
 
 		legendItems.join(
 			(enter) => {
@@ -223,26 +315,37 @@
 					.attr('class', 'legend-item')
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
 					.attr('cursor', 'pointer')
-					.on('click', (_, d) => handleLegendClick(d.config.fieldPath));
+					.attr('opacity', (d) => d.visible ? 1 : 0.35)
+					.on('click', (_, d) => {
+						if (!_compareMode) handleLegendToggle(d.fieldPath);
+					});
 
 				item.append('rect')
 					.attr('width', 12)
 					.attr('height', 3)
 					.attr('y', 5)
 					.attr('rx', 1.5)
-					.attr('fill', (d) => d.config.color);
+					.attr('fill', (d) => d.color);
 
 				item.append('text')
 					.attr('x', 18)
 					.attr('y', 10)
 					.attr('fill', 'var(--text-secondary)')
 					.attr('font-size', '11px')
-					.text((d) => d.config.label);
+					.text((d) => d.label);
 
 				return item;
 			},
 			(update) => {
-				update.attr('transform', (_, i) => `translate(0, ${i * 22})`);
+				update
+					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
+					.attr('opacity', (d) => d.visible ? 1 : 0.35);
+				update.select('text').text((d) => d.label);
+				update.select('rect').attr('fill', (d) => d.color);
+				// Rebind click handler for current mode
+				update.on('click', (_, d) => {
+					if (!_compareMode) handleLegendToggle(d.fieldPath);
+				});
 				return update;
 			},
 			(exit) => exit.remove()
@@ -269,7 +372,6 @@
 				const yearStart = Math.round(xScale.invert(x0));
 				const yearEnd = Math.round(xScale.invert(x1));
 				if (yearEnd - yearStart < 5) {
-					// Too small a selection — clear
 					brushGroup.call(brush.move, null);
 					brushedXDomain.set(null);
 					return;
@@ -279,7 +381,6 @@
 
 		brushGroup.call(brush);
 
-		// Style brush selection
 		brushGroup.select('.selection')
 			.attr('fill', 'var(--accent)')
 			.attr('fill-opacity', 0.15)
@@ -319,16 +420,15 @@
 					.attr('x1', xScale(year))
 					.attr('x2', xScale(year));
 
-				// Build tooltip items from all variables
 				const items: typeof tooltipItems = [];
-				for (const vs of allVarSeries) {
-					const fmt = getFormatter(vs.config.format);
-					const idx = vs.rawPoints.findIndex((p) => Math.round(p.year) === year);
+				for (const ld of linesData) {
+					const fmt = getFormatter(ld.format);
+					const idx = ld.rawPoints.findIndex((p) => Math.round(p.year) === year);
 					if (idx >= 0) {
-						const pt = vs.rawPoints[idx];
+						const pt = ld.rawPoints[idx];
 						let trend = '';
 						if (idx > 0) {
-							const prev = vs.rawPoints[idx - 1].value;
+							const prev = ld.rawPoints[idx - 1].value;
 							const diff = pt.value - prev;
 							const pct = prev !== 0 ? Math.abs(diff / prev) : 0;
 							if (pct < 0.001) trend = '\u2192';
@@ -336,10 +436,10 @@
 							else trend = '\u2193';
 						}
 						items.push({
-							label: vs.config.shortLabel,
-							color: vs.config.color,
+							label: ld.label,
+							color: ld.color,
 							rawValue: fmt(pt.value),
-							unit: vs.config.unit,
+							unit: '',
 							trend
 						});
 					}
@@ -349,7 +449,6 @@
 				tooltipItems = items;
 				hoveredYear.set(year);
 
-				// Position tooltip
 				const px = margin.left + xScale(year);
 				tooltipX = px + 12;
 				if (tooltipX + 200 > width) {
