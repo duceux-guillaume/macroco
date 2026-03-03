@@ -93,6 +93,7 @@ pub fn initial_conditions_1900() -> WorldState {
             cohort_15_44: 7.0e8,
             cohort_45_64: 1.9e8,
             cohort_65_plus: 6.0e7,
+            perceived_le: 33.0,  // Initial perceived LE matches 1900 computed LE
             ..Default::default()
         },
         capital: CapitalState {
@@ -105,6 +106,8 @@ pub fn initial_conditions_1900() -> WorldState {
         agriculture: AgricultureState {
             arable_land: 0.9e9,
             potentially_arable_land: 2.3e9,
+            urban_industrial_land: 8.2e6,  // World3-03: uili = 8.2e6 hectares
+            land_fertility: 600.0,         // World3-03: lferti = 600 kg/ha/yr
             food_per_capita: 400.0,
             ..Default::default()
         },

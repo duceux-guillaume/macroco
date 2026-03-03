@@ -9,18 +9,22 @@
 use crate::lookup::tables::WorldLookupTables;
 use crate::model::{params::ScenarioParams, state::WorldState};
 
-/// Base land yield in 1900 [kg / hectare / year]
-const LAND_YIELD_1900: f64 = 600.0;
+/// Inherent land fertility [kg / hectare / year] — World3-03: ILF = 600
+const INHERENT_LAND_FERTILITY: f64 = 600.0;
 /// Total potential arable land area [hectares] (estimate based on FAO)
 const TOTAL_POTENTIAL_ARABLE: f64 = 3.2e9;
 /// Land development time [years] — delay between investment decision and land available
 const LAND_DEVELOPMENT_TIME: f64 = 10.0;
 /// Normal land erosion fraction [yr⁻¹]. World3-03: alln = 1000 yr → base = 1/1000 = 0.001
 const LAND_EROSION_RATE: f64 = 0.001;
+/// Urban-industrial land development time [years] — World3-03: UILD = 10
+const UIL_DEVELOPMENT_TIME: f64 = 10.0;
 
 pub struct AgricultureDerivatives {
     pub d_arable_land: f64,
     pub d_potentially_arable_land: f64,
+    pub d_urban_industrial_land: f64,
+    pub d_land_fertility: f64,
 }
 
 /// Compute agricultural derivatives and update auxiliary fields on `state.agriculture`.
@@ -46,6 +50,8 @@ pub fn agriculture_derivatives(
     state.agriculture.agricultural_inputs_per_hectare = agri_inputs_per_ha;
 
     // ---- Land yield ----
+    // World3-03: ly = lfert × lymc(aiph) × lymap(ppolx)
+    // land_fertility replaces the constant LAND_YIELD_1900 as the base yield
     let yield_multiplier_capital = tables
         .land_yield_multiplier_capital
         .eval(agri_inputs_per_ha);
@@ -53,7 +59,8 @@ pub fn agriculture_derivatives(
         .land_yield_multiplier_pollution
         .eval(state.pollution.pollution_index);
 
-    let land_yield = LAND_YIELD_1900
+    let land_fertility = state.agriculture.land_fertility.max(1.0);
+    let land_yield = land_fertility
         * yield_multiplier_capital
         * yield_multiplier_pollution
         * params.agricultural_technology;
@@ -63,6 +70,14 @@ pub fn agriculture_derivatives(
     let food = arable * land_yield;
     state.agriculture.food = food;
     state.agriculture.food_per_capita = food / pop;
+
+    // ---- Urban-industrial land ----
+    // World3-03: UIL is a first-order delay converging to UILPC(IOPC) × POP
+    let iopc = state.capital.industrial_output_per_capita;
+    let uilpc = tables.urban_industrial_land_per_capita.eval(iopc);
+    let uil_desired = uilpc * pop;
+    let uil = state.agriculture.urban_industrial_land;
+    let d_uil = (uil_desired - uil) / UIL_DEVELOPMENT_TIME;
 
     // ---- Land development ----
     // New land is developed when food pressure is high and potentially-arable land exists
@@ -84,8 +99,8 @@ pub fn agriculture_derivatives(
         (land_development_desired / LAND_DEVELOPMENT_TIME).min(potentially_arable / LAND_DEVELOPMENT_TIME);
 
     // ---- Land erosion / degradation ----
-    let land_yield_ratio = if LAND_YIELD_1900 > 0.0 {
-        land_yield / LAND_YIELD_1900
+    let land_yield_ratio = if INHERENT_LAND_FERTILITY > 0.0 {
+        land_yield / INHERENT_LAND_FERTILITY
     } else {
         1.0
     };
@@ -93,8 +108,28 @@ pub fn agriculture_derivatives(
     let protected_fraction = params.land_protection_fraction.clamp(0.0, 0.5);
     let erosion_rate = arable * LAND_EROSION_RATE * erosion_mult * (1.0 - protected_fraction);
 
+    // UIL growth takes from arable land (only when UIL is expanding)
+    let uil_from_arable = d_uil.max(0.0);
+
+    // ---- Land fertility dynamics ----
+    // World3-03: lfert' = lfr - lfd
+    //   lfd = lfert × LFDR(pollution_index)    — degradation from pollution
+    //   lfr = (ILF - lfert) / LFRT(FALM(fr))  — regeneration from maintenance
+    let lfdr = tables.land_fertility_degradation.eval(state.pollution.pollution_index);
+    let lfd = land_fertility * lfdr;
+
+    let falm = tables.fraction_land_maintenance.eval(food_ratio);
+    let lfrt = tables.land_fertility_regeneration_time.eval(falm);
+    let lfr = if lfrt > 0.0 {
+        (INHERENT_LAND_FERTILITY - land_fertility) / lfrt
+    } else {
+        0.0
+    };
+
     AgricultureDerivatives {
-        d_arable_land: land_development_rate - erosion_rate,
+        d_arable_land: land_development_rate - erosion_rate - uil_from_arable,
         d_potentially_arable_land: -land_development_rate,
+        d_urban_industrial_land: d_uil,
+        d_land_fertility: lfr - lfd,
     }
 }

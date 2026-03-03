@@ -20,11 +20,19 @@ const COHORT_0_14_DURATION: f64 = 15.0;
 const COHORT_15_44_DURATION: f64 = 30.0;
 const COHORT_45_64_DURATION: f64 = 20.0;
 
+/// Maximum total fertility — biological maximum [children / woman]
+/// World3-03: MTF = 12
+const MAX_TOTAL_FERTILITY: f64 = 12.0;
+
+/// Lifetime perception delay [years] — World3-03: LPD = 20
+const LIFETIME_PERCEPTION_DELAY: f64 = 20.0;
+
 pub struct PopulationDerivatives {
     pub d_cohort_0_14: f64,
     pub d_cohort_15_44: f64,
     pub d_cohort_45_64: f64,
     pub d_cohort_65_plus: f64,
+    pub d_perceived_le: f64,
 }
 
 /// Compute population derivatives and update auxiliary fields:
@@ -72,6 +80,12 @@ pub fn population_derivatives(
     let perceived_iopc = state.capital.perceived_iopc;
     let desired_family_size = tables.desired_family_size.eval(perceived_iopc);
 
+    // Compensatory fertility (CMPLE): when perceived LE is low (high infant
+    // mortality), women have more children to compensate for expected deaths.
+    // Uses perceived_le (20-year delay) so fertility expectations lag reality.
+    let perceived_le = state.population.perceived_le.max(5.0);
+    let cmple = tables.compensatory_fertility.eval(perceived_le);
+
     // Family planning ramps in from zero at 1900 to full efficacy by family_planning_year
     let fp_ramp = if params.family_planning_year <= 1900.0 {
         1.0
@@ -84,12 +98,16 @@ pub fn population_derivatives(
     // Food effect on fertility
     let food_fertility = tables.food_fertility_multiplier.eval(food_ratio);
 
-    // Note: World3-03's fecundity multiplier (FM) limits biological capacity
-    // (MTF × FM). In this simplified model, desired_family_size already captures
-    // the demographic transition from high to low fertility. FM is not applied
-    // here to avoid double-counting the fertility decline.
+    // Desired fertility including all social/compensatory effects
+    let desired_fertility = desired_family_size * cmple * fp_multiplier * food_fertility;
 
-    let total_fertility_rate = desired_family_size * fp_multiplier * food_fertility;
+    // Fecundity multiplier (FM): biological ceiling on fertility from health.
+    // At low LE, malnutrition and disease reduce maximum achievable fertility.
+    // World3-03: TF = min(MTF × FM(LE), desired_fertility)
+    let fm = tables.fecundity_multiplier.eval(life_expectancy);
+    let biological_max = MAX_TOTAL_FERTILITY * fm;
+    let total_fertility_rate = desired_fertility.min(biological_max);
+
     state.population.fertility_rate = total_fertility_rate.clamp(0.5, 8.0);
 
     // Births = fertile-age women × TFR / reproductive period
@@ -113,6 +131,10 @@ pub fn population_derivatives(
     let total_deaths = deaths_0_14 + deaths_15_44 + deaths_45_64 + deaths_65_plus;
     state.population.death_rate = total_deaths / pop;
 
+    // ---- Perceived life expectancy (20-year delay) ----
+    // World3-03: PLE = Delay3(LE, LPD=20yr). Simplified as first-order delay.
+    let d_perceived_le = (life_expectancy - perceived_le) / LIFETIME_PERCEPTION_DELAY;
+
     // ---- Cohort aging rates ----
     let aging_0_to_15 = state.population.cohort_0_14 / COHORT_0_14_DURATION;
     let aging_15_to_45 = state.population.cohort_15_44 / COHORT_15_44_DURATION;
@@ -123,5 +145,6 @@ pub fn population_derivatives(
         d_cohort_15_44: aging_0_to_15 - aging_15_to_45 - deaths_15_44,
         d_cohort_45_64: aging_15_to_45 - aging_45_to_65 - deaths_45_64,
         d_cohort_65_plus: aging_45_to_65 - deaths_65_plus,
+        d_perceived_le,
     }
 }
