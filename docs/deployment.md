@@ -105,7 +105,7 @@ flyctl secrets set RUST_LOG=debug
 
 The `Dockerfile` uses a multi-stage build:
 
-1. **Rust builder** (`rust:1.83-bookworm`): Compiles the `world3-api` release binary with dependency caching
+1. **Rust builder** (`rust:1.85-bookworm`): Compiles the `world3-api` release binary with dependency caching
 2. **Frontend builder** (`node:22-bookworm-slim`): Runs `npm ci && npm run build` to produce static files
 3. **Runtime** (`debian:bookworm-slim`): Copies binary + static files into a ~100MB image
 

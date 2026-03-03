@@ -52,6 +52,9 @@ csv = "1"
 # Charting
 plotters = "0.3"
 
+[profile.release]
+strip = true
+
 [workspace.package]
 version = "0.1.0"
 edition = "2021"

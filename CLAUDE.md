@@ -157,7 +157,7 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 1. **Milestone 1 — Interactive Limits to Growth** (current): Documentation, tooltips, info panels, simulation controls, annotations, preset comparison.
 2. **Milestone 2 — Modern Extensions**: 4 extension sectors (climate, energy, biodiversity, inequality), historical CSV calibration.
 3. **Milestone 3 — Live Data Pipeline**: `world3-ingestion` crate, 7 data sources, SQLite cache, broadcast.
-4. **Milestone 4 — Production Deployment**: Docker Compose, CI/CD, benchmarks, sensitivity analysis.
+4. **Milestone 4 — Production Deployment**: Fly.io, CI/CD, benchmarks, sensitivity analysis.
 
 ## License
 GPL v3 — see LICENSE file.

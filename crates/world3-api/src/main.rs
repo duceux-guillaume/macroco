@@ -26,9 +26,15 @@ async fn main() -> anyhow::Result<()> {
     let addr = format!("0.0.0.0:{port}");
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!("Listening on {addr}");
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    let server = axum::serve(listener, app).with_graceful_shutdown(shutdown_signal());
+
+    // Drain timeout: Fly.io sends SIGTERM and expects exit within kill_timeout (10s).
+    // If long-running connections (e.g. WebSockets) don't close in time, exit cleanly
+    // rather than waiting for SIGKILL.
+    match tokio::time::timeout(std::time::Duration::from_secs(15), server).await {
+        Ok(result) => result?,
+        Err(_) => tracing::warn!("Drain timeout reached, forcing shutdown"),
+    }
 
     tracing::info!("Server shut down gracefully");
     Ok(())
