@@ -393,8 +393,8 @@ fn validate() -> Result<()> {
     let nnr_monotonic = [1920.0, 1940.0, 1960.0, 1980.0, 2000.0, 2020.0, 2040.0, 2060.0, 2080.0, 2100.0]
         .windows(2)
         .all(|pair| {
-            let a = sim.state_at_year(pair[0]).map(|s| s.resources.fraction_remaining).unwrap_or(1.0);
-            let b = sim.state_at_year(pair[1]).map(|s| s.resources.fraction_remaining).unwrap_or(1.0);
+            let a = sim.state_at_year(pair[0]).expect("missing NNR state").resources.fraction_remaining;
+            let b = sim.state_at_year(pair[1]).expect("missing NNR state").resources.fraction_remaining;
             b <= a + 0.001 // allow tiny numerical noise
         });
     if !nnr_monotonic {

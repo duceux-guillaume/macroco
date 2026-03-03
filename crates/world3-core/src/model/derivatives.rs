@@ -1,13 +1,15 @@
 //! Top-level derivative function: `dy/dt = f(t, y, params)`.
 //!
-//! This function computes the rate of change for all 15 ODE stocks.
+//! This function computes the rate of change for all 16 ODE stocks.
 //! Sector computation order is fixed to satisfy dependencies:
 //!
-//!   1. Resources (other sectors need fraction_remaining for cost multiplier)
+//!   0. Pre-seed food_per_capita from stocks (auxiliary, zeroed by from_vec)
+//!   1. Resource auxiliaries (fraction_remaining for cost multiplier)
 //!   2. Capital    (depends on resource fraction; produces industrial_output)
-//!   3. Agriculture (depends on industrial_output for inputs; depends on pollution)
-//!   4. Population  (depends on food, services, pollution)
+//!   3. Resource depletion (needs IOPC from capital)
+//!   4. Agriculture (depends on industrial_output for inputs; depends on pollution)
 //!   5. Pollution   (depends on industrial_output, agricultural_inputs)
+//!   6. Population  (depends on food, services, pollution)
 //!
 //! The function takes a `&WorldState` (read-only) and produces a new
 //! `WorldState` that represents the derivatives (stocks are rates of change).
@@ -25,8 +27,8 @@ use crate::model::{
 /// Returns a `WorldState` where all stock fields hold *rates of change*
 /// (units: [stock_unit / year]), not values. The `time` field is unused.
 ///
-/// Auxiliary fields on the returned state are zeroed — only the 15 ODE
-/// stocks (cohorts, perceived_le, capitals, land, resources, pollution) carry data.
+/// Auxiliary fields on the returned state are zeroed — only the 16 ODE
+/// stocks (cohorts, perceived_le, capitals, land, fpc_smooth, resources, pollution) carry data.
 pub fn derivatives(
     state: &WorldState,
     params: &ScenarioParams,
