@@ -5,6 +5,7 @@
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId } from '../stores/info';
 	import { hoveredYear } from '../stores/simulation';
+	import { getAnnotations } from '../content/chart-annotations';
 	import type { UnifiedVariableConfig } from './unified-config';
 	import type { WorldState } from '../types';
 
@@ -128,15 +129,68 @@
 			.text(_config.shortLabel)
 			.on('click', handleTitleClick);
 
-		// Line
+		// Line (with transition)
 		g.selectAll<SVGPathElement, null>('path.spark-line')
 			.data([null])
-			.join('path')
-			.attr('class', 'spark-line')
-			.attr('fill', 'none')
-			.attr('stroke', _config.color)
-			.attr('stroke-width', 1.5)
-			.attr('d', line(points));
+			.join(
+				(enter) => enter.append('path')
+					.attr('class', 'spark-line')
+					.attr('fill', 'none')
+					.attr('stroke', _config.color)
+					.attr('stroke-width', 1.5)
+					.attr('d', line(points)),
+				(update) => update
+					.transition()
+					.duration(200)
+					.attr('stroke', _config.color)
+					.attr('d', line(points)),
+				(exit) => exit.remove()
+			);
+
+		// Per-chart annotations (peaks, thresholds)
+		const annotations = getAnnotations(_config.id, _config.fieldPath, _data, _focusedId);
+		const annGroup = g.selectAll<SVGGElement, null>('g.spark-annotations')
+			.data([null])
+			.join('g')
+			.attr('class', 'spark-annotations');
+
+		const annSel = annGroup
+			.selectAll<SVGGElement, typeof annotations[number]>('g.spark-ann')
+			.data(annotations, (d) => `${d.year}-${d.label}`);
+
+		annSel.join(
+			(enter) => {
+				const ann = enter.append('g').attr('class', 'spark-ann');
+				ann.append('line')
+					.attr('x1', (d) => xScale(d.year))
+					.attr('x2', (d) => xScale(d.year))
+					.attr('y1', 0)
+					.attr('y2', innerH)
+					.attr('stroke', _config.color)
+					.attr('stroke-width', 0.5)
+					.attr('stroke-dasharray', '3,2')
+					.attr('opacity', 0.35);
+				ann.append('text')
+					.attr('x', (d) => xScale(d.year) + 2)
+					.attr('y', 8)
+					.attr('fill', _config.color)
+					.attr('font-size', '7px')
+					.attr('opacity', 0.6)
+					.text((d) => d.label);
+				return ann;
+			},
+			(update) => {
+				update.select('line')
+					.attr('x1', (d) => xScale(d.year))
+					.attr('x2', (d) => xScale(d.year))
+					.attr('y2', innerH);
+				update.select('text')
+					.attr('x', (d) => xScale(d.year) + 2)
+					.text((d) => d.label);
+				return update;
+			},
+			(exit) => exit.remove()
+		);
 
 		// Synced hover indicator from overview
 		const hoverLine = g.selectAll<SVGLineElement, null>('line.hover-line')
@@ -150,7 +204,8 @@
 			.attr('y2', innerH)
 			.attr('opacity', 0.6);
 
-		if (_hoveredYear !== null && _hoveredYear >= xExtent[0] && _hoveredYear <= xExtent[1]) {
+		const effectiveHoverDomain = effectiveXDomain;
+		if (_hoveredYear !== null && _hoveredYear >= effectiveHoverDomain[0] && _hoveredYear <= effectiveHoverDomain[1]) {
 			hoverLine
 				.style('display', null)
 				.attr('x1', xScale(_hoveredYear))

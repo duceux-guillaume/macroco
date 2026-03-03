@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as d3 from 'd3';
+	import { onMount } from 'svelte';
 	import { resize } from '../utils/resize';
 	import { extractSeries, normalizeSeries, type NormalizedPoint } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
@@ -9,6 +10,8 @@
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
 	import type { WorldState } from '../types';
+
+	const NOW_YEAR = 2026;
 
 	interface Props {
 		data: Map<string, WorldState[]>;
@@ -30,6 +33,10 @@
 	const margin = { top: 32, right: 160, bottom: 32, left: 48 };
 	let isBrushing = false;
 
+	// Store brush reference for keyboard clear
+	let activeBrushGroup: d3.Selection<SVGGElement, null, null, undefined> | null = null;
+	let activeBrush: d3.BrushBehavior<null> | null = null;
+
 	function getFormatter(format: string): (v: number) => string {
 		switch (format) {
 			case 'billions': return formatBillions;
@@ -49,7 +56,6 @@
 		visibleVariables.update((set) => {
 			const next = new Set(set);
 			if (next.has(fieldPath)) {
-				// Don't allow hiding all variables
 				if (next.size > 1) next.delete(fieldPath);
 			} else {
 				next.add(fieldPath);
@@ -58,10 +64,27 @@
 		});
 	}
 
-	function handleLegendInfoClick(e: MouseEvent, fieldPath: string) {
-		e.stopPropagation();
-		selectedVariableId.set(fieldPath);
+	// Keyboard shortcuts
+	function handleKeydown(e: KeyboardEvent) {
+		// Escape clears brush
+		if (e.key === 'Escape' && activeBrushGroup && activeBrush) {
+			activeBrushGroup.call(activeBrush.move, null);
+			brushedXDomain.set(null);
+			return;
+		}
+		// Number keys 1-6 toggle variables (only in normal mode)
+		if (!$compareMode && e.key >= '1' && e.key <= '6') {
+			const idx = parseInt(e.key) - 1;
+			if (idx < unifiedVariables.length) {
+				handleLegendToggle(unifiedVariables[idx].fieldPath);
+			}
+		}
 	}
+
+	onMount(() => {
+		window.addEventListener('keydown', handleKeydown);
+		return () => window.removeEventListener('keydown', handleKeydown);
+	});
 
 	// Shared line data type for both modes
 	interface LineDatum {
@@ -92,9 +115,7 @@
 		let useNormalizedY = true;
 
 		if (_compareMode) {
-			// Compare mode: 1 variable x N scenarios (native scale, scenario colors)
 			const varConfig = unifiedVariables.find((v) => v.fieldPath === _compareVariable) ?? unifiedVariables[0];
-			const fmt = getFormatter(varConfig.format);
 			useNormalizedY = false;
 
 			for (const [scenarioId, states] of _data) {
@@ -111,7 +132,6 @@
 				});
 			}
 
-			// Legend shows scenarios
 			for (const [scenarioId] of _data) {
 				const color = _colors.get(scenarioId) ?? '#888';
 				legendData.push({
@@ -123,7 +143,6 @@
 				});
 			}
 		} else {
-			// Normal mode: all variables for focused scenario, normalized
 			const scenarioId = _focusedId ?? _data.keys().next().value;
 			if (!scenarioId) return;
 			const states = _data.get(scenarioId);
@@ -146,7 +165,6 @@
 				}
 			}
 
-			// Legend always shows all 6 variables (with visibility state)
 			legendData = unifiedVariables.map((v) => ({
 				id: v.id,
 				label: v.label,
@@ -158,14 +176,12 @@
 
 		if (linesData.length === 0 && !_compareMode) return;
 
-		// X domain from all lines
 		const allYears = linesData.flatMap((l) => l.rawPoints.map((p) => p.year));
 		if (allYears.length === 0) return;
 		const xExtent = d3.extent(allYears) as [number, number];
 
 		const xScale = d3.scaleLinear().domain(xExtent).range([0, innerW]);
 
-		// Y scale
 		let yScale: d3.ScaleLinear<number, number>;
 		let yTickFormat: (d: d3.NumberValue) => string;
 
@@ -207,14 +223,18 @@
 			.join('g')
 			.attr('class', 'x-axis')
 			.attr('transform', `translate(0,${innerH})`)
-			.call(d3.axisBottom(xScale).tickFormat(d3.format('d')).ticks(Math.min(innerW / 80, 10)));
+			.transition()
+			.duration(400)
+			.call(d3.axisBottom(xScale).tickFormat(d3.format('d')).ticks(Math.min(innerW / 80, 10)) as any);
 
 		// Y axis
 		g.selectAll<SVGGElement, null>('g.y-axis')
 			.data([null])
 			.join('g')
 			.attr('class', 'y-axis')
-			.call(d3.axisLeft(yScale).ticks(5).tickFormat(yTickFormat));
+			.transition()
+			.duration(400)
+			.call(d3.axisLeft(yScale).ticks(5).tickFormat(yTickFormat) as any);
 
 		// Lines
 		const lines = g.selectAll<SVGPathElement, LineDatum>('path.var-line')
@@ -228,13 +248,60 @@
 					.attr('fill', 'none')
 					.attr('stroke-width', 2)
 					.attr('stroke', (d) => d.color)
-					.attr('d', (d) => line(d.points)),
+					.attr('opacity', 0)
+					.attr('d', (d) => line(d.points))
+					.transition()
+					.duration(400)
+					.attr('opacity', 1),
 			(update) =>
 				update
 					.transition()
-					.duration(300)
+					.duration(400)
 					.attr('stroke', (d) => d.color)
+					.attr('opacity', 1)
 					.attr('d', (d) => line(d.points)),
+			(exit) => exit
+				.transition()
+				.duration(200)
+				.attr('opacity', 0)
+				.remove()
+		);
+
+		// "Now" line (year 2026)
+		const nowLineData = (NOW_YEAR >= xExtent[0] && NOW_YEAR <= xExtent[1]) ? [NOW_YEAR] : [];
+		const nowGroup = g.selectAll<SVGGElement, number>('g.now-line')
+			.data(nowLineData);
+
+		nowGroup.join(
+			(enter) => {
+				const ng = enter.append('g').attr('class', 'now-line');
+				ng.append('line')
+					.attr('x1', (d) => xScale(d))
+					.attr('x2', (d) => xScale(d))
+					.attr('y1', 0)
+					.attr('y2', innerH)
+					.attr('stroke', 'var(--text-secondary)')
+					.attr('stroke-width', 1)
+					.attr('opacity', 0.5);
+				ng.append('text')
+					.attr('x', (d) => xScale(d) + 3)
+					.attr('y', innerH - 4)
+					.attr('fill', 'var(--text-secondary)')
+					.attr('font-size', '9px')
+					.attr('opacity', 0.6)
+					.text('Now');
+				return ng;
+			},
+			(update) => {
+				update.select('line')
+					.attr('x1', (d) => xScale(d))
+					.attr('x2', (d) => xScale(d))
+					.attr('y2', innerH);
+				update.select('text')
+					.attr('x', (d) => xScale(d) + 3)
+					.attr('y', innerH - 4);
+				return update;
+			},
 			(exit) => exit.remove()
 		);
 
@@ -244,11 +311,27 @@
 			for (const ld of linesData) {
 				const varConfig = unifiedVariables.find((v) => v.id === ld.id);
 				if (!varConfig) continue;
-				const anns = getAnnotations(varConfig.id, varConfig.fieldPath, _data, _focusedId);
+				const anns = getAnnotations(varConfig.id, varConfig.fieldPath, _data, _focusedId, varConfig.shortLabel);
 				for (const a of anns) {
-					annotations.push({ year: a.year, label: `${varConfig.shortLabel} ${a.label}`, color: varConfig.color });
+					annotations.push({ year: a.year, label: a.label, color: varConfig.color });
 				}
 			}
+		}
+
+		// Stagger overlapping annotation labels: sort by year, offset Y for close ones
+		annotations.sort((a, b) => a.year - b.year);
+		const labelYPositions: number[] = [];
+		const LABEL_SPACING = 14;
+		for (let i = 0; i < annotations.length; i++) {
+			let yPos = 10;
+			// Check if close to a previous annotation (within 20px on x)
+			for (let j = 0; j < i; j++) {
+				const xDist = Math.abs(xScale(annotations[i].year) - xScale(annotations[j].year));
+				if (xDist < 40) {
+					yPos = labelYPositions[j] + LABEL_SPACING;
+				}
+			}
+			labelYPositions.push(yPos);
 		}
 
 		const annotationGroup = g.selectAll<SVGGElement, null>('g.annotations')
@@ -256,13 +339,16 @@
 			.join('g')
 			.attr('class', 'annotations');
 
+		const annDataWithY = annotations.map((a, i) => ({ ...a, labelY: labelYPositions[i] }));
+
 		const annSel = annotationGroup
-			.selectAll<SVGGElement, typeof annotations[number]>('g.annotation')
-			.data(annotations, (d) => `${d.year}-${d.label}`);
+			.selectAll<SVGGElement, typeof annDataWithY[number]>('g.annotation')
+			.data(annDataWithY, (d) => `${d.year}-${d.label}`);
 
 		annSel.join(
 			(enter) => {
-				const ann = enter.append('g').attr('class', 'annotation');
+				const ann = enter.append('g').attr('class', 'annotation')
+					.attr('opacity', 0);
 				ann.append('line')
 					.attr('x1', (d) => xScale(d.year))
 					.attr('x2', (d) => xScale(d.year))
@@ -274,15 +360,16 @@
 					.attr('opacity', 0.4);
 				ann.append('text')
 					.attr('x', (d) => xScale(d.year) + 3)
-					.attr('y', 10)
+					.attr('y', (d) => d.labelY)
 					.attr('fill', (d) => d.color)
 					.attr('font-size', '9px')
 					.attr('opacity', 0.7)
-					.attr('transform', (d) => `rotate(-45, ${xScale(d.year) + 3}, 10)`)
 					.text((d) => d.label);
+				ann.transition().duration(400).attr('opacity', 1);
 				return ann;
 			},
 			(update) => {
+				update.transition().duration(400).attr('opacity', 1);
 				update.select('line')
 					.attr('x1', (d) => xScale(d.year))
 					.attr('x2', (d) => xScale(d.year))
@@ -290,12 +377,12 @@
 					.attr('stroke', (d) => d.color);
 				update.select('text')
 					.attr('x', (d) => xScale(d.year) + 3)
+					.attr('y', (d) => d.labelY)
 					.attr('fill', (d) => d.color)
-					.attr('transform', (d) => `rotate(-45, ${xScale(d.year) + 3}, 10)`)
 					.text((d) => d.label);
 				return update;
 			},
-			(exit) => exit.remove()
+			(exit) => exit.transition().duration(200).attr('opacity', 0).remove()
 		);
 
 		// Legend (right side, inside SVG)
@@ -338,11 +425,12 @@
 			},
 			(update) => {
 				update
+					.transition()
+					.duration(400)
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
 					.attr('opacity', (d) => d.visible ? 1 : 0.35);
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
-				// Rebind click handler for current mode
 				update.on('click', (_, d) => {
 					if (!_compareMode) handleLegendToggle(d.fieldPath);
 				});
@@ -380,6 +468,10 @@
 			});
 
 		brushGroup.call(brush);
+
+		// Store refs for keyboard shortcut
+		activeBrushGroup = brushGroup as any;
+		activeBrush = brush;
 
 		brushGroup.select('.selection')
 			.attr('fill', 'var(--accent)')

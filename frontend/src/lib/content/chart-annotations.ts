@@ -79,20 +79,22 @@ function findThresholdCrossing(
 	return null;
 }
 
-/** Get all annotations for a chart (static + dynamic) */
+/** Get all annotations for a chart (static + dynamic).
+ *  Optional `prefix` prepends to labels (e.g. "Pop." for unified chart context). */
 export function getAnnotations(
 	chartId: string,
 	fieldPath: string,
 	data: Map<string, WorldState[]>,
-	focusedId: string | null
+	focusedId: string | null,
+	prefix?: string
 ): ChartAnnotation[] {
-	const annotations: ChartAnnotation[] = [...(staticAnnotations[chartId] ?? [])];
+	const raw: ChartAnnotation[] = [...(staticAnnotations[chartId] ?? [])];
 
 	switch (chartId) {
 		case 'population':
 			{
 				const peak = findPeakYear(data, fieldPath, focusedId);
-				if (peak) annotations.push(peak);
+				if (peak) raw.push(peak);
 			}
 			break;
 		case 'resources':
@@ -105,13 +107,13 @@ export function getAnnotations(
 					'50% depleted',
 					focusedId
 				);
-				if (half) annotations.push(half);
+				if (half) raw.push(half);
 			}
 			break;
 		case 'industrial':
 			{
 				const peak = findPeakYear(data, fieldPath, focusedId);
-				if (peak) annotations.push(peak);
+				if (peak) raw.push(peak);
 			}
 			break;
 		case 'pollution':
@@ -124,22 +126,26 @@ export function getAnnotations(
 					'5× 1970 level',
 					focusedId
 				);
-				if (high) annotations.push(high);
+				if (high) raw.push(high);
 			}
 			break;
 		case 'food':
 			{
 				const peak = findPeakYear(data, fieldPath, focusedId);
-				if (peak) annotations.push(peak);
+				if (peak) raw.push(peak);
 			}
 			break;
 		case 'life-expectancy':
 			{
 				const peak = findPeakYear(data, fieldPath, focusedId);
-				if (peak) annotations.push(peak);
+				if (peak) raw.push(peak);
 			}
 			break;
 	}
 
-	return annotations;
+	// Apply optional prefix to all labels
+	if (prefix) {
+		return raw.map((a) => ({ ...a, label: `${prefix} ${a.label}` }));
+	}
+	return raw;
 }
