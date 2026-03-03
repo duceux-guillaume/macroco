@@ -74,7 +74,6 @@ export interface ScenarioParams {
 	industrial_depreciation_rate: number;
 	service_depreciation_rate: number;
 	technology_growth_rate: number;
-	investment_rate: number;
 	agricultural_technology: number;
 	land_protection_fraction: number;
 	subsistence_food_per_capita: number;

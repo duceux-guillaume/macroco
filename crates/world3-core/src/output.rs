@@ -81,3 +81,58 @@ fn extract_field(state: &WorldState, path: &str) -> Option<f64> {
         _ => None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::state::WorldState;
+
+    fn make_test_output() -> SimulationOutput {
+        let mut states = Vec::new();
+        for year in [1900.0, 1950.0, 2000.0, 2050.0, 2100.0] {
+            let mut s = WorldState::initial_1900();
+            s.time = year;
+            s.population.population = 1.6e9 + (year - 1900.0) * 1e7;
+            states.push(s);
+        }
+        let params = ScenarioParams::bau();
+        SimulationOutput::new(states, params)
+    }
+
+    #[test]
+    fn test_state_at_year_exact() {
+        let sim = make_test_output();
+        let s = sim.state_at_year(1950.0).unwrap();
+        assert_eq!(s.time, 1950.0);
+    }
+
+    #[test]
+    fn test_state_at_year_interpolation() {
+        let sim = make_test_output();
+        // 1975 is between 1950 and 2000 — should return closest
+        let s = sim.state_at_year(1975.0).unwrap();
+        assert!(s.time == 1950.0 || s.time == 2000.0);
+        // Distance to 1975 should be <= 25
+        assert!((s.time - 1975.0).abs() <= 25.0);
+    }
+
+    #[test]
+    fn test_extract_series_known_path() {
+        let sim = make_test_output();
+        let series = sim.extract_series("population.population");
+        assert_eq!(series.len(), 5);
+        assert!(!series[0].is_nan());
+        // First value should be ~1.6e9
+        assert!((series[0] - 1.6e9).abs() < 1e6);
+    }
+
+    #[test]
+    fn test_extract_series_unknown_path() {
+        let sim = make_test_output();
+        let series = sim.extract_series("nonexistent.field");
+        assert_eq!(series.len(), 5);
+        for val in &series {
+            assert!(val.is_nan());
+        }
+    }
+}

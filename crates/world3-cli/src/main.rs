@@ -5,10 +5,7 @@ use std::path::{Path, PathBuf};
 use world3_core::{
     model::{
         params::ScenarioParams,
-        state::{
-            AgricultureState, CapitalState, PollutionState, PopulationState, ResourceState,
-            WorldState,
-        },
+        state::WorldState,
     },
     output::SimulationOutput,
     solver::traits::OdeSolver,
@@ -70,7 +67,7 @@ fn main() -> Result<()> {
 
             eprintln!("Running '{}' ({} → {}, dt={}yr)…", params.meta.name, start, end, dt);
 
-            let initial = initial_conditions_1900();
+            let initial = WorldState::initial_1900();
             let tables = std::sync::Arc::new(
                 world3_core::lookup::tables::WorldLookupTables::load(),
             );
@@ -118,53 +115,6 @@ fn preset_params(name: &str) -> Result<ScenarioParams> {
         "technology" => Ok(ScenarioParams::comprehensive_technology()),
         "stabilized" => Ok(ScenarioParams::stabilized_world()),
         other => anyhow::bail!("Unknown preset '{}'. Use: bau, technology, stabilized", other),
-    }
-}
-
-/// World 3 initial conditions for year 1900.
-/// Values calibrated to broadly match Meadows 1972 standard run starting point.
-fn initial_conditions_1900() -> WorldState {
-    WorldState {
-        time: 1900.0,
-        population: PopulationState {
-            population: 1.6e9,
-            // World3-03 initial cohorts (Meadows 2004): p1i=6.5e8, p2i=7.0e8, p3i=1.9e8, p4i=6.0e7
-            cohort_0_14: 6.5e8,
-            cohort_15_44: 7.0e8,
-            cohort_45_64: 1.9e8,
-            cohort_65_plus: 6.0e7,
-            perceived_le: 33.0,  // Initial perceived LE matches 1900 computed LE
-            ..Default::default()
-        },
-        capital: CapitalState {
-            industrial_capital: 2.1e11,  // World3-03: ici = 2.1e11 (1975 USD)
-            service_capital: 1.44e11,    // World3-03: sci = 1.44e11 (1975 USD)
-            // 1900 IOPC ≈ IC/ICOR/POP = 2.1e11 / 3.0 / 1.6e9 ≈ 43.75
-            perceived_iopc: 43.75,
-            ..Default::default()
-        },
-        agriculture: AgricultureState {
-            arable_land: 0.9e9,            // hectares
-            potentially_arable_land: 2.3e9,
-            urban_industrial_land: 8.2e6,  // World3-03: uili = 8.2e6 hectares
-            land_fertility: 600.0,         // World3-03: lferti = 600 kg/ha/yr
-            food_per_capita: 400.0,        // initial estimate; overwritten by agriculture sector
-            ..Default::default()
-        },
-        resources: ResourceState {
-            nonrenewable_resources: 1.0,   // 100% remaining in 1900
-            fraction_remaining: 1.0,
-        },
-        pollution: PollutionState {
-            // World3-03: PP19 = 2.5e7 pollution units / PP70 = 1.36e8 units
-            // Normalized: 2.5e7 / 1.36e8 ≈ 0.18 (relative to 1970 = 1.0)
-            persistent_pollution: 0.05,
-            // Pre-fill the appearance buffer to avoid a 20-year startup transient.
-            // Rough 1900 generation rate × delay time:
-            pollution_appearance_buffer: 0.05 * 20.0,
-            pollution_index: 0.05,
-            ..Default::default()
-        },
     }
 }
 
@@ -348,20 +298,23 @@ fn validate() -> Result<()> {
     eprintln!("Running BAU validation against World3 reference dynamics…\n");
 
     let params = ScenarioParams::bau();
-    let initial = initial_conditions_1900();
+    let initial = WorldState::initial_1900();
     let tables = std::sync::Arc::new(world3_core::lookup::tables::WorldLookupTables::load());
     let solver = Rk4Solver::new(tables);
     let states = solver.solve(initial, &params)?;
     let sim = SimulationOutput::new(states, params);
 
     let mut failures: Vec<String> = Vec::new();
+    let mut pass_count: usize = 0;
 
-    // Helper to check a value within a range
-    let check = |label: &str, value: f64, lo: f64, hi: f64, unit: &str, failures: &mut Vec<String>| {
+    // Helper to check a value within a range; returns true if passed
+    let check = |label: &str, value: f64, lo: f64, hi: f64, unit: &str,
+                 failures: &mut Vec<String>, pass_count: &mut usize| {
         if !(lo..=hi).contains(&value) {
             failures.push(format!("{label}: {value:.3e} {unit} outside [{lo:.3e}, {hi:.3e}]"));
             eprintln!("  FAIL  {label}: {value:.3e} {unit}");
         } else {
+            *pass_count += 1;
             eprintln!("  PASS  {label}: {value:.3e} {unit}");
         }
     };
@@ -369,16 +322,19 @@ fn validate() -> Result<()> {
     // --- Population trajectory checkpoints ---
     eprintln!("Population trajectory:");
 
-    if let Some(s) = sim.state_at_year(1900.0) {
-        check("  1900 population", s.population.population, 1.4e9, 1.8e9, "", &mut failures);
+    {
+        let s = sim.state_at_year(1900.0).expect("missing state at year 1900");
+        check("  1900 population", s.population.population, 1.4e9, 1.8e9, "", &mut failures, &mut pass_count);
     }
 
-    if let Some(s) = sim.state_at_year(1950.0) {
-        check("  1950 population", s.population.population, 2.0e9, 4.0e9, "", &mut failures);
+    {
+        let s = sim.state_at_year(1950.0).expect("missing state at year 1950");
+        check("  1950 population", s.population.population, 2.0e9, 4.0e9, "", &mut failures, &mut pass_count);
     }
 
-    if let Some(s) = sim.state_at_year(1970.0) {
-        check("  1970 population", s.population.population, 3.0e9, 5.5e9, "", &mut failures);
+    {
+        let s = sim.state_at_year(1970.0).expect("missing state at year 1970");
+        check("  1970 population", s.population.population, 3.0e9, 5.5e9, "", &mut failures, &mut pass_count);
     }
 
     // Peak population: 6-12B somewhere in 2000-2070
@@ -400,11 +356,13 @@ fn validate() -> Result<()> {
         ));
         eprintln!("  FAIL  Population peak: {:.2e} at year {:.0}", peak_pop, peak_year);
     } else {
+        pass_count += 1;
         eprintln!("  PASS  Population peak: {:.2e} at year {:.0}", peak_pop, peak_year);
     }
 
     // Population at 2100 should be less than peak (decline phase)
-    if let Some(s) = sim.state_at_year(2100.0) {
+    {
+        let s = sim.state_at_year(2100.0).expect("missing state at year 2100");
         let pop_2100 = s.population.population;
         if pop_2100 >= peak_pop * 0.95 {
             failures.push(format!(
@@ -413,6 +371,7 @@ fn validate() -> Result<()> {
             ));
             eprintln!("  FAIL  2100 population: {:.2e} (should be < peak)", pop_2100);
         } else {
+            pass_count += 1;
             eprintln!("  PASS  2100 population: {:.2e} (declining from peak)", pop_2100);
         }
     }
@@ -420,12 +379,14 @@ fn validate() -> Result<()> {
     // --- Resource depletion ---
     eprintln!("\nResource depletion:");
 
-    if let Some(s) = sim.state_at_year(2000.0) {
-        check("  2000 NNR fraction", s.resources.fraction_remaining, 0.0, 0.50, "", &mut failures);
+    {
+        let s = sim.state_at_year(2000.0).expect("missing state at year 2000");
+        check("  2000 NNR fraction", s.resources.fraction_remaining, 0.0, 0.50, "", &mut failures, &mut pass_count);
     }
 
-    if let Some(s) = sim.state_at_year(2100.0) {
-        check("  2100 NNR fraction", s.resources.fraction_remaining, 0.0, 0.30, "", &mut failures);
+    {
+        let s = sim.state_at_year(2100.0).expect("missing state at year 2100");
+        check("  2100 NNR fraction", s.resources.fraction_remaining, 0.0, 0.30, "", &mut failures, &mut pass_count);
     }
 
     // NNR should decrease monotonically (check every 20 years)
@@ -440,6 +401,7 @@ fn validate() -> Result<()> {
         failures.push("NNR fraction not monotonically decreasing".into());
         eprintln!("  FAIL  NNR monotonically decreasing");
     } else {
+        pass_count += 1;
         eprintln!("  PASS  NNR monotonically decreasing");
     }
 
@@ -451,7 +413,7 @@ fn validate() -> Result<()> {
         .iter()
         .map(|s| s.pollution.pollution_index)
         .fold(0.0_f64, f64::max);
-    check("  Peak pollution index", max_pollution, 1.0, 100.0, "", &mut failures);
+    check("  Peak pollution index", max_pollution, 1.0, 100.0, "", &mut failures, &mut pass_count);
 
     // --- Industrial output ---
     eprintln!("\nIndustrial dynamics:");
@@ -468,7 +430,8 @@ fn validate() -> Result<()> {
             }
         });
 
-    if let Some(s) = sim.state_at_year(2100.0) {
+    {
+        let s = sim.state_at_year(2100.0).expect("missing state at year 2100");
         let iopc_2100 = s.capital.industrial_output_per_capita;
         if iopc_2100 > peak_iopc * 0.5 {
             failures.push(format!(
@@ -477,6 +440,7 @@ fn validate() -> Result<()> {
             ));
             eprintln!("  FAIL  IOPC collapse: {:.0} at 2100 (peak {:.0} at {:.0})", iopc_2100, peak_iopc, peak_iopc_year);
         } else {
+            pass_count += 1;
             eprintln!("  PASS  IOPC collapse: {:.0} at 2100 (peak {:.0} at {:.0})", iopc_2100, peak_iopc, peak_iopc_year);
         }
     }
@@ -497,23 +461,26 @@ fn validate() -> Result<()> {
             }
         });
 
-    check("  Peak LE", peak_le, 45.0, 80.0, "yr", &mut failures);
+    check("  Peak LE", peak_le, 45.0, 80.0, "yr", &mut failures, &mut pass_count);
 
-    if let Some(s) = sim.state_at_year(2100.0) {
+    {
+        let s = sim.state_at_year(2100.0).expect("missing state at year 2100");
         let le_2100 = s.population.life_expectancy;
         if le_2100 > peak_le * 0.8 {
             failures.push(format!("LE at 2100 ({:.1}) not declining (peak {:.1} at {:.0})", le_2100, peak_le, peak_le_year));
             eprintln!("  FAIL  LE decline: {:.1} at 2100 (peak {:.1} at {:.0})", le_2100, peak_le, peak_le_year);
         } else {
+            pass_count += 1;
             eprintln!("  PASS  LE decline: {:.1} at 2100 (peak {:.1} at {:.0})", le_2100, peak_le, peak_le_year);
         }
     }
 
     // --- Summary ---
+    let total_checks = pass_count + failures.len();
     eprintln!();
     if failures.is_empty() {
         eprintln!("Validation PASSED — qualitative dynamics match World3 standard run.");
-        eprintln!("({} checks passed)", 12);
+        eprintln!("({} checks passed)", total_checks);
         Ok(())
     } else {
         eprintln!("Validation FAILED:");

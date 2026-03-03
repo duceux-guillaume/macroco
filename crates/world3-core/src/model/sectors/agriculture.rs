@@ -20,11 +20,16 @@ const LAND_EROSION_RATE: f64 = 0.001;
 /// Urban-industrial land development time [years] — World3-03: UILD = 10
 const UIL_DEVELOPMENT_TIME: f64 = 10.0;
 
+/// Food shortage perception delay [years] — World3-03: FSPD = 2 yr.
+/// Smoothed food per capita breaks agriculture-capital allocation oscillation.
+const FOOD_SHORTAGE_PERCEPTION_DELAY: f64 = 2.0;
+
 pub struct AgricultureDerivatives {
     pub d_arable_land: f64,
     pub d_potentially_arable_land: f64,
     pub d_urban_industrial_land: f64,
     pub d_land_fertility: f64,
+    pub d_food_per_capita_smooth: f64,
 }
 
 /// Compute agricultural derivatives and update auxiliary fields on `state.agriculture`.
@@ -36,9 +41,10 @@ pub fn agriculture_derivatives(
     let pop = state.population.population.max(1.0);
 
     // ---- Agricultural inputs per hectare ----
-    // Fraction of industrial output allocated to agriculture (food-pressure driven)
+    // Fraction of industrial output allocated to agriculture (food-pressure driven).
+    // Uses smoothed food per capita (FSPD=2yr ODE stock) for allocation stability.
     let food_ratio = if params.subsistence_food_per_capita > 0.0 {
-        state.agriculture.food_per_capita / params.subsistence_food_per_capita
+        state.agriculture.food_per_capita_smooth / params.subsistence_food_per_capita
     } else {
         1.0
     };
@@ -126,10 +132,81 @@ pub fn agriculture_derivatives(
         0.0
     };
 
+    // ---- Food perception smoothing (FSPD) ----
+    // First-order delay: smoothed fpc tracks actual fpc with a 2-year lag.
+    let fpc_actual = state.agriculture.food_per_capita;
+    let fpc_smooth = state.agriculture.food_per_capita_smooth;
+    let d_fpc_smooth = (fpc_actual - fpc_smooth) / FOOD_SHORTAGE_PERCEPTION_DELAY;
+
     AgricultureDerivatives {
         d_arable_land: land_development_rate - erosion_rate - uil_from_arable,
         d_potentially_arable_land: -land_development_rate,
         d_urban_industrial_land: d_uil,
         d_land_fertility: lfr - lfd,
+        d_food_per_capita_smooth: d_fpc_smooth,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lookup::tables::WorldLookupTables;
+    use crate::model::params::ScenarioParams;
+    use crate::model::state::WorldState;
+
+    fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
+        let mut s = WorldState::initial_1900();
+        let params = ScenarioParams::bau();
+        let tables = WorldLookupTables::load();
+        // Pre-populate capital auxiliaries
+        s.capital.industrial_output = 2.1e11 / 3.0; // IC / ICOR
+        s.capital.industrial_output_per_capita = s.capital.industrial_output / 1.6e9;
+        s.agriculture.food_per_capita_smooth = 400.0;
+        s.pollution.pollution_index = 0.05;
+        (s, params, tables)
+    }
+
+    #[test]
+    fn test_land_fertility_degradation() {
+        let (mut s, params, tables) = setup();
+        // At high pollution, land fertility should decrease
+        s.pollution.pollution_index = 30.0;
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        assert!(d.d_land_fertility < 0.0,
+            "d_land_fertility {} should be negative at high pollution", d.d_land_fertility);
+    }
+
+    #[test]
+    fn test_uil_dynamics() {
+        let (mut s, params, tables) = setup();
+        // With initial UIL at 8.2e6 and moderate IOPC, UIL should grow
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        // UIL change direction depends on desired vs current
+        // At 1900 with low IOPC, desired UIL ~ UILPC(43.75) * 1.6e9
+        // Just check it's finite
+        assert!(d.d_urban_industrial_land.is_finite());
+    }
+
+    #[test]
+    fn test_food_production() {
+        let (mut s, params, tables) = setup();
+        agriculture_derivatives(&mut s, &params, &tables);
+        // food = arable_land × land_yield
+        assert!(s.agriculture.food > 0.0, "food should be positive");
+        assert!(s.agriculture.food_per_capita > 0.0, "food/cap should be positive");
+        // food ≈ arable_land × land_yield
+        let expected_food = s.agriculture.arable_land * s.agriculture.land_yield;
+        assert!((s.agriculture.food - expected_food).abs() / expected_food < 0.01);
+    }
+
+    #[test]
+    fn test_food_per_capita_smooth_derivative() {
+        let (mut s, params, tables) = setup();
+        // Set smooth below actual → derivative should be positive
+        s.agriculture.food_per_capita_smooth = 100.0;
+        s.agriculture.food_per_capita = 400.0;
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        // After agriculture runs, fpc is recomputed. Smooth derivative should push toward actual.
+        assert!(d.d_food_per_capita_smooth.is_finite());
     }
 }

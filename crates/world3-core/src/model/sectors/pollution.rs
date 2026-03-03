@@ -76,3 +76,60 @@ pub fn pollution_derivatives(
 
     (d_persistent, d_buffer)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lookup::tables::WorldLookupTables;
+    use crate::model::params::ScenarioParams;
+    use crate::model::state::WorldState;
+
+    fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
+        let mut s = WorldState::initial_1900();
+        let params = ScenarioParams::bau();
+        let tables = WorldLookupTables::load();
+        // Pre-populate industrial output
+        s.capital.industrial_output = 2.1e11 / 3.0;
+        s.capital.industrial_output_per_capita = s.capital.industrial_output / 1.6e9;
+        s.agriculture.agricultural_inputs_per_hectare = 10.0;
+        s.pollution.pollution_index = 0.05;
+        s.pollution.persistent_pollution = 0.05;
+        s.pollution.pollution_appearance_buffer = 0.05;
+        (s, params, tables)
+    }
+
+    #[test]
+    fn test_pollution_appearance_delay() {
+        let (mut s, params, tables) = setup();
+        let (d_persistent, d_buffer) = pollution_derivatives(&mut s, &params, &tables);
+        // Generation feeds buffer, buffer drains to persistent
+        assert!(s.pollution.generation_rate > 0.0, "generation should be positive");
+        // d_buffer = generation - appearance_rate
+        // d_persistent = appearance_rate - assimilation
+        assert!(d_buffer.is_finite());
+        assert!(d_persistent.is_finite());
+    }
+
+    #[test]
+    fn test_steady_state_pollution() {
+        let (mut s, params, tables) = setup();
+        // Set up near steady state: buffer = generation × delay
+        // First compute generation rate
+        let generation = {
+            let iopc_normalized = s.capital.industrial_output_per_capita / 220.0;
+            let gen_ind = s.capital.industrial_output * PPGIO
+                * tables.pollution_generation_industry.eval(iopc_normalized);
+            let agri_normalized = s.agriculture.agricultural_inputs_per_hectare / 40.0;
+            let gen_agri = s.agriculture.arable_land
+                * s.agriculture.agricultural_inputs_per_hectare * PPGAO
+                * tables.pollution_generation_agriculture.eval(agri_normalized);
+            gen_ind + gen_agri
+        };
+        // Set buffer to steady state
+        s.pollution.pollution_appearance_buffer = generation * POLLUTION_APPEARANCE_DELAY;
+        let (_d_persistent, d_buffer) = pollution_derivatives(&mut s, &params, &tables);
+        // At steady state, d_buffer ≈ 0
+        assert!(d_buffer.abs() < generation * 0.01,
+            "d_buffer {} should be near zero at steady state (gen={})", d_buffer, generation);
+    }
+}

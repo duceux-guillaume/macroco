@@ -49,12 +49,10 @@ pub fn resource_derivative(
 ///
 /// Updates `state.resources.fraction_remaining` in place.
 /// Must be called before capital sector uses the cost multiplier.
-pub fn compute_resource_auxiliaries(state: &mut WorldState, tables: &WorldLookupTables) {
+pub fn compute_resource_auxiliaries(state: &mut WorldState, _tables: &WorldLookupTables) {
     state.resources.fraction_remaining =
         state.resources.nonrenewable_resources.clamp(0.0, 1.0);
 
-    // Capital-output ratio multiplier is stored on capital sector (capital.rs computes it)
-    let _ = tables
-        .capital_output_ratio_resources
-        .eval(state.resources.fraction_remaining);
+    // World3-03: resource scarcity feeds back ONLY through FCAOR (capital fraction
+    // allocated to resource extraction in capital.rs), not through ICOR. ICOR is constant.
 }
