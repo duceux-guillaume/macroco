@@ -1,35 +1,28 @@
 <script lang="ts">
-	import { chartConfigs } from '$lib/charts/chart-config';
-	import TimeSeriesChart from '$lib/charts/TimeSeriesChart.svelte';
+	import UnifiedChart from '$lib/charts/UnifiedChart.svelte';
 	import { activeSimData } from '$lib/stores/simulation';
 	import { scenarioColors, focusedScenarioId } from '$lib/stores/scenarios';
 </script>
 
-<div class="chart-grid">
-	{#each chartConfigs as config (config.id)}
-		<div class="chart-cell">
-			<TimeSeriesChart {config} data={$activeSimData} colors={$scenarioColors} focusedScenarioId={$focusedScenarioId} />
-		</div>
-	{/each}
+<div class="chart-layout">
+	<div class="overview-section">
+		<UnifiedChart data={$activeSimData} colors={$scenarioColors} focusedScenarioId={$focusedScenarioId} />
+	</div>
 </div>
 
 <style>
-	.chart-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 12px;
+	.chart-layout {
+		display: flex;
+		flex-direction: column;
 		flex: 1;
+		min-height: 0;
 	}
-	.chart-cell {
+	.overview-section {
+		flex: 1;
+		min-height: 200px;
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: 8px;
 		padding: 8px;
-		min-height: 240px;
-	}
-	@media (max-width: 900px) {
-		.chart-grid {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>

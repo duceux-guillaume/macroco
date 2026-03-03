@@ -60,3 +60,30 @@ export function extractSeries(states: WorldState[], path: string): DataPoint[] {
 	}
 	return result;
 }
+
+export interface NormalizedPoint {
+	year: number;
+	normalized: number;
+	raw: number;
+}
+
+/** Normalize a series to 0-1 range using min-max normalization. */
+export function normalizeSeries(points: DataPoint[]): { points: NormalizedPoint[]; min: number; max: number } {
+	if (points.length === 0) return { points: [], min: 0, max: 0 };
+
+	let min = Infinity;
+	let max = -Infinity;
+	for (const p of points) {
+		if (p.value < min) min = p.value;
+		if (p.value > max) max = p.value;
+	}
+
+	const range = max - min;
+	const normalized: NormalizedPoint[] = points.map((p) => ({
+		year: p.year,
+		normalized: range > 0 ? (p.value - min) / range : 0.5,
+		raw: p.value
+	}));
+
+	return { points: normalized, min, max };
+}
