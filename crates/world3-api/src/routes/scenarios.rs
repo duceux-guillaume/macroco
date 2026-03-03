@@ -132,6 +132,7 @@ pub async fn run_scenario(
     // Run simulation on blocking thread pool
     let solver = Arc::clone(&state.solver);
     let initial = initial_conditions_1900();
+    let start_year = params.start_year;
     let result = tokio::task::spawn_blocking(move || solver.solve(initial, &params))
         .await
         .map_err(|e| ApiError::Internal(anyhow::anyhow!("Task panicked: {}", e)))?;
@@ -139,10 +140,6 @@ pub async fn run_scenario(
     let states = result.map_err(|e| ApiError::SimulationFailed(e.to_string()))?;
 
     // Filter out warmup states before start_year
-    let start_year = {
-        let store = state.scenarios.read().await;
-        store.get(&id).map(|s| s.params.start_year).unwrap_or(1900.0)
-    };
     let states: Vec<_> = states.into_iter().filter(|s| s.time >= start_year).collect();
 
     // Build output
