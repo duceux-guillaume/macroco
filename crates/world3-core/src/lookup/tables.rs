@@ -11,35 +11,54 @@ use super::LookupTable;
 /// All lookup tables used in the World 3 model, loaded once at startup.
 pub struct WorldLookupTables {
     // --- Population sector ---
-    /// Life expectancy multiplier from food (LEMF)
-    /// x: food ratio (food per capita / subsistence food per capita)
-    /// y: multiplier on life expectancy [0..2]
+    /// Life expectancy multiplier from food (LMF)
+    /// World3-03 LMFT: x = food ratio, y = LE multiplier
     pub life_exp_multiplier_food: LookupTable,
 
     /// Life expectancy multiplier from health services (LMHS)
-    /// x: effective health services per capita (normalized to 1940 baseline)
+    /// x: effective health services per capita [USD/person/yr]
     /// y: multiplier on life expectancy
     pub life_exp_multiplier_health: LookupTable,
 
-    /// Life expectancy multiplier from crowding (LMCR)
-    /// x: crowding ratio (population / carrying capacity)
-    /// y: multiplier on life expectancy
+    /// Life expectancy multiplier from crowding (CMI × FPU proxy)
+    /// x: crowding ratio (population / reference)
+    /// y: multiplier on life expectancy (< 1 at high crowding)
     pub life_exp_multiplier_crowding: LookupTable,
 
-    /// Life expectancy multiplier from pollution (LMPO)
-    /// x: pollution index (normalized to 1970 = 1.0)
-    /// y: multiplier on life expectancy
+    /// Life expectancy multiplier from pollution (LMPD)
+    /// World3-03 LMPDE: x = pollution index, y = LE multiplier
     pub life_exp_multiplier_pollution: LookupTable,
 
-    /// Desired completed family size (DCFS) based on industrial output per capita
-    /// x: industrial output per capita [1975 USD / person / year], normalized to 1 at 1970
-    /// y: desired completed family size [children / woman]
+    /// Mortality rate for cohort 0-14 (M1) — World3-03 table
+    /// x: life expectancy [years], y: annual mortality rate
+    pub mortality_0_14: LookupTable,
+
+    /// Mortality rate for cohort 15-44 (M2) — World3-03 table
+    /// x: life expectancy [years], y: annual mortality rate
+    pub mortality_15_44: LookupTable,
+
+    /// Mortality rate for cohort 45-64 (M3) — World3-03 table
+    /// x: life expectancy [years], y: annual mortality rate
+    pub mortality_45_64: LookupTable,
+
+    /// Mortality rate for cohort 65+ (M4) — World3-03 table
+    /// x: life expectancy [years], y: annual mortality rate
+    pub mortality_65_plus: LookupTable,
+
+    /// Desired completed family size (DCFS)
+    /// World3-03: dcfsn=3.8, modified by SFSN lookup from DIOPC
+    /// x: industrial output per capita [USD/person/yr]
+    /// y: desired completed family size [children/woman]
     pub desired_family_size: LookupTable,
 
-    /// Social family planning multiplier (FRSN) — effect of social norms
+    /// Social family planning multiplier (FRSN) — effect of family planning programs
     /// x: effective family planning (0 = none, 1 = full)
     /// y: multiplier on fertility
     pub family_planning_multiplier: LookupTable,
+
+    /// Fecundity multiplier from life expectancy (FM) — World3-03 table
+    /// x: life expectancy [years], y: fecundity multiplier
+    pub fecundity_multiplier: LookupTable,
 
     /// Fraction of services for health (FSH)
     /// x: effective services per capita (normalized)
@@ -47,6 +66,11 @@ pub struct WorldLookupTables {
     pub fraction_services_health: LookupTable,
 
     // --- Capital / Industrial sector ---
+    /// Fraction of industrial output allocated to consumption (FIOAC)
+    /// World3-03: x = IOPC/IOPCD ratio, y = consumption fraction [0.3..0.83]
+    /// Simplified: x = IOPC [USD/person/yr], y = consumption fraction
+    pub consumption_fraction: LookupTable,
+
     /// Industrial capital output ratio (ICOR) as function of resource fraction
     /// x: fraction of non-renewable resources remaining [0..1]
     /// y: capital-output ratio multiplier
@@ -128,56 +152,99 @@ impl WorldLookupTables {
     /// X values and Y values are taken directly from the published model documentation.
     pub fn load() -> Self {
         Self {
-            // Life expectancy multiplier from food
-            // Source: Meadows 1972, Table 5-1
-            // x: food ratio (0=starvation, 1=subsistence, 2=adequate)
-            // y: multiplier (0=death, 1=neutral, >1=benefit)
+            // Life expectancy multiplier from food (LMF)
+            // World3-03 LMFT: food adequacy affects LE
+            // At food_ratio=1 (subsistence), LMF=1.0. Below: rapid decline. Above: modest benefit.
+            // Flattened above food_ratio=1.0 compared to World3-03's LMFT table.
+            // Our model produces higher food/cap than World3-03 at the same parameters
+            // Calibrated to produce LE≈33 in 1900 (food_ratio≈1.9) and LE≈60 in 1970
+            // (food_ratio≈2.5). Above food_ratio=1.0, gains are moderate — food security
+            // helps but doesn't dominate LE like health services do.
             life_exp_multiplier_food: LookupTable::new(
                 "life_exp_multiplier_food",
-                vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0],
-                vec![0.0, 1.0, 1.43, 1.50, 1.50, 1.50],
+                vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 3.0, 4.0],
+                vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.04, 1.08, 1.12, 1.16, 1.20, 1.33, 1.40],
             ),
 
-            // Life expectancy multiplier from health services
-            // x: service output per capita [1975 USD/person/yr]
-            //
-            // Calibrated accounting for the ~20-year service-capital lag:
-            //   actual sopc ≈ equilibrium_sopc / 1.6 due to the depreciation time constant.
-            //   1900: sopc ≈ $200 (initialised at equilibrium) → lem = 0.76, LE ≈ 32 yr ✓
-            //   1970: actual sopc ≈ $500 (lagged from eq $780) → lem ≈ 1.34, LE ≈ 53 yr ✓
-            // Values < 1 mean poor health services actively reduce life expectancy below BASE.
+            // Life expectancy multiplier from health services (LMHS)
+            // World3-03: LMHS1 table from EHSPC (effective health services per capita).
+            // x: effective health services per capita [USD/person/yr]
+            // In World3-03, EHSPC uses a 20-year delay (HSAPC → EHSPC). Our model
+            // doesn't delay health services, so we keep LMHS = 1.0 until EHSPC > 40
+            // to approximate the delayed startup effect (S-shaped response).
+            // Calibrated so:
+            //   1900: EHSPC ≈ $36 → LMHS ≈ 1.0 (minimal health infrastructure)
+            //   1940: EHSPC ≈ $60 → LMHS ≈ 1.20 (health system developing)
+            //   1970: EHSPC ≈ $150 → LMHS ≈ 1.85 (modern health services)
             life_exp_multiplier_health: LookupTable::new(
                 "life_exp_multiplier_health",
-                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0],
-                vec![0.50, 0.76, 1.15, 1.55, 1.78, 2.00],
+                vec![0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 150.0, 200.0],
+                vec![1.0, 1.0, 1.0, 1.20, 1.50, 1.70, 1.85, 1.95],
             ),
 
             // Life expectancy multiplier from crowding
-            // x: crowding ratio (population density / reference density)
+            // World3-03: LMCR = 1 - CMI(IOPC) × FPU(POP), simplified to a
+            // direct lookup on population/reference ratio.
+            // At 1900 (pop/ref = 0.44): ~1.0 (minimal crowding effect)
+            // At 1970 (pop/ref = 1.0): ~0.95 (mild crowding)
+            // At high pop: drops significantly
             life_exp_multiplier_crowding: LookupTable::new(
                 "life_exp_multiplier_crowding",
-                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
-                vec![1.50, 1.40, 1.30, 1.20, 1.10, 1.00, 0.90, 0.80, 0.70, 0.60, 0.50],
+                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+                vec![1.05, 1.0, 0.95, 0.90, 0.85, 0.80, 0.75],
             ),
 
-            // Life expectancy multiplier from pollution
-            // x: persistent pollution index (1.0 = 1970 level)
+            // Life expectancy multiplier from pollution (LMPDE)
+            // World3-03 table, extended to higher pollution levels
             life_exp_multiplier_pollution: LookupTable::new(
                 "life_exp_multiplier_pollution",
-                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
-                vec![1.0, 0.99, 0.97, 0.95, 0.90, 0.85, 0.75, 0.65, 0.55],
+                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 80.0, 100.0],
+                vec![1.0, 0.99, 0.97, 0.95, 0.90, 0.85, 0.75, 0.55, 0.40],
             ),
 
-            // Desired family size vs income [children / woman]
-            // x: industrial output per capita [1975 USD/person/yr]
-            //
-            // Calibrated for a slow demographic transition: family size begins dropping
-            // only when IOPC > ~$400/yr (late 20th century) matching World 3 BAU timing.
-            // At 1970 IOPC ≈ $300 family size ≈ 4.3, matching historical data.
+            // Mortality tables M1-M4 from World3-03
+            // x: life expectancy [years], y: annual mortality rate for each cohort
+            // Source: Meadows 2004, digitized from Dynamo model documentation
+            mortality_0_14: LookupTable::new(
+                "mortality_0_14",
+                vec![20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![0.0567, 0.0366, 0.0243, 0.0155, 0.0082, 0.0023, 0.001],
+            ),
+
+            mortality_15_44: LookupTable::new(
+                "mortality_15_44",
+                vec![20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![0.0266, 0.0171, 0.0110, 0.0065, 0.0040, 0.0016, 0.0008],
+            ),
+
+            mortality_45_64: LookupTable::new(
+                "mortality_45_64",
+                vec![20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![0.0562, 0.0373, 0.0252, 0.0171, 0.0118, 0.0083, 0.0060],
+            ),
+
+            mortality_65_plus: LookupTable::new(
+                "mortality_65_plus",
+                vec![20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![0.13, 0.11, 0.09, 0.07, 0.06, 0.05, 0.04],
+            ),
+
+            // Desired completed family size
+            // World3-03: DCFS = dcfsn × SFSN(DIOPC) × FRSN(FIE)
+            //   dcfsn = 3.8, SFSN ranges 0.5-1.25
+            // Simplified to direct lookup from perceived IOPC capturing the combined
+            // effect of social norms + compensatory fertility (CMPLE).
+            // World3-03 uses dcfsn=3.8 × SFSN(DIOPC) × CMPLE(perceived_LE). Our
+            // model lacks CMPLE, so values are raised ~20% at low/moderate income
+            // to compensate for the missing compensatory fertility effect.
+            // Key calibration:
+            //   IOPC=$44 (1900): ~5.7 (high fertility, compensatory + subsistence norms)
+            //   IOPC=$200 (1970): ~4.5 (transition beginning, still high compensation)
+            //   IOPC=$800: ~2.1 (post-transition, compensation minimal)
             desired_family_size: LookupTable::new(
                 "desired_family_size",
-                vec![0.0, 400.0, 800.0, 1200.0, 1600.0],
-                vec![5.0, 4.0, 3.0, 2.1, 1.9],
+                vec![0.0, 50.0, 100.0, 200.0, 400.0, 600.0, 800.0, 1200.0, 1600.0],
+                vec![4.40, 4.35, 4.25, 4.00, 3.00, 2.40, 2.05, 1.90, 1.80],
             ),
 
             // Family planning multiplier on fertility
@@ -188,6 +255,15 @@ impl WorldLookupTables {
                 vec![1.0, 0.90, 0.75, 0.55, 0.40],
             ),
 
+            // Fecundity multiplier from life expectancy (FM)
+            // World3-03: biological fecundity depends on health (proxy: LE)
+            // At low LE, poor nutrition/disease reduces fecundity
+            fecundity_multiplier: LookupTable::new(
+                "fecundity_multiplier",
+                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![0.0, 0.2, 0.4, 0.6, 0.7, 0.75, 0.8, 0.85, 0.87],
+            ),
+
             // Fraction of services for health
             fraction_services_health: LookupTable::new(
                 "fraction_services_health",
@@ -195,34 +271,51 @@ impl WorldLookupTables {
                 vec![0.3, 0.35, 0.40, 0.45, 0.50],
             ),
 
+            // Fraction of industrial output allocated to consumption (FIOAC)
+            // Based on World3-03 FIOAC1 table (x = IOPC/IOPCD, IOPCD ≈ $400).
+            // Raised ~0.10 to compensate for our model's missing dynamic references
+            // (IOPCD, ISOPC, IFPC) which in World3-03 absorb more output as income rises.
+            // This produces the correct aggregate investment rate (~32% in 1900).
+            consumption_fraction: LookupTable::new(
+                "consumption_fraction",
+                vec![0.0, 80.0, 160.0, 240.0, 320.0, 400.0, 480.0, 560.0, 640.0, 720.0, 800.0],
+                vec![0.40, 0.42, 0.44, 0.46, 0.48, 0.53, 0.78, 0.80, 0.82, 0.83, 0.83],
+            ),
+
             // Capital-output ratio multiplier from resource depletion
             // x: fraction of NNR remaining [0..1]
-            // y: multiplier on capital-output ratio (>1 = more capital needed per unit output)
+            // y: multiplier on capital-output ratio
             //
-            // Calibrated so that at NNR=1.0 (full resources), ICOR = 3.0 × 0.50 = 1.5,
-            // giving investment (12% × 1/1.5 = 8%) > depreciation (5%) → capital grows at ~3%/yr.
-            // Breakeven ≈ NNR=0.65: capital growth stalls as resources deplete past ~35%.
-            // At NNR=0.0: ICOR = 3.0 × 4.0 = 12.0 → near collapse from resource scarcity.
+            // World3-03: ICOR1 = 3.0 (constant). Resource scarcity feeds back ONLY
+            // through FCAOR (capital allocated to resource extraction), not through ICOR.
+            // This table is flat at 1.0 to match World3-03 behavior.
             capital_output_ratio_resources: LookupTable::new(
                 "capital_output_ratio_resources",
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                vec![4.0, 3.2, 2.6, 2.0, 1.6, 1.25, 0.90, 0.75, 0.62, 0.55, 0.50],
+                vec![0.0, 0.5, 1.0],
+                vec![1.0, 1.0, 1.0],
             ),
 
-            // Fraction of industrial output to agriculture (food pressure)
-            // x: food ratio (food / subsistence food)
+            // Fraction of industrial output to agriculture (FIOAA1)
+            // World3-03: FIOAA1 indexed by IFPC/FPC ratio, where IFPC > subsistence.
+            // Our x-axis uses food_ratio (FPC/subsistence). Because indicated food
+            // per capita exceeds subsistence, agricultural investment persists even
+            // when food_ratio > 1.0. Key points:
+            //   food_ratio=1.7 (1900 typical): FIOAA ≈ 0.11
+            //   food_ratio=2.0 (1970 typical): FIOAA ≈ 0.08
+            //   food_ratio=3.0+: FIOAA → 0 (food abundance)
             industrial_fraction_to_agriculture: LookupTable::new(
                 "industrial_fraction_to_agriculture",
-                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5],
-                vec![0.40, 0.25, 0.15, 0.10, 0.07, 0.05],
+                vec![0.0, 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0],
+                vec![0.40, 0.30, 0.20, 0.16, 0.12, 0.08, 0.04, 0.0, 0.0],
             ),
 
-            // Fraction of industrial output to services
-            // x: services per capita normalized (1.0 = 1970)
+            // Fraction of industrial output to services (FIOAS1)
+            // World3-03: FIOAS1 table, x = SOPC/ISOPC ratio
+            // At low SOPC relative to desired, high allocation to services
             industrial_fraction_to_services: LookupTable::new(
                 "industrial_fraction_to_services",
                 vec![0.0, 0.5, 1.0, 1.5, 2.0],
-                vec![0.30, 0.25, 0.20, 0.15, 0.12],
+                vec![0.30, 0.20, 0.10, 0.05, 0.0],
             ),
 
             // Jobs per unit of industrial capital
@@ -240,20 +333,26 @@ impl WorldLookupTables {
                 vec![0.50, 0.55, 0.60, 0.65],
             ),
 
-            // Land yield multiplier from capital inputs
-            // x: agricultural inputs per hectare (normalized to 1 at 1970)
+            // Land yield multiplier from capital inputs (LYMC)
+            // x: agricultural inputs per hectare [$/ha/yr]
+            // At zero inputs, yield equals base land fertility (LYMC=1.0).
+            // World3-03: LYMC1 table, x = agricultural inputs per hectare [$/ha/yr].
+            // Capital enhancement improves yields rapidly at first (Green Revolution),
+            // then with diminishing returns.
             land_yield_multiplier_capital: LookupTable::new(
                 "land_yield_multiplier_capital",
                 vec![0.0, 40.0, 80.0, 120.0, 160.0, 200.0, 240.0, 280.0, 320.0, 360.0, 400.0],
                 vec![1.0, 3.0, 4.5, 5.0, 5.3, 5.6, 5.9, 6.1, 6.35, 6.6, 6.9],
             ),
 
-            // Land yield multiplier from pollution
-            // x: persistent pollution index
+            // Land yield multiplier from pollution (LYMAP)
+            // x: persistent pollution index (1970 = 1)
+            // At low pollution, yield is at baseline (1.0). As pollution rises,
+            // yield degrades due to acid rain, soil contamination, etc.
             land_yield_multiplier_pollution: LookupTable::new(
                 "land_yield_multiplier_pollution",
-                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0],
-                vec![1.2, 1.0, 0.85, 0.75, 0.65, 0.55, 0.50],
+                vec![0.0, 1.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0],
+                vec![1.0, 1.0, 0.95, 0.90, 0.80, 0.70, 0.60, 0.50, 0.40],
             ),
 
             // Land erosion multiplier from over-farming

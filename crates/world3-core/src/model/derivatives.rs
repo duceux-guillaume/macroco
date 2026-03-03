@@ -35,23 +35,36 @@ pub fn derivatives(
     // Work on a mutable copy so sectors can fill in auxiliary fields
     let mut s = state.clone();
 
-    // --- Step 1: Resources ---
-    // (Must run first; capital sector needs fraction_remaining)
+    // --- Step 0: Pre-seed food_per_capita from stocks ---
+    // When RK4 creates intermediate states via from_vec(), auxiliary fields are
+    // zeroed. Capital needs a reasonable food_per_capita to compute allocation
+    // fractions. Pre-seed with a base-yield estimate; agriculture will refine later.
+    if s.agriculture.food_per_capita <= 0.0 {
+        let pop = s.population.population.max(1.0);
+        s.agriculture.food_per_capita = s.agriculture.arable_land * 600.0 / pop;
+    }
+
+    // --- Step 1: Resource auxiliaries ---
+    // (Capital sector needs fraction_remaining for cost multiplier and FCAOR)
     resources::compute_resource_auxiliaries(&mut s, tables);
-    let d_nnr = resources::resource_derivative(&s, params, tables);
 
     // --- Step 2: Capital ---
+    // (Produces industrial_output, needed by agriculture and resource depletion)
     let cap_deriv = capital::capital_derivatives(&mut s, params, tables);
 
-    // --- Step 3: Agriculture ---
+    // --- Step 3: Resource depletion ---
+    // (Needs IOPC from capital — must run AFTER capital_derivatives)
+    let d_nnr = resources::resource_derivative(&s, params, tables);
+
+    // --- Step 4: Agriculture ---
     // (food_per_capita is needed by population and must be current)
     let agri_deriv = agriculture::agriculture_derivatives(&mut s, params, tables);
 
-    // --- Step 4: Pollution ---
+    // --- Step 5: Pollution ---
     // (pollution_index must be updated before population uses it)
-    let d_pollution = pollution::pollution_derivative(&mut s, params, tables);
+    let (d_pollution, d_pollution_buffer) = pollution::pollution_derivatives(&mut s, params, tables);
 
-    // --- Step 5: Population ---
+    // --- Step 6: Population ---
     let pop_deriv = population::population_derivatives(&mut s, params, tables);
 
     // --- Build derivative state ---
@@ -64,6 +77,7 @@ pub fn derivatives(
 
     d.capital.industrial_capital = cap_deriv.d_industrial_capital;
     d.capital.service_capital = cap_deriv.d_service_capital;
+    d.capital.perceived_iopc = cap_deriv.d_perceived_iopc;
 
     d.agriculture.arable_land = agri_deriv.d_arable_land;
     d.agriculture.potentially_arable_land = agri_deriv.d_potentially_arable_land;
@@ -71,6 +85,7 @@ pub fn derivatives(
     d.resources.nonrenewable_resources = d_nnr;
 
     d.pollution.persistent_pollution = d_pollution;
+    d.pollution.pollution_appearance_buffer = d_pollution_buffer;
 
     d
 }

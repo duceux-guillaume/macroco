@@ -13,12 +13,14 @@ use crate::model::{params::ScenarioParams, state::WorldState};
 const ICOR_1970: f64 = 3.0;
 /// Service capital output ratio in 1970
 const SCOR_1970: f64 = 1.0;
-/// Reference population for per-capita normalizations [persons]
-const POP_REFERENCE: f64 = 3.6e9; // 1970 world population
+/// Social adjustment delay [years] — World3-03: SAD = 20 yr.
+/// Delayed IOPC drives desired family size (social norms lag behind actual income).
+const SOCIAL_ADJUSTMENT_DELAY: f64 = 20.0;
 
 pub struct CapitalDerivatives {
     pub d_industrial_capital: f64,
     pub d_service_capital: f64,
+    pub d_perceived_iopc: f64,
 }
 
 /// Compute d(industrial_capital)/dt and d(service_capital)/dt.
@@ -67,7 +69,8 @@ pub fn capital_derivatives(
     state.capital.service_output_per_capita = service_output / pop;
 
     // ----- Allocation fractions -----
-    // How much of industrial output goes to agriculture vs services vs reinvestment?
+    // World3-03: investment is the residual after consumption, services, and agriculture.
+    // fioai = 1 - fioac - fioas - fioaa
     let food_ratio = if params.subsistence_food_per_capita > 0.0 {
         state.agriculture.food_per_capita / params.subsistence_food_per_capita
     } else {
@@ -78,14 +81,21 @@ pub fn capital_derivatives(
         .industrial_fraction_to_agriculture
         .eval(food_ratio);
 
-    let spc_normalized = state.capital.service_output_per_capita
-        / (industrial_output / POP_REFERENCE).max(1e-9);
+    // World3-03: FIOAS = table(SOPC / ISOPC). ISOPC (indicated SOPC) scales with
+    // industrialization. Simplified: normalize SOPC by a reference value (~$200,
+    // the 1970 equilibrium SOPC level). Below 1.0 = services inadequate → invest more.
+    let sopc_normalized = state.capital.service_output_per_capita / 200.0;
     let frac_to_services = tables
         .industrial_fraction_to_services
-        .eval(spc_normalized);
+        .eval(sopc_normalized);
 
-    // Remaining fraction available for capital reinvestment
-    let frac_to_investment = params.investment_rate;
+    let frac_to_consumption = tables
+        .consumption_fraction
+        .eval(iopc);
+
+    // Investment is the residual — can be squeezed to near zero under pressure
+    let frac_to_investment = (1.0 - frac_to_consumption - frac_to_services - frac_to_agriculture)
+        .max(0.0);
 
     // ----- Industrial capital dynamics -----
     let investment = industrial_output * frac_to_investment;
@@ -98,12 +108,14 @@ pub fn capital_derivatives(
     let depreciation_s = state.capital.service_capital * params.service_depreciation_rate;
     let d_service = service_investment - depreciation_s;
 
-    // Store the agriculture allocation for use by agriculture sector
-    // (passed via state for single-pass computation)
-    let _ = frac_to_agriculture; // used in agriculture.rs
+    // ----- Perceived IOPC (social adjustment delay) -----
+    // World3-03: DIOPC = Smooth(IOPC, SAD) — first-order exponential delay.
+    // Social norms lag behind actual income by ~20 years.
+    let d_perceived_iopc = (iopc - state.capital.perceived_iopc) / SOCIAL_ADJUSTMENT_DELAY;
 
     CapitalDerivatives {
         d_industrial_capital: d_industrial,
         d_service_capital: d_service,
+        d_perceived_iopc,
     }
 }

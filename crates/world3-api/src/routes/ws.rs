@@ -201,7 +201,7 @@ fn spawn_sim_task(
                     n += 1;
                     let year = s.time;
                     if tx
-                        .send(WsServerMsg::SimStep { year, state: s })
+                        .send(WsServerMsg::SimStep { year, state: Box::new(s) })
                         .await
                         .is_err()
                     {

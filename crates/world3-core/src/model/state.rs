@@ -53,6 +53,9 @@ pub struct CapitalState {
     pub industrial_capital: f64,
     /// Service capital stock [1975 USD]
     pub service_capital: f64,
+    /// Delayed IOPC for social norms (20-year lag) [1975 USD / person / year]
+    /// World3-03: DIOPC — drives desired family size with social adjustment delay.
+    pub perceived_iopc: f64,
     /// Industrial output [1975 USD / year]
     pub industrial_output: f64,
     /// Industrial output per capita [1975 USD / person / year]
@@ -87,8 +90,10 @@ pub struct ResourceState {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PollutionState {
-    /// Persistent pollution stock [pollution units, 1970 = 1]
+    /// Persistent pollution stock (appeared, after delay) [pollution units, 1970 = 1]
     pub persistent_pollution: f64,
+    /// Pollution appearing pipeline (generated, in 20-year delay) [pollution units]
+    pub pollution_appearance_buffer: f64,
     /// Pollution index (normalized to 1.0 in 1970)
     pub pollution_index: f64,
     /// Current pollution generation rate [units / year]
@@ -103,7 +108,7 @@ pub struct PollutionState {
 
 impl WorldState {
     /// The number of state variables (excluding `time`, which is tracked separately).
-    pub const N: usize = 10;
+    pub const N: usize = 12;
 
     /// Extract the integrable state variables into a flat `Vec<f64>`.
     /// `time` is not included — the solver manages time separately.
@@ -114,20 +119,22 @@ impl WorldState {
             self.population.cohort_15_44,
             self.population.cohort_45_64,
             self.population.cohort_65_plus,
-            // Capital (2 stocks)
+            // Capital (3 stocks: IC, SC, perceived_iopc)
             self.capital.industrial_capital,
             self.capital.service_capital,
+            self.capital.perceived_iopc,
             // Agriculture (2 stocks)
             self.agriculture.arable_land,
             self.agriculture.potentially_arable_land,
             // Resources (1 stock)
             self.resources.nonrenewable_resources,
-            // Pollution (1 stock)
+            // Pollution (2 stocks: appeared + pipeline)
             self.pollution.persistent_pollution,
+            self.pollution.pollution_appearance_buffer,
         ]
     }
 
-    /// Reconstruct state from a flat vec (only the 10 ODE stocks).
+    /// Reconstruct state from a flat vec (only the 12 ODE stocks).
     /// Derived/auxiliary fields are left at their defaults — they will be
     /// computed by the derivative function before use.
     pub fn from_vec(time: f64, v: &[f64]) -> Self {
@@ -144,14 +151,16 @@ impl WorldState {
 
         s.capital.industrial_capital = v[4].max(0.0);
         s.capital.service_capital = v[5].max(0.0);
+        s.capital.perceived_iopc = v[6].max(0.0);
 
-        s.agriculture.arable_land = v[6].max(0.0);
-        s.agriculture.potentially_arable_land = v[7].max(0.0);
+        s.agriculture.arable_land = v[7].max(0.0);
+        s.agriculture.potentially_arable_land = v[8].max(0.0);
 
-        s.resources.nonrenewable_resources = v[8].max(0.0);
-        s.resources.fraction_remaining = v[8].clamp(0.0, 1.0);
+        s.resources.nonrenewable_resources = v[9].max(0.0);
+        s.resources.fraction_remaining = v[9].clamp(0.0, 1.0);
 
-        s.pollution.persistent_pollution = v[9].max(0.0);
+        s.pollution.persistent_pollution = v[10].max(0.0);
+        s.pollution.pollution_appearance_buffer = v[11].max(0.0);
         s
     }
 
@@ -194,10 +203,12 @@ impl std::ops::Add for WorldState {
         self.population.cohort_65_plus += rhs.population.cohort_65_plus;
         self.capital.industrial_capital += rhs.capital.industrial_capital;
         self.capital.service_capital += rhs.capital.service_capital;
+        self.capital.perceived_iopc += rhs.capital.perceived_iopc;
         self.agriculture.arable_land += rhs.agriculture.arable_land;
         self.agriculture.potentially_arable_land += rhs.agriculture.potentially_arable_land;
         self.resources.nonrenewable_resources += rhs.resources.nonrenewable_resources;
         self.pollution.persistent_pollution += rhs.pollution.persistent_pollution;
+        self.pollution.pollution_appearance_buffer += rhs.pollution.pollution_appearance_buffer;
         self
     }
 }
@@ -211,10 +222,12 @@ impl std::ops::Mul<f64> for WorldState {
         self.population.cohort_65_plus *= rhs;
         self.capital.industrial_capital *= rhs;
         self.capital.service_capital *= rhs;
+        self.capital.perceived_iopc *= rhs;
         self.agriculture.arable_land *= rhs;
         self.agriculture.potentially_arable_land *= rhs;
         self.resources.nonrenewable_resources *= rhs;
         self.pollution.persistent_pollution *= rhs;
+        self.pollution.pollution_appearance_buffer *= rhs;
         self
     }
 }

@@ -41,18 +41,23 @@ impl Rk4Solver {
         let s2_stocks = state.clone() + k1.clone() * (dt / 2.0);
         let mut s2 = WorldState::from_vec(state.time + dt / 2.0, &s2_stocks.to_vec());
         s2.time = state.time + dt / 2.0;
+        // Carry auxiliary fields from current state — from_vec() zeroes them,
+        // but sectors (especially capital) need them for allocation fractions.
+        s2.agriculture.food_per_capita = state.agriculture.food_per_capita;
         let k2 = derivatives(&s2, params, tables);
 
         // k3 = f(t + dt/2, y + k2*dt/2)
         let s3_stocks = state.clone() + k2.clone() * (dt / 2.0);
         let mut s3 = WorldState::from_vec(state.time + dt / 2.0, &s3_stocks.to_vec());
         s3.time = state.time + dt / 2.0;
+        s3.agriculture.food_per_capita = state.agriculture.food_per_capita;
         let k3 = derivatives(&s3, params, tables);
 
         // k4 = f(t + dt, y + k3*dt)
         let s4_stocks = state.clone() + k3.clone() * dt;
         let mut s4 = WorldState::from_vec(state.time + dt, &s4_stocks.to_vec());
         s4.time = state.time + dt;
+        s4.agriculture.food_per_capita = state.agriculture.food_per_capita;
         let k4 = derivatives(&s4, params, tables);
 
         // Weighted sum: y_{n+1} = y_n + dt/6 * (k1 + 2*k2 + 2*k3 + k4)
@@ -86,7 +91,7 @@ impl OdeSolver for Rk4Solver {
             crate::model::sectors::resources::compute_resource_auxiliaries(&mut init, tables);
             crate::model::sectors::capital::capital_derivatives(&mut init, params, tables);
             crate::model::sectors::agriculture::agriculture_derivatives(&mut init, params, tables);
-            crate::model::sectors::pollution::pollution_derivative(&mut init, params, tables);
+            crate::model::sectors::pollution::pollution_derivatives(&mut init, params, tables);
             current = init;
         }
 
@@ -101,11 +106,29 @@ impl OdeSolver for Rk4Solver {
 
             let mut next = self.rk4_step(&current, actual_dt, params);
 
+            // Carry food_per_capita from previous step — from_vec() zeroes it,
+            // but capital sector needs it for correct allocation fractions.
+            // Agriculture will overwrite with the freshly computed value.
+            next.agriculture.food_per_capita = current.agriculture.food_per_capita;
+
             // Recompute all auxiliary fields on the accepted state
             crate::model::sectors::resources::compute_resource_auxiliaries(&mut next, tables);
             crate::model::sectors::capital::capital_derivatives(&mut next, params, tables);
             crate::model::sectors::agriculture::agriculture_derivatives(&mut next, params, tables);
-            crate::model::sectors::pollution::pollution_derivative(&mut next, params, tables);
+
+            // World3-03 food perception smoothing (FSPD = 2 years).
+            // Without this, the agriculture-capital allocation feedback loop
+            // oscillates: high fpc → FIOAA=0 → no inputs → low yield → low fpc → repeat.
+            // Smoothing the stored fpc breaks this period-2 instability.
+            {
+                let fpc_fresh = next.agriculture.food_per_capita;
+                let fpc_prev = current.agriculture.food_per_capita;
+                let fspd = 2.0_f64; // food shortage perception delay [years]
+                let alpha = (actual_dt / fspd).min(1.0);
+                next.agriculture.food_per_capita = fpc_prev + (fpc_fresh - fpc_prev) * alpha;
+            }
+
+            crate::model::sectors::pollution::pollution_derivatives(&mut next, params, tables);
             crate::model::sectors::population::population_derivatives(&mut next, params, tables);
 
             // Divergence check

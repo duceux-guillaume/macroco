@@ -63,7 +63,7 @@ pub enum WsClientMsg {
 pub enum WsServerMsg {
     SimStep {
         year: f64,
-        state: WorldState,
+        state: Box<WorldState>,
     },
     SimComplete {
         scenario_id: String,
@@ -88,15 +88,18 @@ pub fn initial_conditions_1900() -> WorldState {
         time: 1900.0,
         population: PopulationState {
             population: 1.6e9,
-            cohort_0_14: 0.60e9,
-            cohort_15_44: 0.65e9,
-            cohort_45_64: 0.27e9,
-            cohort_65_plus: 0.08e9,
+            // World3-03 initial cohorts (Meadows 2004)
+            cohort_0_14: 6.5e8,
+            cohort_15_44: 7.0e8,
+            cohort_45_64: 1.9e8,
+            cohort_65_plus: 6.0e7,
             ..Default::default()
         },
         capital: CapitalState {
-            industrial_capital: 0.2e12,
-            service_capital: 0.32e12,
+            industrial_capital: 2.1e11,  // World3-03: ici = 2.1e11
+            service_capital: 1.44e11,    // World3-03: sci = 1.44e11
+            // 1900 IOPC ≈ IC/ICOR/POP = 2.1e11 / 3.0 / 1.6e9 ≈ 43.75
+            perceived_iopc: 43.75,
             ..Default::default()
         },
         agriculture: AgricultureState {
@@ -111,6 +114,7 @@ pub fn initial_conditions_1900() -> WorldState {
         },
         pollution: PollutionState {
             persistent_pollution: 0.05,
+            pollution_appearance_buffer: 0.05 * 20.0,
             pollution_index: 0.05,
             ..Default::default()
         },
