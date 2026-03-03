@@ -4,8 +4,7 @@ import {
 	parameterDescriptions,
 	feedbackLoops,
 	type VariableInfo,
-	type ParameterInfo,
-	type FeedbackLoopInfo
+	type ParameterInfo
 } from './variable-descriptions';
 
 const REQUIRED_VARIABLE_FIELDS: (keyof VariableInfo)[] = [
