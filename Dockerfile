@@ -1,5 +1,5 @@
 # ── Stage 1: Build Rust binary ────────────────────────────────────────────────
-FROM rust:1.83-bookworm AS rust-builder
+FROM rust:1.85-bookworm AS rust-builder
 
 WORKDIR /app
 
