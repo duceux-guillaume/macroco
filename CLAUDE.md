@@ -107,6 +107,12 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - All variable/parameter descriptions live in `frontend/src/lib/content/variable-descriptions.ts` — single source of truth.
 - Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
 
+### Frontend Testing
+- Test stack: vitest + jsdom. Config in `vite.config.ts` (import `defineConfig` from `vitest/config`, not `vite`).
+- Test helpers in `frontend/src/lib/test-helpers.ts` — `makeWorldState()` and `makeTimeSeries()` factories.
+- Mock SvelteKit env: `vi.mock('$env/static/public', () => ({ PUBLIC_API_BASE: '...' }))` before imports.
+- Svelte stores in tests: use `get()` from `svelte/store`; reset writable stores in `beforeEach`.
+
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
 
