@@ -1,4 +1,4 @@
-import { PUBLIC_WS_BASE } from '$env/static/public';
+import { getWsBase } from './env';
 import { writable } from 'svelte/store';
 import type { WsClientMsg, WsServerMsg } from './types';
 
@@ -20,7 +20,7 @@ export function connect(): void {
 	const isReconnect = socket !== null;
 	connectionState.set(isReconnect ? 'reconnecting' : 'connecting');
 
-	socket = new WebSocket(PUBLIC_WS_BASE);
+	socket = new WebSocket(getWsBase());
 
 	socket.onopen = () => {
 		connectionState.set('connected');

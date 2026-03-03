@@ -108,9 +108,9 @@
   - *Context:* Milestone 4 requires benchmarks for solver performance and sensitivity analysis to quantify how parameter changes affect model outputs.
   - *Priority:* medium
 
-- [ ] **REQ-016: Docker Compose deployment**
-  - *Context:* Milestone 4 targets a single `docker compose up` command to run the full stack (API server + frontend + ingestion).
-  - *Priority:* medium
+- [x] **REQ-016: Containerized deployment**
+  - *Context:* Single-container deployment on Fly.io. The `world3-api` binary serves both API and static frontend.
+  - *Done:* Multi-stage Dockerfile, `fly.toml` config (cdg region, auto-stop), CI/CD deploy job in GitHub Actions, graceful shutdown, `STATIC_DIR` env var for static file serving.
 
 - [x] **REQ-017: Frontend test suite**
   - *Context:* Vitest unit test suite: 8 test files, ~150 tests covering format/extract utils, chart configs, variable descriptions, annotations, stores, and API client. CI pipeline runs tests on every PR.

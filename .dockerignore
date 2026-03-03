@@ -1,0 +1,10 @@
+target/
+node_modules/
+frontend/build/
+frontend/.svelte-kit/
+.git/
+.github/
+.claude/
+docs/
+*.md
+!CLAUDE.md

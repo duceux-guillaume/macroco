@@ -79,42 +79,49 @@ The easiest way is the one-command launcher:
 ./run.sh
 ```
 
-This starts both the backend API server and the frontend dev server. Wait until you see:
+This builds the frontend and starts the server. Wait until you see:
 
 ```
-✓ Backend ready on port 8080
-✓ Frontend ready — open http://localhost:5173
+Macroco starting on http://localhost:8080
 ```
 
 The first build takes 2–3 minutes (Rust compiles everything from source). Subsequent starts are much faster.
 
-### Manual start (two terminals)
+Open **http://localhost:8080** in your browser. You'll see the simulator with the "Business as Usual" scenario loaded.
 
-If you prefer, start each piece separately:
+### Frontend hot-reload (for developers)
 
-**Terminal 1 — Backend:**
+If you're actively editing frontend code and want instant reloads:
+
 ```bash
-cargo run --bin world3-api
+./run.sh --dev
 ```
-Wait for `Listening on 0.0.0.0:8080`.
 
-**Terminal 2 — Frontend:**
+This starts a Vite dev server on port 5173 with hot-reload, and the backend API on port 8080 separately.
+
+### Manual start
+
+Build the frontend first, then start the backend:
+
 ```bash
-cd frontend
-npm install
-npm run dev
+cd frontend && npm install && npm run build && cd ..
+STATIC_DIR=frontend/build cargo run --bin world3-api
 ```
-Wait for `Local: http://localhost:5173`.
+
+Visit **http://localhost:8080**.
+
+### Docker
+
+If you have Docker installed, you can build and run without installing Rust or Node.js:
+
+```bash
+docker build -t macroco .
+docker run -p 8080:8080 macroco
+```
 
 ---
 
-## 4. Open in your browser
-
-Navigate to **http://localhost:5173**. You'll see the simulator with the "Business as Usual" scenario loaded.
-
----
-
-## 5. First things to try
+## 4. First things to try
 
 1. **Compare scenarios** — Click the preset buttons in the sidebar (BAU, Technology, Stabilized) to overlay different futures on the same charts.
 
@@ -128,9 +135,9 @@ Navigate to **http://localhost:5173**. You'll see the simulator with the "Busine
 
 ---
 
-## 6. Stopping the app
+## 5. Stopping the app
 
-Press **Ctrl+C** in the terminal where `run.sh` is running. This stops both the backend and frontend.
+Press **Ctrl+C** in the terminal where `run.sh` is running.
 
 ---
 
@@ -154,13 +161,6 @@ Another process is using port 8080. Find and stop it:
 ```bash
 lsof -i :8080    # macOS/Linux — find the process
 kill <PID>        # replace <PID> with the number from the output
-```
-
-### Port 5173 already in use
-
-Another Vite dev server is running. Stop it, or run on a different port:
-```bash
-cd frontend && npm run dev -- --port 5174
 ```
 
 ### `npm install` fails

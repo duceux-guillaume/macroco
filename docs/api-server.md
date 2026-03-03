@@ -15,6 +15,7 @@ RUST_LOG=info cargo run --bin world3-api
 |----------|---------|-------------|
 | `PORT` | `8080` | TCP port to bind |
 | `RUST_LOG` | `info` | Log level (e.g. `debug`, `info,world3_api=debug`) |
+| `STATIC_DIR` | `./static` | Path to frontend static files. If the directory exists, the server serves them at all non-API paths with SPA fallback. |
 
 ## Architecture
 
@@ -173,3 +174,16 @@ Returned by `GET /scenarios` and `GET /presets`:
   "is_preset": true
 }
 ```
+
+## Deployment
+
+In production, the `world3-api` binary serves both the REST/WebSocket API and the SvelteKit frontend from a single process. Set `STATIC_DIR` to the directory containing the built frontend files (the output of `npm run build` in the `frontend/` directory).
+
+When `STATIC_DIR` points to an existing directory:
+- API routes (`/api/v1/*`) are handled by Axum as usual
+- All other paths serve static files from the directory
+- Unknown paths fall back to `index.html` (SPA routing)
+
+When the directory does not exist, the server operates in API-only mode.
+
+See [docs/deployment.md](deployment.md) for full Fly.io deployment instructions.
