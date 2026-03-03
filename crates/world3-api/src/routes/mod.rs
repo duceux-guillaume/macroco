@@ -55,6 +55,11 @@ pub fn build_router(state: AppState) -> Router {
     let static_path = std::path::Path::new(&static_dir);
     if static_path.exists() {
         let index = static_path.join("index.html");
+        if !index.exists() {
+            tracing::warn!(
+                "index.html not found in {static_dir} — SPA fallback will return 404"
+            );
+        }
         let spa_fallback = ServeDir::new(&static_dir).fallback(ServeFile::new(index));
         router = router.fallback_service(spa_fallback);
         tracing::info!("Serving static files from {static_dir}");

@@ -38,7 +38,7 @@ FROM node:22-bookworm-slim AS frontend-builder
 
 WORKDIR /app/frontend
 
-COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 COPY frontend/ .
@@ -51,7 +51,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfontconfig1 ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --create-home --shell /bin/bash appuser
+RUN useradd --no-create-home --shell /sbin/nologin appuser
 
 WORKDIR /app
 
@@ -64,11 +64,11 @@ COPY --from=frontend-builder /app/frontend/build ./static
 # Data files (presets, lookup tables)
 COPY data/ ./data/
 
+RUN chown -R appuser:appuser /app
 USER appuser
 
 ENV PORT=8080
 ENV STATIC_DIR=/app/static
-ENV RUST_LOG=info
 
 EXPOSE 8080
 

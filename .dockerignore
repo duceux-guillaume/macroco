@@ -7,4 +7,4 @@ frontend/.svelte-kit/
 .claude/
 docs/
 *.md
-!CLAUDE.md
+data/*.db
