@@ -9,10 +9,11 @@ use crate::model::{params::ScenarioParams, state::WorldState};
 
 /// Resource depletion coefficient [NNR_fraction / (person × USD/person/yr × year)].
 ///
-/// Calibrated so that at 1970 conditions (POP = 3.6e9, IOPC = $500/yr):
-///   extraction = 3.6e9 × 500 × 3e-15 = 5.4e-3 NNR/year
-/// Cumulatively depletes ~50% of NNR by 2050 in BAU — consistent with Meadows 1972.
-const RESOURCE_DEPLETION_COEFF: f64 = 3.0e-15;
+/// World3-03: NRI = 1e12 resource units, NRUR at 1970 ≈ 1e10 units/yr.
+/// With IOPC ≈ $200/person/yr, POP ≈ 3.6e9:
+///   coeff = 1e10 / (3.6e9 × 200 × 1e12) = 1.39e-14
+/// Calibrated to deplete ~50% of NNR by 2030 in BAU.
+const RESOURCE_DEPLETION_COEFF: f64 = 1.4e-14;
 
 /// Compute the rate of change of non-renewable resources.
 ///

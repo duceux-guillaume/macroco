@@ -128,20 +128,18 @@ fn initial_conditions_1900() -> WorldState {
         time: 1900.0,
         population: PopulationState {
             population: 1.6e9,
-            // 1900 age structure: young population with small elderly cohort
-            cohort_0_14: 0.60e9,   // 37.5% — high fertility, high child mortality era
-            cohort_15_44: 0.65e9,  // 40.6%
-            cohort_45_64: 0.27e9,  // 16.9%
-            cohort_65_plus: 0.08e9, // 5.0% — small elderly cohort in 1900
+            // World3-03 initial cohorts (Meadows 2004): p1i=6.5e8, p2i=7.0e8, p3i=1.9e8, p4i=6.0e7
+            cohort_0_14: 6.5e8,
+            cohort_15_44: 7.0e8,
+            cohort_45_64: 1.9e8,
+            cohort_65_plus: 6.0e7,
             ..Default::default()
         },
         capital: CapitalState {
-            industrial_capital: 0.2e12,  // 1975 USD
-            // Service capital pre-set to its ~1900 equilibrium.
-            // At industrial_output ≈ $133B and frac_to_services ≈ 0.12:
-            //   service_capital_eq = 133e9 × 0.12 / 0.05 ≈ 0.32e12
-            //   → sopc ≈ $200/yr → lem_health ≈ 0.76 → LE ≈ 32 yr ✓
-            service_capital: 0.32e12,
+            industrial_capital: 2.1e11,  // World3-03: ici = 2.1e11 (1975 USD)
+            service_capital: 1.44e11,    // World3-03: sci = 1.44e11 (1975 USD)
+            // 1900 IOPC ≈ IC/ICOR/POP = 2.1e11 / 3.0 / 1.6e9 ≈ 43.75
+            perceived_iopc: 43.75,
             ..Default::default()
         },
         agriculture: AgricultureState {
@@ -155,9 +153,12 @@ fn initial_conditions_1900() -> WorldState {
             fraction_remaining: 1.0,
         },
         pollution: PollutionState {
-            // pollution_index = persistent_pollution (reference_stock = 1.0)
-            // Small in 1900; rises to ~1 by 1970, ~10–30 peak around 2030–2050 in BAU.
+            // World3-03: PP19 = 2.5e7 pollution units / PP70 = 1.36e8 units
+            // Normalized: 2.5e7 / 1.36e8 ≈ 0.18 (relative to 1970 = 1.0)
             persistent_pollution: 0.05,
+            // Pre-fill the appearance buffer to avoid a 20-year startup transient.
+            // Rough 1900 generation rate × delay time:
+            pollution_appearance_buffer: 0.05 * 20.0,
             pollution_index: 0.05,
             ..Default::default()
         },

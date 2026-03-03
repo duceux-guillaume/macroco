@@ -17,9 +17,9 @@ pub struct ScenarioParams {
     pub health_investment_multiplier: f64,
 
     // ---- Capital / technology ----
-    /// Industrial capital depreciation rate [yr⁻¹, 0.02..0.10, default 0.05]
+    /// Industrial capital depreciation rate [yr⁻¹]. World3-03: 1/alic1 = 1/14 ≈ 0.0714
     pub industrial_depreciation_rate: f64,
-    /// Service capital depreciation rate [yr⁻¹, 0.02..0.10, default 0.05]
+    /// Service capital depreciation rate [yr⁻¹]. World3-03: 1/alsc1 = 1/20 = 0.05
     pub service_depreciation_rate: f64,
     /// Technology progress rate (TFP growth multiplier) [0..0.03, default 0.002]
     pub technology_growth_rate: f64,
@@ -58,9 +58,12 @@ impl Default for ScenarioParams {
         Self {
             meta: ScenarioMeta::default(),
             family_planning_year: 2000.0,
-            family_planning_efficacy: 0.75,
+            // Default matches BAU: no family planning intervention
+            family_planning_efficacy: 0.0,
             health_investment_multiplier: 1.0,
-            industrial_depreciation_rate: 0.05,
+            // World3-03: alic1 = 14 yr → depreciation = 1/14
+            industrial_depreciation_rate: 1.0 / 14.0,
+            // World3-03: alsc1 = 20 yr → depreciation = 1/20
             service_depreciation_rate: 0.05,
             technology_growth_rate: 0.002,
             investment_rate: 0.12,
@@ -78,15 +81,13 @@ impl Default for ScenarioParams {
 }
 
 /// Business-as-usual scenario (no policy interventions, original World 3 conditions).
+/// Default now matches BAU so that API consumers using default() get BAU behavior.
 impl ScenarioParams {
     pub fn bau() -> Self {
         let mut p = Self::default();
         p.meta.name = "Business as Usual".into();
         p.meta.description = "Original World 3 standard run. No policy interventions.".into();
         p.meta.color_hex = "#e63946".into();
-        // BAU has no explicit family planning policy; fertility is purely demand-driven
-        // (desired family size responds to rising IOPC through the demographic transition).
-        p.family_planning_efficacy = 0.0;
         p
     }
 
@@ -188,7 +189,7 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             field: "family_planning_efficacy".into(),
             label: "Family Planning Efficacy".into(),
             unit: "fraction".into(),
-            min: 0.0, max: 1.0, default: 0.75, step: 0.05,
+            min: 0.0, max: 1.0, default: 0.0, step: 0.05,
             sector: "population".into(),
             description: "Maximum reduction in desired family size from family planning programs.".into(),
         },
@@ -204,7 +205,7 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             field: "industrial_depreciation_rate".into(),
             label: "Industrial Capital Depreciation".into(),
             unit: "yr⁻¹".into(),
-            min: 0.02, max: 0.10, default: 0.05, step: 0.005,
+            min: 0.02, max: 0.15, default: 1.0 / 14.0, step: 0.005,
             sector: "capital".into(),
             description: "Annual fraction of industrial capital that wears out.".into(),
         },

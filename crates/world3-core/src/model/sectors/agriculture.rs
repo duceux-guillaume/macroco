@@ -15,8 +15,8 @@ const LAND_YIELD_1900: f64 = 600.0;
 const TOTAL_POTENTIAL_ARABLE: f64 = 3.2e9;
 /// Land development time [years] — delay between investment decision and land available
 const LAND_DEVELOPMENT_TIME: f64 = 10.0;
-/// Normal land erosion fraction [yr⁻¹] — fraction of land that degrades under normal use
-const LAND_EROSION_RATE: f64 = 0.002;
+/// Normal land erosion fraction [yr⁻¹]. World3-03: alln = 1000 yr → base = 1/1000 = 0.001
+const LAND_EROSION_RATE: f64 = 0.001;
 
 pub struct AgricultureDerivatives {
     pub d_arable_land: f64,

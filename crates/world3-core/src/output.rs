@@ -71,6 +71,7 @@ fn extract_field(state: &WorldState, path: &str) -> Option<f64> {
         "resources.nonrenewable_resources" => Some(state.resources.nonrenewable_resources),
         "resources.fraction_remaining" => Some(state.resources.fraction_remaining),
         "pollution.persistent_pollution" => Some(state.pollution.persistent_pollution),
+        "pollution.pollution_appearance_buffer" => Some(state.pollution.pollution_appearance_buffer),
         "pollution.pollution_index" => Some(state.pollution.pollution_index),
         _ => None,
     }
