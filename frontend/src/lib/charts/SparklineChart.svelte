@@ -12,9 +12,10 @@
 		config: UnifiedVariableConfig;
 		data: Map<string, WorldState[]>;
 		focusedScenarioId?: string | null;
+		xDomain?: [number, number] | null;
 	}
 
-	let { config, data, focusedScenarioId = null }: Props = $props();
+	let { config, data, focusedScenarioId = null, xDomain = null }: Props = $props();
 
 	let containerEl: HTMLDivElement;
 	let width = $state(0);
@@ -48,6 +49,7 @@
 		const _data = data;
 		const _focusedId = focusedScenarioId;
 		const _hoveredYear = $hoveredYear;
+		const _xDomain = xDomain;
 
 		const innerW = width - margin.left - margin.right;
 		const innerH = height - margin.top - margin.bottom;
@@ -65,10 +67,17 @@
 		if (points.length === 0) return;
 
 		const xExtent = d3.extent(points, (d) => d.year) as [number, number];
-		const yExtent = d3.extent(points, (d) => d.value) as [number, number];
+		const effectiveXDomain: [number, number] = _xDomain ?? xExtent;
+
+		// Filter points to visible range for dynamic Y rescaling
+		const visiblePoints = _xDomain
+			? points.filter((p) => p.year >= _xDomain[0] && p.year <= _xDomain[1])
+			: points;
+		const ySource = visiblePoints.length > 0 ? visiblePoints : points;
+		const yExtent = d3.extent(ySource, (d) => d.value) as [number, number];
 		const yPad = (yExtent[1] - yExtent[0]) * 0.05 || 1;
 
-		const xScale = d3.scaleLinear().domain(xExtent).range([0, innerW]);
+		const xScale = d3.scaleLinear().domain(effectiveXDomain).range([0, innerW]);
 		const yScale = d3.scaleLinear().domain([Math.max(0, yExtent[0] - yPad), yExtent[1] + yPad]).range([innerH, 0]);
 
 		const line = d3.line<{ year: number; value: number }>()

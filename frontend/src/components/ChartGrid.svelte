@@ -2,7 +2,7 @@
 	import UnifiedChart from '$lib/charts/UnifiedChart.svelte';
 	import SparklineChart from '$lib/charts/SparklineChart.svelte';
 	import { unifiedVariables } from '$lib/charts/unified-config';
-	import { activeSimData } from '$lib/stores/simulation';
+	import { activeSimData, brushedXDomain } from '$lib/stores/simulation';
 	import { scenarioColors, focusedScenarioId } from '$lib/stores/scenarios';
 </script>
 
@@ -13,7 +13,7 @@
 	<div class="sparklines-section">
 		{#each unifiedVariables as varConfig (varConfig.id)}
 			<div class="sparkline-cell">
-				<SparklineChart config={varConfig} data={$activeSimData} focusedScenarioId={$focusedScenarioId} />
+				<SparklineChart config={varConfig} data={$activeSimData} focusedScenarioId={$focusedScenarioId} xDomain={$brushedXDomain} />
 			</div>
 		{/each}
 	</div>
