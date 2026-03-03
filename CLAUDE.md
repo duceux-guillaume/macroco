@@ -97,7 +97,9 @@ cd frontend && npm run test:watch          # vitest in watch mode
 ### Simulation Engine (`world3-core`)
 - `WorldState` is a typed struct (not `Vec<f64>`) — fields mirror published World 3 equations directly.
 - `to_vec()` / `from_vec()` on `WorldState` are used only at solver boundaries (RK4 arithmetic).
-- Sector derivative order matters: resources → capital → agriculture → population → pollution → extensions.
+- Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
+- `WorldState::N` = 16 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`.
+- `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - All non-linear relationships encoded as `LookupTable` (piecewise-linear). Tables loaded from `/data/lookup_tables/*.json`.
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 
@@ -127,6 +129,10 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - Test helpers in `frontend/src/lib/test-helpers.ts` — `makeWorldState()` and `makeTimeSeries()` factories.
 - Mock SvelteKit env: `vi.mock('$env/static/public', () => ({ PUBLIC_API_BASE: '...' }))` before imports.
 - Svelte stores in tests: use `get()` from `svelte/store`; reset writable stores in `beforeEach`.
+
+### Backend Testing
+- `approx` crate `assert_relative_eq!` does NOT support format string messages — use separate `assert!` for custom messages.
+- Run full verification after model changes: `cargo test --workspace && cargo clippy --workspace -- -D warnings && cargo run --bin world3-cli -- validate`
 
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
