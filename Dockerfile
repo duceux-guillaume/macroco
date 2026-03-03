@@ -21,6 +21,8 @@ RUN mkdir -p crates/world3-core/src && echo "pub fn stub(){}" > crates/world3-co
     && mkdir -p crates/world3-ingestion/src && echo "pub fn stub(){}" > crates/world3-ingestion/src/lib.rs \
     && mkdir -p crates/world3-cli/src && echo "fn main(){}" > crates/world3-cli/src/main.rs
 
+# Stubs won't compile fully — errors are expected. This step only caches
+# downloaded and partially-compiled dependencies so the real build is faster.
 RUN cargo build --release --bin world3-api 2>/dev/null || true
 
 # Copy real source and rebuild
