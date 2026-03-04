@@ -235,7 +235,9 @@ year,value
         assert!((result.data[1].value - 2000.0).abs() < f64::EPSILON);
 
         assert!((result.data[2].year - 2020.0).abs() < f64::EPSILON);
-        assert!((result.data[2].value - 3.14159).abs() < 1e-10);
+        #[allow(clippy::approx_constant)]
+        let expected_val = 3.14159;
+        assert!((result.data[2].value - expected_val).abs() < 1e-10);
     }
 
     #[test]

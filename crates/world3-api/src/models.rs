@@ -42,7 +42,7 @@ impl From<&Scenario> for ScenarioSummary {
 // WebSocket messages
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum WsClientMsg {
     StartSimulation {
