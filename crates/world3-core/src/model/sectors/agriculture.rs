@@ -215,4 +215,117 @@ mod tests {
         // After agriculture runs, fpc is recomputed. Smooth derivative should push toward actual.
         assert!(d.d_food_per_capita_smooth.is_finite());
     }
+
+    #[test]
+    fn test_agricultural_technology_doubles_yield() {
+        let (mut s1, _, tables) = setup();
+        let mut params1 = ScenarioParams::bau();
+        params1.agricultural_technology = 1.0;
+        agriculture_derivatives(&mut s1, &params1, &tables);
+        let yield1 = s1.agriculture.land_yield;
+
+        let (mut s2, _, _) = setup();
+        let mut params2 = ScenarioParams::bau();
+        params2.agricultural_technology = 2.0;
+        agriculture_derivatives(&mut s2, &params2, &tables);
+        let yield2 = s2.agriculture.land_yield;
+
+        use approx::assert_relative_eq;
+        assert_relative_eq!(yield2, yield1 * 2.0, max_relative = 1e-10);
+    }
+
+    #[test]
+    fn test_land_protection_reduces_erosion() {
+        let (mut s1, _, tables) = setup();
+        let mut params_no = ScenarioParams::bau();
+        params_no.land_protection_fraction = 0.0;
+        let d1 = agriculture_derivatives(&mut s1, &params_no, &tables);
+
+        let (mut s2, _, _) = setup();
+        let mut params_prot = ScenarioParams::bau();
+        params_prot.land_protection_fraction = 0.3;
+        let d2 = agriculture_derivatives(&mut s2, &params_prot, &tables);
+
+        // Protection reduces erosion → d_arable with protection should be higher
+        // (less negative erosion term)
+        assert!(d2.d_arable_land > d1.d_arable_land,
+            "protected d_arable ({}) should exceed unprotected ({})",
+            d2.d_arable_land, d1.d_arable_land);
+    }
+
+    #[test]
+    fn test_zero_industrial_output_still_produces_food() {
+        let (mut s, params, tables) = setup();
+        s.capital.industrial_output = 0.0;
+        s.capital.industrial_output_per_capita = 0.0;
+        agriculture_derivatives(&mut s, &params, &tables);
+        // Food comes from land fertility even without industrial inputs
+        assert!(s.agriculture.food > 0.0,
+            "food should be positive even with zero industrial output");
+    }
+
+    #[test]
+    fn test_no_potentially_arable_land_stops_development() {
+        let (mut s, params, tables) = setup();
+        s.agriculture.potentially_arable_land = 0.0;
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        // No PAL → land_development_rate = 0
+        // d_potentially_arable should be 0 (can't develop what doesn't exist)
+        use approx::assert_relative_eq;
+        assert_relative_eq!(d.d_potentially_arable_land, 0.0, epsilon = 1e-15);
+    }
+
+    #[test]
+    fn test_uil_constrained_by_arable_land() {
+        let (mut s, params, tables) = setup();
+        // High IOPC → large desired UIL, but constrained by 10% of arable
+        s.capital.industrial_output_per_capita = 5000.0;
+        s.agriculture.arable_land = 1000.0; // small arable land
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        // d_uil should be at most arable * 0.1 = 100
+        assert!(d.d_urban_industrial_land <= 1000.0 * 0.1 + 1e-10,
+            "d_uil {} should be <= 100 (10% of arable)", d.d_urban_industrial_land);
+    }
+
+    #[test]
+    fn test_food_per_capita_smooth_converges() {
+        let (mut s, params, tables) = setup();
+        // Set smooth well below what fpc will actually be
+        s.agriculture.food_per_capita_smooth = 50.0;
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        // After computing actual fpc (which will be > 50 from land fertility),
+        // smooth should be pulled toward actual → positive derivative
+        assert!(d.d_food_per_capita_smooth > 0.0,
+            "d_fpc_smooth {} should be positive when smooth < actual",
+            d.d_food_per_capita_smooth);
+    }
+
+    #[test]
+    fn test_yield_components_multiply() {
+        let (mut s, params, tables) = setup();
+        agriculture_derivatives(&mut s, &params, &tables);
+        // land_yield = fertility × LYMC × LYMAP × tech
+        let fertility = s.agriculture.land_fertility.max(1.0);
+        let lymc = tables.land_yield_multiplier_capital.eval(s.agriculture.agricultural_inputs_per_hectare);
+        let lymap = tables.land_yield_multiplier_pollution.eval(s.pollution.pollution_index);
+        let expected = fertility * lymc * lymap * params.agricultural_technology;
+        use approx::assert_relative_eq;
+        assert_relative_eq!(s.agriculture.land_yield, expected, max_relative = 1e-10);
+    }
+
+    #[test]
+    fn test_land_development_and_erosion_balance() {
+        let (mut s, params, tables) = setup();
+        let d = agriculture_derivatives(&mut s, &params, &tables);
+        // d_arable = development - erosion - uil_from_arable
+        // d_potentially_arable = -development
+        // So development = -d_potentially_arable
+        let development = -d.d_potentially_arable_land;
+        // uil_from_arable = max(d_uil, 0)
+        let uil_from_arable = d.d_urban_industrial_land.max(0.0);
+        // erosion = development - d_arable - uil_from_arable
+        let erosion = development - d.d_arable_land - uil_from_arable;
+        assert!(erosion >= 0.0, "erosion {erosion} should be non-negative");
+        assert!(development >= 0.0, "development {development} should be non-negative");
+    }
 }

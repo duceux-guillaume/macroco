@@ -160,4 +160,118 @@ mod tests {
             "d_perceived_iopc {} should be positive when perceived < actual",
             d.d_perceived_iopc);
     }
+
+    #[test]
+    fn test_technology_multiplier_at_1900() {
+        let (mut s, params, tables) = setup();
+        // At 1900, time - 1970 < 0 → tech_years = 0 → multiplier = 1.0
+        s.time = 1900.0;
+        capital_derivatives(&mut s, &params, &tables);
+        // IO should equal IC * (1 - FCAOR(1.0)) / ICOR at 1900 with tech=1.0
+        let fcaor = tables.capital_fraction_resource_extraction.eval(1.0);
+        let expected_io = s.capital.industrial_capital * (1.0 - fcaor.clamp(0.0, 0.95)) / ICOR_1970;
+        use approx::assert_relative_eq;
+        assert_relative_eq!(s.capital.industrial_output, expected_io, max_relative = 1e-10);
+    }
+
+    #[test]
+    fn test_technology_multiplier_at_2000() {
+        let (mut s, params, tables) = setup();
+        s.time = 2000.0;
+        capital_derivatives(&mut s, &params, &tables);
+        let io_2000 = s.capital.industrial_output;
+
+        let (mut s2, _, _) = setup();
+        s2.time = 1900.0;
+        capital_derivatives(&mut s2, &params, &tables);
+        let io_1900 = s2.capital.industrial_output;
+
+        // tech_multiplier at 2000 = (1 + 0.002)^30
+        let expected_ratio = (1.0 + params.technology_growth_rate).powf(30.0);
+        use approx::assert_relative_eq;
+        assert_relative_eq!(io_2000 / io_1900, expected_ratio, max_relative = 1e-10);
+    }
+
+    #[test]
+    fn test_resource_depletion_reduces_output() {
+        let (mut s1, params, tables) = setup();
+        s1.resources.fraction_remaining = 1.0;
+        capital_derivatives(&mut s1, &params, &tables);
+        let io_full = s1.capital.industrial_output;
+
+        let (mut s2, _, _) = setup();
+        s2.resources.fraction_remaining = 0.2;
+        capital_derivatives(&mut s2, &params, &tables);
+        let io_depleted = s2.capital.industrial_output;
+
+        assert!(io_depleted < io_full,
+            "IO with FR=0.2 ({io_depleted}) should be less than FR=1.0 ({io_full})");
+    }
+
+    #[test]
+    fn test_allocation_fractions_investment_residual() {
+        let (mut s, params, tables) = setup();
+        let d = capital_derivatives(&mut s, &params, &tables);
+        // Investment must be non-negative (residual is clamped to 0)
+        // d_industrial = investment - depreciation, investment >= 0
+        // So d_industrial >= -depreciation
+        let depreciation = s.capital.industrial_capital * params.industrial_depreciation_rate;
+        assert!(d.d_industrial_capital >= -depreciation - 1e-10,
+            "d_industrial {} should be >= -depreciation {}", d.d_industrial_capital, depreciation);
+    }
+
+    #[test]
+    fn test_investment_squeezed_to_zero() {
+        let (mut s, params, tables) = setup();
+        // Extreme low food → high frac_to_agriculture
+        // Low service output → high frac_to_services
+        // Together with consumption, sum > 1 → investment = 0
+        s.agriculture.food_per_capita_smooth = 50.0; // far below subsistence
+        s.capital.service_capital = 1.0; // minimal services
+        let d = capital_derivatives(&mut s, &params, &tables);
+        // Investment squeezed → d_industrial ≈ -depreciation ≤ 0
+        assert!(d.d_industrial_capital <= 0.0,
+            "d_industrial {} should be <= 0 when investment is squeezed", d.d_industrial_capital);
+    }
+
+    #[test]
+    fn test_service_capital_dynamics() {
+        let (mut s, params, tables) = setup();
+        let d = capital_derivatives(&mut s, &params, &tables);
+        // d_service = service_investment - depreciation_s
+        let depreciation_s = s.capital.service_capital * params.service_depreciation_rate;
+        // Service investment is fraction of IO allocated to services
+        // d_service is finite and consistent
+        assert!(d.d_service_capital.is_finite());
+        // At 1900, services are underdeveloped, so investment > depreciation → growth
+        assert!(d.d_service_capital > -depreciation_s,
+            "service capital should have positive investment");
+    }
+
+    #[test]
+    fn test_depreciation_rate_sensitivity() {
+        let (mut s1, _, tables) = setup();
+        let mut params1 = ScenarioParams::bau();
+        params1.industrial_depreciation_rate = 1.0 / 14.0;
+        let d1 = capital_derivatives(&mut s1, &params1, &tables);
+
+        let (mut s2, _, _) = setup();
+        let mut params2 = ScenarioParams::bau();
+        params2.industrial_depreciation_rate = 2.0 / 14.0; // doubled
+        let d2 = capital_derivatives(&mut s2, &params2, &tables);
+
+        // Higher depreciation → lower d_industrial_capital
+        assert!(d2.d_industrial_capital < d1.d_industrial_capital,
+            "doubled depreciation: d_ic={} should be less than d_ic={}",
+            d2.d_industrial_capital, d1.d_industrial_capital);
+    }
+
+    #[test]
+    fn test_capital_auxiliaries_set() {
+        let (mut s, params, tables) = setup();
+        capital_derivatives(&mut s, &params, &tables);
+        assert!(s.capital.industrial_output > 0.0, "IO should be set");
+        assert!(s.capital.industrial_output_per_capita > 0.0, "IOPC should be set");
+        assert!(s.capital.service_output_per_capita > 0.0, "SOPC should be set");
+    }
 }
