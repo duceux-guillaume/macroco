@@ -13,7 +13,8 @@ import {
 	getScenario,
 	updateParams,
 	deleteScenario,
-	runScenario
+	runScenario,
+	getHistoricalData
 } from './api';
 import type { ScenarioParams, ScenarioMeta } from './types';
 
@@ -167,6 +168,17 @@ describe('runScenario', () => {
 			`${BASE}/scenarios/test-id/run`,
 			expect.objectContaining({ method: 'POST' })
 		);
+	});
+});
+
+describe('getHistoricalData', () => {
+	it('calls /historical', async () => {
+		const fetch = mockFetch([]);
+		vi.stubGlobal('fetch', fetch);
+
+		await getHistoricalData();
+
+		expect(fetch).toHaveBeenCalledWith(`${BASE}/historical`, expect.anything());
 	});
 });
 
