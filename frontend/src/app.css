@@ -46,3 +46,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
 	background: var(--text-secondary);
 }
+
+/* Mobile breakpoint */
+@media (max-width: 767px) {
+	:root {
+		--sidebar-width: 0px;
+	}
+}
