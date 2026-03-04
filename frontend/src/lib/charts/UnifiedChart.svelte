@@ -576,7 +576,7 @@
 
 				eyeG.on('click', handleEyeClick);
 
-				// Color swatch (at x=18)
+				// Color swatch (at x=22)
 				item.each(function(d) {
 					const el = d3.select(this);
 					if (d.fieldPath === '__historical__') {
@@ -597,7 +597,7 @@
 					}
 				});
 
-				// Label text (at x=34)
+				// Label text (at x=42)
 				item.append('text')
 					.attr('x', 42)
 					.attr('y', 12)
