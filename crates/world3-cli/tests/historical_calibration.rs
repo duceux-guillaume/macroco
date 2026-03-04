@@ -108,3 +108,89 @@ fn historical_dir() -> std::path::PathBuf {
     let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     manifest.join("../../data/historical")
 }
+
+// ---------------------------------------------------------------------------
+// Tests — REQ-HIST-001
+// ---------------------------------------------------------------------------
+
+/// REQ-HIST-001: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
+#[test]
+fn bau_population_tracks_historical() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("population.csv"));
+    let (sim_vals, hist_vals) = match_years(sim, |s| s.population.population, &hist);
+    let pct = rmse_pct(&sim_vals, &hist_vals);
+    assert!(
+        pct < 15.0,
+        "REQ-HIST-001 Population: RMSE% = {:.1}%, threshold = 15.0%",
+        pct
+    );
+}
+
+/// REQ-HIST-001: BAU food/capita must track FAO Food Balance data within 25% RMSE.
+#[test]
+fn bau_food_per_capita_tracks_historical() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("food.csv"));
+    let (sim_vals, hist_vals) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
+    let pct = rmse_pct(&sim_vals, &hist_vals);
+    assert!(
+        pct < 25.0,
+        "REQ-HIST-001 Food/capita: RMSE% = {:.1}%, threshold = 25.0%",
+        pct
+    );
+}
+
+/// REQ-HIST-001: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
+#[test]
+fn bau_iopc_tracks_historical() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("industrial.csv"));
+    let (sim_vals, hist_vals) =
+        match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
+    let pct = rmse_pct(&sim_vals, &hist_vals);
+    assert!(
+        pct < 30.0,
+        "REQ-HIST-001 IOPC: RMSE% = {:.1}%, threshold = 30.0%",
+        pct
+    );
+}
+
+/// REQ-HIST-001: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
+#[test]
+fn bau_nnr_fraction_tracks_historical() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("resources.csv"));
+    let (sim_vals, hist_vals) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
+    let pct = rmse_pct(&sim_vals, &hist_vals);
+    assert!(
+        pct < 20.0,
+        "REQ-HIST-001 NNR: RMSE% = {:.1}%, threshold = 20.0%",
+        pct
+    );
+}
+
+/// Summary: print all RMSE% values for visibility. Always passes.
+/// REQ-HIST-001 traceability — shows current calibration gap.
+#[test]
+fn calibration_summary_report() {
+    let sim = bau_sim();
+    let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64)> = vec![
+        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 15.0),
+        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 25.0),
+        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 30.0),
+        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 20.0),
+    ];
+    println!("\n=== BAU Historical Calibration Report (REQ-HIST-001) ===");
+    for (name, csv, extract, threshold) in vars {
+        let hist = load_historical_csv(&historical_dir().join(csv));
+        let (sim_vals, hist_vals) = match_years(sim, extract, &hist);
+        let pct = rmse_pct(&sim_vals, &hist_vals);
+        let status = if pct < threshold { "PASS" } else { "FAIL" };
+        println!(
+            "  {:<20} RMSE% = {:6.1}%  (threshold: {:5.1}%)  [{}]",
+            name, pct, threshold, status
+        );
+    }
+    println!("========================================================\n");
+}
