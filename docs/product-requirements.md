@@ -133,6 +133,13 @@
   - *Done:* All 4 RMSE + 4 max-year-error thresholds pass. 8 tests run in CI without `#[ignore]`.
   - *Design:* `docs/plans/2026-03-04-better-bau-calibration-design.md`
 
+- [x] **REQ-028: User feedback mechanism**
+  - *Context:* Users need a way to report bugs and request features from within the app. A sidebar footer with GitHub Issues links provides a lightweight, zero-backend feedback channel.
+  - *Components:* `frontend/src/components/Sidebar.svelte`, `frontend/src/lib/utils/feedback-url.ts`, `.github/ISSUE_TEMPLATE/`
+  - *Done:* Sidebar footer with "Report a bug" and "Request a feature" links that open pre-filled GitHub Issues. Includes bug report and feature request issue templates.
+  - *Exempt:* UI-only feature with unit tests on URL builder; no backend logic to test.
+  - *Design:* `docs/plans/2026-03-04-user-feedback-design.md`
+
 ---
 
 ## In Progress
@@ -167,7 +174,3 @@
   - *Context:* Milestone 4 requires benchmarks for solver performance and sensitivity analysis to quantify how parameter changes affect model outputs.
   - *Priority:* medium
 
-- [ ] **REQ-028: User feedback mechanism**
-  - *Context:* Users need a way to report bugs and request features from within the app. A sidebar footer with GitHub Issues links provides a lightweight, zero-backend feedback channel.
-  - *Priority:* medium
-  - *Components:* `frontend/src/components/Sidebar.svelte`, `frontend/src/lib/utils/feedback-url.ts`, `.github/ISSUE_TEMPLATE/`
