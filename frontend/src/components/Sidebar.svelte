@@ -73,4 +73,11 @@
 		overflow-y: auto;
 		padding-bottom: 16px;
 	}
+
+	@media (max-width: 767px) {
+		.sidebar {
+			width: 320px;
+			min-width: 320px;
+		}
+	}
 </style>
