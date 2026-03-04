@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractSeries, normalizeSeries } from './extract';
+import { extractSeries } from './extract';
 import { makeWorldState, makeTimeSeries } from '../test-helpers';
 
 const ALL_FIELD_PATHS = [
@@ -64,52 +64,3 @@ describe('extractSeries', () => {
 	});
 });
 
-describe('normalizeSeries', () => {
-	it('returns empty for empty array', () => {
-		const result = normalizeSeries([]);
-		expect(result.points).toEqual([]);
-		expect(result.min).toBe(0);
-		expect(result.max).toBe(0);
-	});
-
-	it('normalizes single point to 0.5', () => {
-		const result = normalizeSeries([{ year: 2000, value: 42 }]);
-		expect(result.points).toHaveLength(1);
-		expect(result.points[0].normalized).toBe(0.5);
-		expect(result.points[0].raw).toBe(42);
-	});
-
-	it('normalizes range [0, 100] to [0.0, 1.0]', () => {
-		const result = normalizeSeries([
-			{ year: 2000, value: 0 },
-			{ year: 2050, value: 50 },
-			{ year: 2100, value: 100 }
-		]);
-		expect(result.min).toBe(0);
-		expect(result.max).toBe(100);
-		expect(result.points[0].normalized).toBeCloseTo(0.0);
-		expect(result.points[1].normalized).toBeCloseTo(0.5);
-		expect(result.points[2].normalized).toBeCloseTo(1.0);
-	});
-
-	it('handles constant values (all same) as 0.5', () => {
-		const result = normalizeSeries([
-			{ year: 2000, value: 5 },
-			{ year: 2010, value: 5 },
-			{ year: 2020, value: 5 }
-		]);
-		for (const p of result.points) {
-			expect(p.normalized).toBe(0.5);
-		}
-	});
-
-	it('preserves raw values', () => {
-		const input = [
-			{ year: 2000, value: 10 },
-			{ year: 2010, value: 20 }
-		];
-		const result = normalizeSeries(input);
-		expect(result.points[0].raw).toBe(10);
-		expect(result.points[1].raw).toBe(20);
-	});
-});

@@ -89,12 +89,12 @@ pub fn parse_historical_csv(variable_id: &str, content: &str) -> HistoricalVaria
         };
 
         let year = match year_str.parse::<f64>() {
-            Ok(y) => y,
-            Err(_) => continue,
+            Ok(y) if y.is_finite() => y,
+            _ => continue,
         };
         let value = match value_str.parse::<f64>() {
-            Ok(v) => v,
-            Err(_) => continue,
+            Ok(v) if v.is_finite() => v,
+            _ => continue,
         };
 
         data.push(HistoricalDataPoint { year, value });
@@ -259,6 +259,29 @@ bad_year,100
         assert_eq!(result.data.len(), 2);
         assert!((result.data[0].year - 1960.0).abs() < f64::EPSILON);
         assert!((result.data[1].year - 1990.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn parse_skips_nan_and_infinity() {
+        let csv = "\
+# source: Test
+year,value
+1960,100
+NaN,200
+1970,NaN
+inf,300
+1980,inf
+-inf,400
+1990,-inf
+2000,500
+";
+        let result = parse_historical_csv("test", csv);
+        // Only 1960 and 2000 should parse (all NaN/inf rows skipped)
+        assert_eq!(result.data.len(), 2);
+        assert!((result.data[0].year - 1960.0).abs() < f64::EPSILON);
+        assert!((result.data[0].value - 100.0).abs() < f64::EPSILON);
+        assert!((result.data[1].year - 2000.0).abs() < f64::EPSILON);
+        assert!((result.data[1].value - 500.0).abs() < f64::EPSILON);
     }
 
     #[test]
