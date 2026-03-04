@@ -4,6 +4,7 @@
 	import ChartGrid from '../components/ChartGrid.svelte';
 	import VariableInfoPanel from '../components/VariableInfoPanel.svelte';
 	import ParameterInfoPanel from '../components/ParameterInfoPanel.svelte';
+	import HistoricalInfoPanel from '../components/HistoricalInfoPanel.svelte';
 </script>
 
 <svelte:head>
@@ -18,6 +19,7 @@
 	</main>
 	<VariableInfoPanel />
 	<ParameterInfoPanel />
+	<HistoricalInfoPanel />
 </div>
 
 <style>
