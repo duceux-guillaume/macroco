@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { getParamsSchema, getScenarios, runScenario, getScenario } from '$lib/api';
+	import { getParamsSchema, getScenarios, runScenario, getScenario, getHistoricalData } from '$lib/api';
 	import { paramsSchema } from '$lib/stores/schema';
 	import { scenarios, activeScenarioIds, focusedScenarioId, scenarioParamsCache } from '$lib/stores/scenarios';
+	import { historicalData } from '$lib/stores/historical';
 	import { simulationResults, streamingBuffer, simulatingScenarioId } from '$lib/stores/simulation';
 	import { connect, disconnect, onServerMessage } from '$lib/ws';
 	import type { WsServerMsg, WorldState } from '$lib/types';
@@ -117,7 +118,19 @@
 			console.error('Failed to load scenarios:', e);
 		}
 
-		// 3. Connect WebSocket
+		// 3. Load historical data
+		try {
+			const histVars = await getHistoricalData();
+			const histMap = new Map<string, typeof histVars[0]>();
+			for (const v of histVars) {
+				histMap.set(v.variable, v);
+			}
+			historicalData.set(histMap);
+		} catch (e) {
+			console.warn('Historical data not available:', e);
+		}
+
+		// 4. Connect WebSocket
 		connect();
 		unsubWs = onServerMessage(handleWsMessage);
 	});
