@@ -70,7 +70,7 @@ cargo build --workspace
 # Run simulation CLI
 cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 
-# Validate against Meadows 1972 reference trajectories
+# Validate against Meadows 1972 reference trajectories (BAU only — test Technology/Stabilized manually with simulate --preset)
 cargo run --bin world3-cli -- validate
 
 # Diagnose simulation output (structured text report)
@@ -110,10 +110,13 @@ cd frontend && npm run test:watch          # vitest in watch mode
 ### Simulation Engine (`world3-core`)
 - `WorldState` is a typed struct (not `Vec<f64>`) — fields mirror published World 3 equations directly.
 - `to_vec()` / `from_vec()` on `WorldState` are used only at solver boundaries (RK4 arithmetic).
+- `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
 - `WorldState::N` = 16 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - All non-linear relationships encoded as `LookupTable` (piecewise-linear). Tables loaded from `/data/lookup_tables/*.json`.
+- `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
+- Our model omits World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1), producing ~59% more food at identical parameters. Food-related tables (IFPC, FIOAA) are calibrated lower to compensate. BAU IOPC peaks at ~308.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
