@@ -4,7 +4,7 @@
 	import { resize } from '../utils/resize';
 	import { extractSeries, normalizeSeries, type NormalizedPoint } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
-	import { selectedVariableId } from '../stores/info';
+	import { selectedVariableId, highlightedVariables } from '../stores/info';
 	import { hoveredYear, brushedXDomain } from '../stores/simulation';
 	import { visibleVariables, compareMode, compareVariable } from '../stores/chart-ui';
 	import { getAnnotations } from '../content/chart-annotations';
@@ -236,6 +236,30 @@
 			.duration(400)
 			.call(d3.axisLeft(yScale).ticks(5).tickFormat(yTickFormat) as any);
 
+		// Highlighting: dim lines not related to the selected parameter
+		const highlighted = $highlightedVariables;
+		const hasHighlight = highlighted.size > 0;
+
+		function getFieldPathForLine(d: LineDatum): string | null {
+			if (_compareMode) return null;
+			const varConfig = unifiedVariables.find((v) => v.id === d.id);
+			return varConfig?.fieldPath ?? null;
+		}
+
+		function getLineOpacity(d: LineDatum): number {
+			if (!hasHighlight) return 1;
+			const fieldPath = getFieldPathForLine(d);
+			if (fieldPath === null) return 1;
+			return highlighted.has(fieldPath) ? 1 : 0.15;
+		}
+
+		function getLineWidth(d: LineDatum): number {
+			if (!hasHighlight) return 2;
+			const fieldPath = getFieldPathForLine(d);
+			if (fieldPath === null) return 2;
+			return highlighted.has(fieldPath) ? 2.5 : 2;
+		}
+
 		// Lines
 		const lines = g.selectAll<SVGPathElement, LineDatum>('path.var-line')
 			.data(linesData, (d) => d.id);
@@ -246,19 +270,20 @@
 					.append('path')
 					.attr('class', 'var-line')
 					.attr('fill', 'none')
-					.attr('stroke-width', 2)
+					.attr('stroke-width', (d) => getLineWidth(d))
 					.attr('stroke', (d) => d.color)
 					.attr('opacity', 0)
 					.attr('d', (d) => line(d.points))
 					.transition()
 					.duration(400)
-					.attr('opacity', 1),
+					.attr('opacity', (d) => getLineOpacity(d)),
 			(update) =>
 				update
 					.transition()
 					.duration(400)
 					.attr('stroke', (d) => d.color)
-					.attr('opacity', 1)
+					.attr('stroke-width', (d) => getLineWidth(d))
+					.attr('opacity', (d) => getLineOpacity(d))
 					.attr('d', (d) => line(d.points)),
 			(exit) => exit
 				.transition()
