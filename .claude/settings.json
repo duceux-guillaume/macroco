@@ -15,7 +15,6 @@
     ],
     "deny": [
       "Bash(rm *)",
-      "Bash(rm -rf *)",
       "Bash(npm install*)",
       "Bash(npm add*)",
       "Bash(npm remove*)",
