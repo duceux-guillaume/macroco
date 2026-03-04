@@ -11,7 +11,7 @@ pub struct ScenarioParams {
     // ---- Population policy ----
     /// Year at which family planning reaches full effectiveness [1900..2100, default 2000]
     pub family_planning_year: f64,
-    /// Maximum effectiveness of family planning [0..1, default 0.75]
+    /// Maximum effectiveness of family planning [0..1, default 0.0 (BAU)]
     pub family_planning_efficacy: f64,
     /// Health services investment multiplier [0.5..3.0, default 1.0]
     pub health_investment_multiplier: f64,
@@ -63,6 +63,9 @@ impl Default for ScenarioParams {
             industrial_depreciation_rate: 1.0 / 14.0,
             // World3-03: alsc1 = 20 yr → depreciation = 1/20
             service_depreciation_rate: 0.05,
+            // Note: World3-03 BAU has no exogenous technology growth. Our 0.002
+            // compensates for model simplifications (missing IOPCD, ISOPC dynamic
+            // references). Validated against Meadows 1972 Fig. 35 trajectory.
             technology_growth_rate: 0.002,
             agricultural_technology: 1.0,
             land_protection_fraction: 0.0,
@@ -135,7 +138,7 @@ pub struct ScenarioMeta {
 impl Default for ScenarioMeta {
     fn default() -> Self {
         Self {
-            id: uuid_v4(),
+            id: scenario_id(),
             name: "Unnamed Scenario".into(),
             description: String::new(),
             color_hex: "#888888".into(),
@@ -144,7 +147,9 @@ impl Default for ScenarioMeta {
     }
 }
 
-fn uuid_v4() -> String {
+/// Generate a short unique scenario ID from system time.
+/// Not a real UUID — just a 16-hex-char hash for local identification.
+fn scenario_id() -> String {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
     use std::time::SystemTime;
@@ -245,6 +250,30 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             min: 0.0, max: 1.0, default: 0.0, step: 0.05,
             sector: "pollution".into(),
             description: "Fraction by which pollution generation is reduced per unit output.".into(),
+        },
+        ParameterDescriptor {
+            field: "service_depreciation_rate".into(),
+            label: "Service Depreciation".into(),
+            unit: "yr⁻¹".into(),
+            min: 0.02, max: 0.15, default: 0.05, step: 0.005,
+            sector: "capital".into(),
+            description: "Annual fraction of service capital (hospitals, schools) that wears out.".into(),
+        },
+        ParameterDescriptor {
+            field: "subsistence_food_per_capita".into(),
+            label: "Subsistence Food Level".into(),
+            unit: "kg/person/yr".into(),
+            min: 150.0, max: 350.0, default: 230.0, step: 10.0,
+            sector: "agriculture".into(),
+            description: "Minimum food per person for basic health. Below this, life expectancy falls.".into(),
+        },
+        ParameterDescriptor {
+            field: "initial_nnr_fraction".into(),
+            label: "Initial Resource Level".into(),
+            unit: "fraction".into(),
+            min: 0.25, max: 2.0, default: 1.0, step: 0.25,
+            sector: "resources".into(),
+            description: "Starting level of non-renewable resources (1.0 = full endowment).".into(),
         },
     ]
 }

@@ -79,7 +79,11 @@ impl OdeSolver for Rk4Solver {
         let mut states = Vec::with_capacity(n_steps);
         let mut current = initial;
 
-        // Populate auxiliary fields for the initial state
+        // Apply initial_nnr_fraction parameter to the initial resource stock
+        current.resources.nonrenewable_resources = params.initial_nnr_fraction.clamp(0.0, 2.0);
+        current.resources.fraction_remaining = current.resources.nonrenewable_resources.clamp(0.0, 1.0);
+
+        // Populate auxiliary fields for the initial state (all sectors, including population)
         let tables = &*self.tables;
         {
             let mut init = current.clone();
@@ -87,6 +91,7 @@ impl OdeSolver for Rk4Solver {
             crate::model::sectors::capital::capital_derivatives(&mut init, params, tables);
             crate::model::sectors::agriculture::agriculture_derivatives(&mut init, params, tables);
             crate::model::sectors::pollution::pollution_derivatives(&mut init, params, tables);
+            crate::model::sectors::population::population_derivatives(&mut init, params, tables);
             current = init;
         }
 
@@ -108,13 +113,29 @@ impl OdeSolver for Rk4Solver {
             crate::model::sectors::pollution::pollution_derivatives(&mut next, params, tables);
             crate::model::sectors::population::population_derivatives(&mut next, params, tables);
 
-            // Divergence check
+            // Divergence check — validate key stocks are finite and in-bounds
             let pop = next.population.population;
             if !pop.is_finite() || !(0.0..=1e13).contains(&pop) {
                 return Err(SolverError::Diverged {
                     year: next.time,
                     variable: "population".into(),
                     value: pop,
+                });
+            }
+            let ic = next.capital.industrial_capital;
+            if !ic.is_finite() {
+                return Err(SolverError::Diverged {
+                    year: next.time,
+                    variable: "industrial_capital".into(),
+                    value: ic,
+                });
+            }
+            let pp = next.pollution.persistent_pollution;
+            if !pp.is_finite() {
+                return Err(SolverError::Diverged {
+                    year: next.time,
+                    variable: "persistent_pollution".into(),
+                    value: pp,
                 });
             }
 

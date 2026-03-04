@@ -14,11 +14,13 @@ export interface PopulationState {
 	death_rate: number;
 	life_expectancy: number;
 	fertility_rate: number;
+	perceived_le: number;
 }
 
 export interface CapitalState {
 	industrial_capital: number;
 	service_capital: number;
+	perceived_iopc: number;
 	industrial_output: number;
 	industrial_output_per_capita: number;
 	service_output_per_capita: number;
@@ -27,8 +29,11 @@ export interface CapitalState {
 export interface AgricultureState {
 	arable_land: number;
 	potentially_arable_land: number;
+	urban_industrial_land: number;
+	land_fertility: number;
 	food: number;
 	food_per_capita: number;
+	food_per_capita_smooth: number;
 	land_yield: number;
 	agricultural_inputs_per_hectare: number;
 }
@@ -40,6 +45,7 @@ export interface ResourceState {
 
 export interface PollutionState {
 	persistent_pollution: number;
+	pollution_appearance_buffer: number;
 	pollution_index: number;
 	generation_rate: number;
 	assimilation_rate: number;

@@ -48,10 +48,13 @@ pub fn pollution_derivatives(
 
     state.pollution.generation_rate = generation;
 
-    // ---- 20-year appearance delay (simplified Delay3 as first-order) ----
-    // In World3-03, PPGR feeds into a 3rd-order delay (Delay3) of 20 years.
-    // Simplified here as a first-order delay: buffer accumulates generation,
-    // drains into persistent_pollution at rate buffer/delay_time.
+    // ---- 20-year appearance delay (Delay3 simplified as Delay1) ----
+    // KNOWN DEVIATION: World3-03 uses a 3rd-order delay (Delay3) with mean
+    // delay 20 years. A Delay3 has pipeline-like behavior (more uniform transit
+    // time). Our first-order approximation allows pollution to appear faster in
+    // early transients, potentially advancing pollution-driven collapse by a few
+    // years. Implementing a proper Delay3 requires 3 cascaded Delay1 stages
+    // each with time constant T/3 ≈ 6.67 years.
     let appearance_rate = state.pollution.pollution_appearance_buffer / POLLUTION_APPEARANCE_DELAY;
 
     // ---- Pollution assimilation ----
@@ -67,6 +70,11 @@ pub fn pollution_derivatives(
     state.pollution.assimilation_rate = assimilation;
 
     // ---- Update pollution index (auxiliary) ----
+    // Pollution index equals the persistent_pollution stock directly.
+    // The stock is pre-normalized so that 1.0 ≈ 1970 pollution level (calibrated
+    // through PPGIO/PPGAO coefficients, not an explicit PPOL70 constant).
+    // All lookup tables (assimilation_time, LYMAP, LMP) are calibrated against
+    // this normalized scale.
     state.pollution.pollution_index = state.pollution.persistent_pollution.max(0.0);
 
     // d(buffer)/dt = generation - appearance_rate

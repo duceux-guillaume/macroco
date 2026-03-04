@@ -21,11 +21,13 @@ export function makeWorldState(overrides: Partial<{
 			death_rate: 0.012,
 			life_expectancy: 53,
 			fertility_rate: 4.5,
+			perceived_le: 50,
 			...overrides.population
 		},
 		capital: {
 			industrial_capital: 2.1e11,
 			service_capital: 1.4e11,
+			perceived_iopc: 180,
 			industrial_output: 7.0e10,
 			industrial_output_per_capita: 190,
 			service_output_per_capita: 65,
@@ -34,8 +36,11 @@ export function makeWorldState(overrides: Partial<{
 		agriculture: {
 			arable_land: 0.9e9,
 			potentially_arable_land: 2.3e9,
+			urban_industrial_land: 8.2e6,
+			land_fertility: 600,
 			food: 3.0e12,
 			food_per_capita: 830,
+			food_per_capita_smooth: 830,
 			land_yield: 600,
 			agricultural_inputs_per_hectare: 20,
 			...overrides.agriculture
@@ -47,6 +52,7 @@ export function makeWorldState(overrides: Partial<{
 		},
 		pollution: {
 			persistent_pollution: 1.0,
+			pollution_appearance_buffer: 1.0,
 			pollution_index: 1.0,
 			generation_rate: 0.05,
 			assimilation_rate: 0.04,

@@ -91,7 +91,13 @@ pub fn capital_derivatives(
         .consumption_fraction
         .eval(iopc);
 
-    // Investment is the residual — can be squeezed to near zero under pressure
+    // Investment is the residual — can be squeezed to zero under pressure.
+    // Note: the three allocation fractions are independently determined by lookup
+    // tables and may sum > 1.0 in collapse scenarios (max: 0.83+0.30+0.40=1.53).
+    // When this happens, investment is clamped to zero — the economy over-allocates
+    // to consumption, services, and agriculture while starving investment. This
+    // differs from World3-03's joint constraint but produces equivalent collapse
+    // dynamics since negative investment is impossible in both models.
     let frac_to_investment = (1.0 - frac_to_consumption - frac_to_services - frac_to_agriculture)
         .max(0.0);
 
