@@ -122,16 +122,16 @@
   - *Done:* `// REQ:` annotations in test files, CI script checks coverage, auto-generated traceability matrix.
   - *Exempt:* Infrastructure tooling; the traceability script itself is the implementation
 
----
-
-## In Progress
-
-- [ ] **REQ-026: BAU historical calibration regression tests**
+- [x] **REQ-026: BAU historical calibration regression tests**
   - *Context:* The BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023. Quantitative comparison against World Bank, FAO, and OWID data exposes calibration gaps.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Variables:* Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%)
-  - *Status:* Tests written but `#[ignore]` — all 4 thresholds currently exceeded. Summary report runs in CI.
+  - *Done:* All 4 thresholds pass after pyworld3 alignment — Population 14.1%, Food/capita 24.8%, IOPC 28.2%, NNR fraction 4.3%. Tests run in CI without `#[ignore]`.
   - *Design:* `docs/plans/2026-03-04-bau-historical-calibration-design.md`
+
+---
+
+## In Progress
 
 ---
 

@@ -115,9 +115,8 @@ fn historical_dir() -> std::path::PathBuf {
 // ---------------------------------------------------------------------------
 
 /// REQ-026: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
-/// Currently ignored — RMSE% = 24.1% exceeds threshold. Remove #[ignore] when calibration improves.
+/// Current RMSE% = 14.1% after pyworld3 alignment.
 #[test]
-#[ignore]
 fn bau_population_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("population.csv"));
@@ -131,9 +130,8 @@ fn bau_population_tracks_historical() {
 }
 
 /// REQ-026: BAU food/capita must track FAO Food Balance data within 25% RMSE.
-/// Currently ignored — RMSE% = 53.8% exceeds threshold. Remove #[ignore] when calibration improves.
+/// Current RMSE% = 24.8% after pyworld3 alignment.
 #[test]
-#[ignore]
 fn bau_food_per_capita_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("food.csv"));
@@ -147,9 +145,8 @@ fn bau_food_per_capita_tracks_historical() {
 }
 
 /// REQ-026: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
-/// Currently ignored — RMSE% = 83.8% exceeds threshold. Remove #[ignore] when calibration improves.
+/// Current RMSE% = 28.2% after pyworld3 alignment.
 #[test]
-#[ignore]
 fn bau_iopc_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("industrial.csv"));
@@ -164,9 +161,8 @@ fn bau_iopc_tracks_historical() {
 }
 
 /// REQ-026: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
-/// Currently ignored — RMSE% = 32.4% exceeds threshold. Remove #[ignore] when calibration improves.
+/// Current RMSE% = 4.3% after pyworld3 alignment.
 #[test]
-#[ignore]
 fn bau_nnr_fraction_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("resources.csv"));
