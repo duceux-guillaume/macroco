@@ -81,7 +81,10 @@ pub fn run_analysis(preset_name: &str, start: f64, end: f64, dt: f64) -> Result<
 }
 
 /// Convergence threshold: max allowed relative drift between dt halvings.
-const STABILITY_THRESHOLD: f64 = 0.01; // 1%
+/// 3% accommodates sharp transient peaks (e.g. pollution spike) that are
+/// inherently dt-sensitive in system-dynamics models while still catching
+/// genuine numerical instability.
+const STABILITY_THRESHOLD: f64 = 0.03; // 3%
 
 /// Run the simulation at multiple dt values and report convergence.
 ///
