@@ -5,14 +5,11 @@
 	import ParameterSliders from './ParameterSliders.svelte';
 	import { buildBugReportUrl, buildFeatureRequestUrl } from '$lib/utils/feedback-url';
 	import { focusedScenario } from '$lib/stores/scenarios';
+	import { browser } from '$app/environment';
 
 	const featureUrl = buildFeatureRequestUrl();
-	let bugUrl = $derived(
-		buildBugReportUrl(
-			$focusedScenario?.name ?? null,
-			typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR'
-		)
-	);
+	const ua = browser ? navigator.userAgent : '';
+	let bugUrl = $derived(buildBugReportUrl($focusedScenario?.name ?? null, ua));
 </script>
 
 <aside class="sidebar">
