@@ -151,4 +151,15 @@
 		font-family: 'SF Mono', 'Fira Code', monospace;
 		white-space: pre-wrap;
 	}
+
+	@media (max-width: 767px) {
+		.info-panel {
+			width: 100vw;
+			max-width: 100vw;
+		}
+		.close-btn {
+			font-size: 28px;
+			padding: 4px 8px;
+		}
+	}
 </style>

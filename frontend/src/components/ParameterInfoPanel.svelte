@@ -85,8 +85,9 @@
 		bauStates: WorldState[] | null,
 		compStates: WorldState[] | null
 	) {
-		const W = 280,
-			H = 70;
+		const rect = el.getBoundingClientRect();
+		const W = Math.max(120, Math.floor(rect.width));
+		const H = 70;
 		const m = { top: 4, right: 4, bottom: 4, left: 4 };
 		const innerW = W - m.left - m.right;
 		const innerH = H - m.top - m.bottom;
