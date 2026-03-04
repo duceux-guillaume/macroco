@@ -76,6 +76,13 @@ pub struct WorldLookupTables {
     /// y: fraction of industrial output to agriculture [0..1]
     pub industrial_fraction_to_agriculture: LookupTable,
 
+    /// Indicated food per capita (IFPC) — World3-03 table
+    /// x: industrial output per capita [$/person/yr]
+    /// y: indicated food per capita [kg/person/yr]
+    /// As societies industrialize, people demand better diets.
+    /// At IOPC=0: IFPC=230 (subsistence). At IOPC=1600: IFPC=1250 (saturation).
+    pub indicated_food_per_capita: LookupTable,
+
     /// Fraction of industrial output allocated to services (FIOAS)
     /// x: service output per capita (normalized to 1 at 1970)
     /// y: fraction [0..1]
@@ -297,22 +304,33 @@ impl WorldLookupTables {
                 vec![0.40, 0.42, 0.44, 0.46, 0.48, 0.53, 0.78, 0.80, 0.82, 0.83, 0.83],
             ),
 
-            // Capital-output ratio multiplier from resource depletion
-            // x: fraction of NNR remaining [0..1]
-            // y: multiplier on capital-output ratio
-            //
-            // Fraction of industrial output to agriculture (FIOAA1)
-            // World3-03: FIOAA1 indexed by IFPC/FPC ratio, where IFPC > subsistence.
-            // Our x-axis uses food_ratio (FPC/subsistence). Because indicated food
-            // per capita exceeds subsistence, agricultural investment persists even
-            // when food_ratio > 1.0. Key points:
-            //   food_ratio=1.7 (1900 typical): FIOAA ≈ 0.11
-            //   food_ratio=2.0 (1970 typical): FIOAA ≈ 0.08
-            //   food_ratio=3.0+: FIOAA → 0 (food abundance)
+            // Fraction of industrial output to agriculture (FIOAA)
+            // Input: food_ratio = food_per_capita_smooth / indicated_food_per_capita(IOPC).
+            // At low IOPC, IFPC ≈ SFPC (230), so this behaves like the original
+            // FPC/SFPC allocation. At high IOPC, IFPC rises, keeping food_ratio
+            // moderate and preventing the zero-allocation trap.
+            // Table shape calibrated for our model (no LFH/PL factors).
+            // Floor of 0.04 at high food_ratio ensures minimum agricultural
+            // maintenance even in wealthy societies (prevents yield collapse).
             industrial_fraction_to_agriculture: LookupTable::new(
                 "industrial_fraction_to_agriculture",
                 vec![0.0, 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0],
-                vec![0.40, 0.30, 0.20, 0.16, 0.12, 0.08, 0.04, 0.0, 0.0],
+                vec![0.40, 0.30, 0.20, 0.16, 0.12, 0.08, 0.05, 0.04, 0.04],
+            ),
+
+            // Indicated food per capita (IFPC) — calibrated for our model.
+            // x: IOPC [$/person/yr], y: IFPC [kg/person/yr]
+            // Based on World3-03's IFPC table, but starts at subsistence (230)
+            // to preserve BAU behavior (where IOPC stays below ~330). Rises at
+            // higher IOPC to prevent zero-allocation trap in Technology and
+            // Stabilized scenarios where IOPC can exceed 1600.
+            // Without IFPC, food_ratio = FPC/SFPC would reach 3.0+ and FIOAA → 0.
+            // With IFPC, food_ratio = FPC_smooth/IFPC stays moderate even at high FPC.
+            // Extended to IOPC=2500 for Stabilized scenario (IOPC peaks ~2000).
+            indicated_food_per_capita: LookupTable::new(
+                "indicated_food_per_capita",
+                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0, 2000.0, 2500.0],
+                vec![230.0, 230.0, 350.0, 500.0, 650.0, 800.0, 950.0, 1100.0, 1200.0, 1400.0, 1600.0],
             ),
 
             // Fraction of industrial output to services (FIOAS1)
