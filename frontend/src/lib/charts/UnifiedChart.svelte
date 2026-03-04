@@ -168,16 +168,19 @@
 			const states = _data.get(scenarioId);
 			if (!states || states.length === 0) return;
 
+			// Extract and cache series for each variable (used for both sim lines and historical normalization)
+			const seriesCache = new Map<string, { rawPoints: ReturnType<typeof extractSeries>; normalized: ReturnType<typeof normalizeSeries> }>();
 			for (const varConfig of unifiedVariables) {
 				const rawPoints = extractSeries(states, varConfig.fieldPath);
 				if (rawPoints.length === 0) continue;
-				const { points: normalizedPoints } = normalizeSeries(rawPoints);
+				const normalized = normalizeSeries(rawPoints);
+				seriesCache.set(varConfig.id, { rawPoints, normalized });
 				const visible = _visibleVars.has(varConfig.fieldPath);
 				if (visible) {
 					linesData.push({
 						id: varConfig.id,
 						color: varConfig.color,
-						points: normalizedPoints,
+						points: normalized.points,
 						rawPoints,
 						label: varConfig.shortLabel,
 						format: varConfig.format
@@ -193,8 +196,9 @@
 					if (!histVar || histVar.data.length === 0) continue;
 
 					// Normalize historical data using same range as simulation
-					const simRawPoints = extractSeries(states, varConfig.fieldPath);
-					const { min, max } = normalizeSeries(simRawPoints);
+					const cached = seriesCache.get(varConfig.id);
+					if (!cached) continue;
+					const { min, max } = cached.normalized;
 					const range = max - min;
 
 					const histPoints = histVar.data.map((d) => ({
@@ -505,13 +509,25 @@
 						}
 					});
 
-				item.append('rect')
-					.attr('width', 12)
-					.attr('height', 3)
-					.attr('y', 5)
-					.attr('rx', 1.5)
-					.attr('fill', (d) => d.color)
-					.attr('stroke-dasharray', (d) => d.fieldPath === '__historical__' ? '3,2' : null);
+				// Solid rect for normal variables, dashed line for historical
+			item.each(function(d) {
+				const el = d3.select(this);
+				if (d.fieldPath === '__historical__') {
+					el.append('line')
+						.attr('x1', 0).attr('y1', 6)
+						.attr('x2', 12).attr('y2', 6)
+						.attr('stroke', d.color)
+						.attr('stroke-width', 2)
+						.attr('stroke-dasharray', '3,2');
+				} else {
+					el.append('rect')
+						.attr('width', 12)
+						.attr('height', 3)
+						.attr('y', 5)
+						.attr('rx', 1.5)
+						.attr('fill', d.color);
+				}
+			});
 
 				item.append('text')
 					.attr('x', 18)
@@ -530,6 +546,7 @@
 					.attr('opacity', (d) => d.visible ? 1 : 0.35);
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
+				update.select('line').attr('stroke', (d) => d.color);
 				update.on('click', (_, d) => {
 					if (d.fieldPath === '__historical__') {
 						showHistorical.update((v) => !v);
