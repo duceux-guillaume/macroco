@@ -72,6 +72,7 @@
   - *Context:* Vitest unit test suite: 8 test files, ~150 tests covering format/extract utils, chart configs, variable descriptions, annotations, stores, and API client. CI pipeline runs tests on every PR.
   - *Components:* `frontend`: vitest suite, test-helpers.ts, CI frontend-test job
   - *Done:* Vitest test suite with CI integration.
+  - *Exempt:* Meta-requirement; test suite existence is the implementation
 
 - [x] **REQ-018: Quick start guide and run script**
   - *Context:* New users need a beginner-friendly way to launch the full stack without reading the full README.

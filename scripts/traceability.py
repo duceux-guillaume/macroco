@@ -30,7 +30,8 @@ REQ_ANNOTATION_RE = re.compile(
 )
 
 # Test file globs (relative to repo root)
-RUST_GLOB = "crates/*/src/**/*.rs"
+RUST_SRC_GLOB = "crates/*/src/**/*.rs"
+RUST_TEST_GLOB = "crates/*/tests/**/*.rs"
 TS_GLOB = "frontend/src/**/*.test.ts"
 
 
@@ -78,7 +79,8 @@ def scan_test_files(repo_root: Path) -> dict[str, list[str]]:
     coverage: dict[str, list[str]] = {}
 
     patterns = [
-        (RUST_GLOB, "rust"),
+        (RUST_SRC_GLOB, "rust"),
+        (RUST_TEST_GLOB, "rust"),
         (TS_GLOB, "typescript"),
     ]
 
