@@ -55,6 +55,33 @@ enum Commands {
 
     /// List all available presets
     Presets,
+
+    /// Run simulation diagnostics -- structured text/JSON analysis for debugging
+    Diagnose {
+        /// Preset scenario: bau, technology, stabilized
+        #[arg(long, default_value = "bau")]
+        preset: String,
+
+        /// Compare against a second preset
+        #[arg(long)]
+        compare: Option<String>,
+
+        /// Output format: text or json
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+
+        /// Start year
+        #[arg(long, default_value_t = 1900.0)]
+        start: f64,
+
+        /// End year
+        #[arg(long, default_value_t = 2100.0)]
+        end: f64,
+
+        /// Time step (years)
+        #[arg(long, default_value_t = 1.0)]
+        dt: f64,
+    },
 }
 
 fn main() -> Result<()> {
@@ -105,6 +132,28 @@ fn main() -> Result<()> {
             println!("  bau          Business as Usual (original World 3 standard run)");
             println!("  technology   Comprehensive Technology scenario");
             println!("  stabilized   Stabilized World scenario");
+        }
+
+        Commands::Diagnose { preset, compare: compare_preset, format, start, end, dt } => {
+            eprintln!("Running diagnostics for '{}'...", preset);
+            let diag = diagnose::run_analysis(&preset, start, end, dt)?;
+
+            if let Some(ref comp_name) = compare_preset {
+                eprintln!("Running comparison against '{}'...", comp_name);
+                let comp_diag = diagnose::run_analysis(comp_name, start, end, dt)?;
+                let comparative = diagnose::compare::compare(diag, comp_diag);
+                let output = match format.as_str() {
+                    "json" => diagnose::format_json::format_json_comparative(&comparative),
+                    _ => diagnose::format_text::format_text_comparative(&comparative),
+                };
+                println!("{}", output);
+            } else {
+                let output = match format.as_str() {
+                    "json" => diagnose::format_json::format_json(&diag),
+                    _ => diagnose::format_text::format_text(&diag),
+                };
+                println!("{}", output);
+            }
         }
     }
 
