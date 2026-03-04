@@ -10,6 +10,7 @@ export interface HistoricalVariable {
 	source: string;
 	units: string;
 	transformation: string;
+	url: string;
 	data: HistoricalDataPoint[];
 }
 
