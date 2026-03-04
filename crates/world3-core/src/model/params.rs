@@ -278,6 +278,7 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
     ]
 }
 
+// REQ: REQ-004
 #[cfg(test)]
 mod tests {
     use super::*;

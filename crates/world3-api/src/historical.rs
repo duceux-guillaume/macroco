@@ -182,6 +182,7 @@ pub fn load_historical_data(dir: &Path) -> HashMap<String, HistoricalVariable> {
 // Tests
 // ---------------------------------------------------------------------------
 
+// REQ: REQ-012
 #[cfg(test)]
 mod tests {
     use super::*;
