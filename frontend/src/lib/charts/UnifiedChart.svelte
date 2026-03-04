@@ -615,12 +615,23 @@
 				});
 
 				// Label text (at x=42)
-				item.append('text')
+				const labelText = item.append('text')
 					.attr('x', 42)
 					.attr('y', 12)
 					.attr('fill', 'var(--text-secondary)')
-					.attr('font-size', '13px')
+					.attr('font-size', isNarrow ? '10px' : '13px')
 					.text((d) => d.label);
+
+				if (isNarrow) {
+					const maxTextW = Math.floor(innerW / 3) - 46;
+					labelText
+						.attr('textLength', (d) => {
+							// Only constrain if text would overflow
+							const est = d.label.length * 6; // ~6px per char at 10px font
+							return est > maxTextW ? maxTextW : null;
+						})
+						.attr('lengthAdjust', 'spacing');
+				}
 
 				return item;
 			},
