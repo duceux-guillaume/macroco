@@ -5,14 +5,19 @@
 	import VariableInfoPanel from '../components/VariableInfoPanel.svelte';
 	import ParameterInfoPanel from '../components/ParameterInfoPanel.svelte';
 	import HistoricalInfoPanel from '../components/HistoricalInfoPanel.svelte';
+	import { selectedVariableId, selectedParameterId, selectedHistoricalId } from '$lib/stores/info';
 
 	let sidebarOpen = $state(false);
+	let infoPanelOpen = $derived(
+		$selectedVariableId !== null || $selectedParameterId !== null || $selectedHistoricalId !== null
+	);
 </script>
 
 <svelte:head>
 	<title>Macroco — World 3 Simulator</title>
 </svelte:head>
 
+{#if !infoPanelOpen}
 <button
 	class="hamburger"
 	onclick={() => (sidebarOpen = !sidebarOpen)}
@@ -24,6 +29,7 @@
 		<line x1="3" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 	</svg>
 </button>
+{/if}
 
 {#if sidebarOpen}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
