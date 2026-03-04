@@ -91,7 +91,7 @@
 	interface LineDatum {
 		id: string;
 		color: string;
-		points: Array<{ year: number; normalized: number }>;
+		points: Array<{ year: number; y: number }>;
 		rawPoints: Array<{ year: number; value: number }>;
 		label: string;
 		format: string;
@@ -129,7 +129,7 @@
 				linesData.push({
 					id: scenarioId,
 					color,
-					points: rawPoints.map((p) => ({ year: p.year, normalized: p.value })),
+					points: rawPoints.map((p) => ({ year: p.year, y: p.value })),
 					rawPoints,
 					label: scenarioId.slice(0, 8),
 					format: varConfig.format
@@ -143,7 +143,7 @@
 					linesData.push({
 						id: `hist-${varConfig.id}`,
 						color: '#9ca3af',
-						points: histVar.data.map((d) => ({ year: d.year, normalized: d.value })),
+						points: histVar.data.map((d) => ({ year: d.year, y: d.value })),
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: 'Historical',
 						format: varConfig.format,
@@ -210,7 +210,7 @@
 				linesData.push({
 					id: varConfig.id,
 					color: varConfig.color,
-					points: rawPoints.map((p) => ({ year: p.year, normalized: normalize(p.value) })),
+					points: rawPoints.map((p) => ({ year: p.year, y: normalize(p.value) })),
 					rawPoints,
 					label: varConfig.shortLabel,
 					format: varConfig.format
@@ -221,7 +221,7 @@
 					linesData.push({
 						id: `hist-${varConfig.id}`,
 						color: varConfig.color,
-						points: histVar.data.map((d) => ({ year: d.year, normalized: normalize(d.value) })),
+						points: histVar.data.map((d) => ({ year: d.year, y: normalize(d.value) })),
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: `${varConfig.shortLabel} hist.`,
 						format: varConfig.format,
@@ -265,7 +265,7 @@
 			yScale = d3.scaleLinear().domain([0, 1]).range([innerH, 0]);
 			yTickFormat = d3.format('.1f');
 		} else {
-			const allVals = linesData.flatMap((l) => l.points.map((p) => p.normalized));
+			const allVals = linesData.flatMap((l) => l.points.map((p) => p.y));
 			const yExtent = d3.extent(allVals) as [number, number];
 			const yPad = (yExtent[1] - yExtent[0]) * 0.05 || 1;
 			yScale = d3.scaleLinear().domain([Math.max(0, yExtent[0] - yPad), yExtent[1] + yPad]).range([innerH, 0]);
@@ -274,9 +274,9 @@
 			yTickFormat = (d) => fmt(d as number);
 		}
 
-		const line = d3.line<{ year: number; normalized: number }>()
+		const line = d3.line<{ year: number; y: number }>()
 			.x((d) => xScale(d.year))
-			.y((d) => yScale(d.normalized));
+			.y((d) => yScale(d.y));
 
 		// SVG setup
 		const svg = d3.select(containerEl)
