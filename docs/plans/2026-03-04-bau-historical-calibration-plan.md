@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Create a regression test that computes RMSE% between BAU simulation and real-world historical data for 4 variables, with bi-traceability to REQ-HIST-001.
+**Goal:** Create a regression test that computes RMSE% between BAU simulation and real-world historical data for 4 variables, with bi-traceability to REQ-026.
 
 **Architecture:** Dedicated integration test file (`tests/historical_calibration.rs`) that depends on `world3-core` directly (since `world3-cli` is binary-only with no `[lib]`). Loads historical CSVs with a minimal inline parser, runs BAU simulation via `Rk4Solver`, extracts time series, computes RMSE% per variable, asserts against thresholds.
 
@@ -33,16 +33,16 @@ Create `crates/world3-cli/tests/historical_calibration.rs`:
 ```rust
 //! BAU Historical Calibration Regression Tests
 //!
-//! Requirement: REQ-HIST-001
+//! Requirement: REQ-026
 //! The BAU simulation output shall remain within acceptable RMSE% thresholds
 //! of real-world historical data for the overlapping time period (~1960-2023).
 //!
 //! Design: docs/plans/2026-03-04-bau-historical-calibration-design.md
 //! Traceability matrix:
-//!   REQ-HIST-001 (Population)   -> bau_population_tracks_historical
-//!   REQ-HIST-001 (Food/capita)  -> bau_food_per_capita_tracks_historical
-//!   REQ-HIST-001 (IOPC)         -> bau_iopc_tracks_historical
-//!   REQ-HIST-001 (NNR fraction) -> bau_nnr_fraction_tracks_historical
+//!   REQ-026 (Population)   -> bau_population_tracks_historical
+//!   REQ-026 (Food/capita)  -> bau_food_per_capita_tracks_historical
+//!   REQ-026 (IOPC)         -> bau_iopc_tracks_historical
+//!   REQ-026 (NNR fraction) -> bau_nnr_fraction_tracks_historical
 
 use std::path::Path;
 use std::sync::OnceLock;
@@ -143,7 +143,7 @@ fn historical_dir() -> std::path::PathBuf {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — REQ-HIST-001
+// Tests — REQ-026
 // ---------------------------------------------------------------------------
 
 // Placeholder: tests will be added in subsequent tasks.
@@ -158,7 +158,7 @@ Expected: Compiles successfully (no tests to run yet).
 
 ```bash
 git add crates/world3-cli/Cargo.toml crates/world3-cli/tests/historical_calibration.rs
-git commit -m "test: scaffold historical calibration test with helpers (REQ-HIST-001)"
+git commit -m "test: scaffold historical calibration test with helpers (REQ-026)"
 ```
 
 ---
@@ -173,7 +173,7 @@ git commit -m "test: scaffold historical calibration test with helpers (REQ-HIST
 Append to `historical_calibration.rs`, replacing the placeholder comment:
 
 ```rust
-/// REQ-HIST-001: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
+/// REQ-026: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
 #[test]
 fn bau_population_tracks_historical() {
     let sim = bau_sim();
@@ -182,7 +182,7 @@ fn bau_population_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 15.0,
-        "REQ-HIST-001 Population: RMSE% = {:.1}%, threshold = 15.0%",
+        "REQ-026 Population: RMSE% = {:.1}%, threshold = 15.0%",
         pct
     );
 }
@@ -197,7 +197,7 @@ Expected: Either FAIL with the RMSE% value printed, or PASS if population is wel
 
 ```bash
 git add crates/world3-cli/tests/historical_calibration.rs
-git commit -m "test: add population historical calibration test (REQ-HIST-001)"
+git commit -m "test: add population historical calibration test (REQ-026)"
 ```
 
 ---
@@ -210,7 +210,7 @@ git commit -m "test: add population historical calibration test (REQ-HIST-001)"
 **Step 1: Write the failing test**
 
 ```rust
-/// REQ-HIST-001: BAU food/capita must track FAO Food Balance data within 25% RMSE.
+/// REQ-026: BAU food/capita must track FAO Food Balance data within 25% RMSE.
 #[test]
 fn bau_food_per_capita_tracks_historical() {
     let sim = bau_sim();
@@ -219,7 +219,7 @@ fn bau_food_per_capita_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 25.0,
-        "REQ-HIST-001 Food/capita: RMSE% = {:.1}%, threshold = 25.0%",
+        "REQ-026 Food/capita: RMSE% = {:.1}%, threshold = 25.0%",
         pct
     );
 }
@@ -234,7 +234,7 @@ Expected: FAIL with RMSE% printed.
 
 ```bash
 git add crates/world3-cli/tests/historical_calibration.rs
-git commit -m "test: add food/capita historical calibration test (REQ-HIST-001)"
+git commit -m "test: add food/capita historical calibration test (REQ-026)"
 ```
 
 ---
@@ -247,7 +247,7 @@ git commit -m "test: add food/capita historical calibration test (REQ-HIST-001)"
 **Step 1: Write the failing test**
 
 ```rust
-/// REQ-HIST-001: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
+/// REQ-026: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
 #[test]
 fn bau_iopc_tracks_historical() {
     let sim = bau_sim();
@@ -257,7 +257,7 @@ fn bau_iopc_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 30.0,
-        "REQ-HIST-001 IOPC: RMSE% = {:.1}%, threshold = 30.0%",
+        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 30.0%",
         pct
     );
 }
@@ -272,7 +272,7 @@ Expected: FAIL with RMSE% printed.
 
 ```bash
 git add crates/world3-cli/tests/historical_calibration.rs
-git commit -m "test: add IOPC historical calibration test (REQ-HIST-001)"
+git commit -m "test: add IOPC historical calibration test (REQ-026)"
 ```
 
 ---
@@ -285,7 +285,7 @@ git commit -m "test: add IOPC historical calibration test (REQ-HIST-001)"
 **Step 1: Write the failing test**
 
 ```rust
-/// REQ-HIST-001: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
+/// REQ-026: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
 #[test]
 fn bau_nnr_fraction_tracks_historical() {
     let sim = bau_sim();
@@ -294,7 +294,7 @@ fn bau_nnr_fraction_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 20.0,
-        "REQ-HIST-001 NNR: RMSE% = {:.1}%, threshold = 20.0%",
+        "REQ-026 NNR: RMSE% = {:.1}%, threshold = 20.0%",
         pct
     );
 }
@@ -309,7 +309,7 @@ Expected: FAIL with RMSE% printed.
 
 ```bash
 git add crates/world3-cli/tests/historical_calibration.rs
-git commit -m "test: add NNR fraction historical calibration test (REQ-HIST-001)"
+git commit -m "test: add NNR fraction historical calibration test (REQ-026)"
 ```
 
 ---
@@ -330,7 +330,7 @@ Append to the test file:
 
 ```rust
 /// Summary: print all RMSE% values for visibility. Always passes.
-/// REQ-HIST-001 traceability — shows current calibration gap.
+/// REQ-026 traceability — shows current calibration gap.
 #[test]
 fn calibration_summary_report() {
     let sim = bau_sim();
@@ -340,7 +340,7 @@ fn calibration_summary_report() {
         ("IOPC", "industrial.csv", |s: &WorldState| s.capital.industrial_output_per_capita, 30.0),
         ("NNR fraction", "resources.csv", |s: &WorldState| s.resources.fraction_remaining, 20.0),
     ];
-    println!("\n=== BAU Historical Calibration Report (REQ-HIST-001) ===");
+    println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
     for (name, csv, extract, threshold) in vars {
         let hist = load_historical_csv(&historical_dir().join(csv));
         let (sim_vals, hist_vals) = match_years(sim, extract, &hist);
@@ -364,12 +364,12 @@ Expected: Summary prints, individual tests show PASS/FAIL.
 
 ```bash
 git add crates/world3-cli/tests/historical_calibration.rs
-git commit -m "test: add calibration summary report and record RMSE% baseline (REQ-HIST-001)"
+git commit -m "test: add calibration summary report and record RMSE% baseline (REQ-026)"
 ```
 
 ---
 
-### Task 7: Update CLAUDE.md with REQ-HIST-001 documentation
+### Task 7: Update CLAUDE.md with REQ-026 documentation
 
 **Files:**
 - Modify: `CLAUDE.md`
@@ -379,7 +379,7 @@ git commit -m "test: add calibration summary report and record RMSE% baseline (R
 Under the "Validation Baseline" section, add:
 
 ```markdown
-### Historical Calibration (REQ-HIST-001)
+### Historical Calibration (REQ-026)
 - BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023.
 - Variables: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
 - Test: `cargo test -p world3-cli --test historical_calibration`
@@ -391,7 +391,7 @@ Under the "Validation Baseline" section, add:
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs: add REQ-HIST-001 historical calibration requirement to CLAUDE.md"
+git commit -m "docs: add REQ-026 historical calibration requirement to CLAUDE.md"
 ```
 
 ---
@@ -409,13 +409,13 @@ Expected: No warnings.
 **Step 2: Verify bi-traceability**
 
 Check that:
-- Design doc references REQ-HIST-001 and lists all 4 test functions
-- Test file header documents REQ-HIST-001 and traceability matrix
-- CLAUDE.md references REQ-HIST-001, test command, and design doc
-- Each `#[test]` has a doc comment citing REQ-HIST-001
+- Design doc references REQ-026 and lists all 4 test functions
+- Test file header documents REQ-026 and traceability matrix
+- CLAUDE.md references REQ-026, test command, and design doc
+- Each `#[test]` has a doc comment citing REQ-026
 
 **Step 3: Final commit if any adjustments needed**
 
 ```bash
-git add -A && git commit -m "chore: final adjustments for REQ-HIST-001 calibration tests"
+git add -A && git commit -m "chore: final adjustments for REQ-026 calibration tests"
 ```

@@ -12,7 +12,7 @@ Macroco is an online macroeconomic simulator based on the World 3 system dynamic
 |-----------|-----------|---------|------------|
 | Simulation Engine | `crates/world3-core/` | Pure simulation: WorldState, sector ODEs, RK4 solver, lookup tables | REQ-001, REQ-002, REQ-004, REQ-005 |
 | API Server | `crates/world3-api/` | Axum HTTP + WebSocket server, historical data API | REQ-007, REQ-008, REQ-012 |
-| CLI | `crates/world3-cli/` | Batch simulation, validation, PNG charts | REQ-003, REQ-005, REQ-006 |
+| CLI | `crates/world3-cli/` | Batch simulation, validation, PNG charts, historical calibration tests | REQ-003, REQ-005, REQ-006, REQ-026 |
 | Data Pipeline | `crates/world3-ingestion/` | Live data from external APIs, SQLite cache | REQ-013, REQ-014 |
 | Frontend | `frontend/` | SvelteKit + D3 interactive UI | REQ-009, REQ-020--REQ-025 |
 | Deployment | `/` (Dockerfile, fly.toml) | Containerized deployment on Fly.io | REQ-016 |

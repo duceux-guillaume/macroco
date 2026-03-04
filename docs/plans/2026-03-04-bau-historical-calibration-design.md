@@ -6,7 +6,7 @@ The BAU simulation is validated against qualitative Meadows 1972 dynamics (peak 
 
 ## Requirement
 
-**REQ-HIST-001**: The BAU simulation output shall remain within acceptable RMSE% thresholds of real-world historical data for the overlapping time period (~1960-2023) on 4 variables: Population, Food/capita, Industrial output/capita, NNR fraction.
+**REQ-026**: The BAU simulation output shall remain within acceptable RMSE% thresholds of real-world historical data for the overlapping time period (~1960-2023) on 4 variables: Population, Food/capita, Industrial output/capita, NNR fraction.
 
 **Current expectation**: The test will FAIL, exposing the calibration gap between simulation and reality. This is intentional — the requirement documents the aspiration, and the failing test quantifies the gap.
 
@@ -65,10 +65,10 @@ These thresholds are set to what "reasonable calibration" would look like. The c
 
 | Requirement | Test function | File |
 |------------|---------------|------|
-| REQ-HIST-001 (Population) | `bau_population_tracks_historical` | `tests/historical_calibration.rs` |
-| REQ-HIST-001 (Food/capita) | `bau_food_per_capita_tracks_historical` | `tests/historical_calibration.rs` |
-| REQ-HIST-001 (IOPC) | `bau_iopc_tracks_historical` | `tests/historical_calibration.rs` |
-| REQ-HIST-001 (NNR fraction) | `bau_nnr_fraction_tracks_historical` | `tests/historical_calibration.rs` |
+| REQ-026 (Population) | `bau_population_tracks_historical` | `tests/historical_calibration.rs` |
+| REQ-026 (Food/capita) | `bau_food_per_capita_tracks_historical` | `tests/historical_calibration.rs` |
+| REQ-026 (IOPC) | `bau_iopc_tracks_historical` | `tests/historical_calibration.rs` |
+| REQ-026 (NNR fraction) | `bau_nnr_fraction_tracks_historical` | `tests/historical_calibration.rs` |
 
 ## Future evolution
 

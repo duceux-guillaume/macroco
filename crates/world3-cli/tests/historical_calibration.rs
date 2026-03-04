@@ -1,15 +1,15 @@
 //! BAU Historical Calibration Regression Tests
 //!
-//! Requirement: REQ-HIST-001
+//! Requirement: REQ-026
 //! The BAU simulation output shall remain within acceptable RMSE% thresholds
 //! of real-world historical data for the overlapping time period (~1960-2023).
 //!
 //! Design: docs/plans/2026-03-04-bau-historical-calibration-design.md
 //! Traceability matrix:
-//!   REQ-HIST-001 (Population)   -> bau_population_tracks_historical
-//!   REQ-HIST-001 (Food/capita)  -> bau_food_per_capita_tracks_historical
-//!   REQ-HIST-001 (IOPC)         -> bau_iopc_tracks_historical
-//!   REQ-HIST-001 (NNR fraction) -> bau_nnr_fraction_tracks_historical
+//!   REQ-026 (Population)   -> bau_population_tracks_historical
+//!   REQ-026 (Food/capita)  -> bau_food_per_capita_tracks_historical
+//!   REQ-026 (IOPC)         -> bau_iopc_tracks_historical
+//!   REQ-026 (NNR fraction) -> bau_nnr_fraction_tracks_historical
 
 use std::path::Path;
 use std::sync::OnceLock;
@@ -110,11 +110,11 @@ fn historical_dir() -> std::path::PathBuf {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — REQ-HIST-001
+// Tests — REQ-026
 // ---------------------------------------------------------------------------
 
-/// REQ-HIST-001: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
-/// Currently ignored — RMSE% = 26.5% exceeds threshold. Remove #[ignore] when calibration improves.
+/// REQ-026: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
+/// Currently ignored — RMSE% = 24.1% exceeds threshold. Remove #[ignore] when calibration improves.
 #[test]
 #[ignore]
 fn bau_population_tracks_historical() {
@@ -124,13 +124,13 @@ fn bau_population_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 15.0,
-        "REQ-HIST-001 Population: RMSE% = {:.1}%, threshold = 15.0%",
+        "REQ-026 Population: RMSE% = {:.1}%, threshold = 15.0%",
         pct
     );
 }
 
-/// REQ-HIST-001: BAU food/capita must track FAO Food Balance data within 25% RMSE.
-/// Currently ignored — RMSE% = 55.9% exceeds threshold. Remove #[ignore] when calibration improves.
+/// REQ-026: BAU food/capita must track FAO Food Balance data within 25% RMSE.
+/// Currently ignored — RMSE% = 53.8% exceeds threshold. Remove #[ignore] when calibration improves.
 #[test]
 #[ignore]
 fn bau_food_per_capita_tracks_historical() {
@@ -140,13 +140,13 @@ fn bau_food_per_capita_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 25.0,
-        "REQ-HIST-001 Food/capita: RMSE% = {:.1}%, threshold = 25.0%",
+        "REQ-026 Food/capita: RMSE% = {:.1}%, threshold = 25.0%",
         pct
     );
 }
 
-/// REQ-HIST-001: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
-/// Currently ignored — RMSE% = 84.0% exceeds threshold. Remove #[ignore] when calibration improves.
+/// REQ-026: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
+/// Currently ignored — RMSE% = 83.8% exceeds threshold. Remove #[ignore] when calibration improves.
 #[test]
 #[ignore]
 fn bau_iopc_tracks_historical() {
@@ -157,13 +157,13 @@ fn bau_iopc_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 30.0,
-        "REQ-HIST-001 IOPC: RMSE% = {:.1}%, threshold = 30.0%",
+        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 30.0%",
         pct
     );
 }
 
-/// REQ-HIST-001: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
-/// Currently ignored — RMSE% = 33.9% exceeds threshold. Remove #[ignore] when calibration improves.
+/// REQ-026: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
+/// Currently ignored — RMSE% = 32.4% exceeds threshold. Remove #[ignore] when calibration improves.
 #[test]
 #[ignore]
 fn bau_nnr_fraction_tracks_historical() {
@@ -173,13 +173,13 @@ fn bau_nnr_fraction_tracks_historical() {
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 20.0,
-        "REQ-HIST-001 NNR: RMSE% = {:.1}%, threshold = 20.0%",
+        "REQ-026 NNR: RMSE% = {:.1}%, threshold = 20.0%",
         pct
     );
 }
 
 /// Summary: print all RMSE% values for visibility. Always passes.
-/// REQ-HIST-001 traceability — shows current calibration gap.
+/// REQ-026 traceability — shows current calibration gap.
 #[test]
 fn calibration_summary_report() {
     let sim = bau_sim();
@@ -189,7 +189,7 @@ fn calibration_summary_report() {
         ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 30.0),
         ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 20.0),
     ];
-    println!("\n=== BAU Historical Calibration Report (REQ-HIST-001) ===");
+    println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
     for (name, csv, extract, threshold) in vars {
         let hist = load_historical_csv(&historical_dir().join(csv));
         let (sim_vals, hist_vals) = match_years(sim, extract, &hist);
