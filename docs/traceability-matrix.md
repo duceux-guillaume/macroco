@@ -27,7 +27,7 @@
 | REQ-019 | Model guide documentation | Done (exempt: Documentation only) | — |
 | REQ-020 | Variable descriptions content module | Done | `frontend/src/lib/content/variable-descriptions.test.ts` |
 | REQ-021 | Rich chart tooltips | Done | `frontend/src/lib/utils/format.test.ts` |
-| REQ-022 | Variable info panels | Done | — |
+| REQ-022 | Variable info panels | Done | `frontend/src/lib/stores/info.test.ts` |
 | REQ-023 | Simulation controls | Done | `frontend/src/lib/stores/simulation-controls.test.ts` |
 | REQ-024 | Chart annotations | Done | `frontend/src/lib/content/chart-annotations.test.ts` |
 | REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
@@ -65,6 +65,7 @@
 | `frontend/src/lib/content/chart-annotations.test.ts` | REQ-024 |
 | `frontend/src/lib/content/variable-descriptions.test.ts` | REQ-020 |
 | `frontend/src/lib/stores/historical.test.ts` | REQ-012 |
+| `frontend/src/lib/stores/info.test.ts` | REQ-022 |
 | `frontend/src/lib/stores/simulation-controls.test.ts` | REQ-023 |
 | `frontend/src/lib/stores/stores.test.ts` | REQ-009, REQ-025 |
 | `frontend/src/lib/utils/extract.test.ts` | REQ-009 |
@@ -74,11 +75,10 @@
 ## Summary
 
 - **Done requirements:** 23
-- **Covered by tests:** 15
+- **Covered by tests:** 16
 - **Exempt:** 6
-- **Uncovered:** 2
+- **Uncovered:** 1
 
 ### Uncovered Done Requirements
 
 - REQ-006: PNG chart output
-- REQ-022: Variable info panels
