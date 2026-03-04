@@ -4,9 +4,9 @@
 	import { resize } from '../utils/resize';
 	import { extractSeries } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
-	import { selectedVariableId, highlightedVariables } from '../stores/info';
+	import { selectedVariableId, selectedHistoricalId, highlightedVariables } from '../stores/info';
 	import { hoveredYear } from '../stores/simulation';
-	import { compareMode, compareVariable, showHistorical } from '../stores/chart-ui';
+	import { compareMode, compareVariable, showHistorical, visibleVariables } from '../stores/chart-ui';
 	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
@@ -31,8 +31,12 @@
 	let tooltipYear = $state(0);
 	let tooltipItems = $state<Array<{ label: string; color: string; rawValue: string; unit: string; trend: string }>>([]);
 
-	const margin = { top: 32, right: 160, bottom: 32, left: 48 };
+	const margin = { top: 32, right: 180, bottom: 32, left: 48 };
 	let isBrushing = false;
+
+	// Eye icon SVG paths (12x12 viewBox)
+	const EYE_OPEN = 'M1,6 C3,2 9,2 11,6 C9,10 3,10 1,6 Z M6,4.5 a1.5,1.5 0 1,0 0.01,0';
+	const EYE_CLOSED = 'M1,6 C3,2 9,2 11,6 C9,10 3,10 1,6 Z M2,2 L10,10';
 
 	// Store brush reference for keyboard clear
 	let activeBrushGroup: d3.Selection<SVGGElement, null, null, undefined> | null = null;
@@ -117,6 +121,7 @@
 		const _compareVariable = $compareVariable;
 		const _showHistorical = $showHistorical;
 		const _historicalData = $historicalData;
+		const _visibleVars = $visibleVariables;
 
 		const innerW = width - margin.left - margin.right;
 		const innerH = height - margin.top - margin.bottom;
@@ -251,6 +256,15 @@
 			}
 		}
 
+		// Filter hidden variables (normal mode only; historical handled by _showHistorical)
+		if (!_compareMode) {
+			linesData = linesData.filter((ld) => {
+				if (ld.historical) return true;
+				const varConfig = unifiedVariables.find((v) => v.id === ld.id);
+				return varConfig ? _visibleVars.has(varConfig.fieldPath) : true;
+			});
+		}
+
 		if (linesData.length === 0 && !_compareMode) return;
 
 		const allYears = linesData.flatMap((l) => l.rawPoints.map((p) => p.year));
@@ -341,8 +355,11 @@
 		}
 
 		function getLegendOpacity(d: typeof legendData[number]): number {
-			if (d.fieldPath === '__historical__') return _showHistorical ? 1 : 0.35;
-			if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
+			const isVisible = d.fieldPath === '__historical__'
+				? _showHistorical
+				: _visibleVars.has(d.fieldPath);
+			if (!isVisible) return 0.35;
+			if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath && d.fieldPath !== '__historical__') return 0.35;
 			return 1;
 		}
 
@@ -510,6 +527,33 @@
 			.selectAll<SVGGElement, typeof legendData[number]>('g.legend-item')
 			.data(legendData, (d) => d.id);
 
+		function handleEyeClick(event: MouseEvent, d: typeof legendData[number]) {
+			event.stopPropagation();
+			if (d.fieldPath === '__historical__') {
+				showHistorical.update((v) => !v);
+			} else {
+				visibleVariables.update((set) => {
+					const next = new Set(set);
+					if (next.has(d.fieldPath)) next.delete(d.fieldPath);
+					else next.add(d.fieldPath);
+					return next;
+				});
+			}
+		}
+
+		function handleItemClick(_: MouseEvent, d: typeof legendData[number]) {
+			if (d.fieldPath === '__historical__') {
+				selectedHistoricalId.set('historical');
+			} else if (!_compareMode) {
+				handleLegendSelect(d.fieldPath);
+			}
+		}
+
+		function getEyePath(d: typeof legendData[number]): string {
+			const vis = d.fieldPath === '__historical__' ? _showHistorical : _visibleVars.has(d.fieldPath);
+			return vis ? EYE_OPEN : EYE_CLOSED;
+		}
+
 		legendItems.join(
 			(enter) => {
 				const item = enter.append('g')
@@ -517,26 +561,34 @@
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
 					.attr('cursor', 'pointer')
 					.attr('opacity', getLegendOpacity)
-					.on('click', (_, d) => {
-						if (d.fieldPath === '__historical__') {
-							showHistorical.update((v) => !v);
-						} else if (!_compareMode) {
-							handleLegendSelect(d.fieldPath);
-						}
-					});
+					.on('click', handleItemClick);
 
-				// Solid rect for normal variables, dashed line for historical
+				// Eye toggle icon
+				const eyeG = item.append('g')
+					.attr('class', 'eye-toggle')
+					.attr('cursor', 'pointer');
+
+				eyeG.append('path')
+					.attr('d', getEyePath)
+					.attr('fill', 'none')
+					.attr('stroke', 'var(--text-secondary)')
+					.attr('stroke-width', 1);
+
+				eyeG.on('click', handleEyeClick);
+
+				// Color swatch (at x=18)
 				item.each(function(d) {
 					const el = d3.select(this);
 					if (d.fieldPath === '__historical__') {
 						el.append('line')
-							.attr('x1', 0).attr('y1', 6)
-							.attr('x2', 12).attr('y2', 6)
+							.attr('x1', 18).attr('y1', 6)
+							.attr('x2', 30).attr('y2', 6)
 							.attr('stroke', d.color)
 							.attr('stroke-width', 2)
 							.attr('stroke-dasharray', '3,2');
 					} else {
 						el.append('rect')
+							.attr('x', 18)
 							.attr('width', 12)
 							.attr('height', 3)
 							.attr('y', 5)
@@ -545,8 +597,9 @@
 					}
 				});
 
+				// Label text (at x=34)
 				item.append('text')
-					.attr('x', 18)
+					.attr('x', 34)
 					.attr('y', 10)
 					.attr('fill', 'var(--text-secondary)')
 					.attr('font-size', '11px')
@@ -563,13 +616,9 @@
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
 				update.select('line').attr('stroke', (d) => d.color);
-				update.on('click', (_, d) => {
-					if (d.fieldPath === '__historical__') {
-						showHistorical.update((v) => !v);
-					} else if (!_compareMode) {
-						handleLegendSelect(d.fieldPath);
-					}
-				});
+				update.select('.eye-toggle path').attr('d', getEyePath);
+				update.select('.eye-toggle').on('click', handleEyeClick);
+				update.on('click', handleItemClick);
 				return update;
 			},
 			(exit) => exit.remove()
@@ -729,6 +778,9 @@
 	.unified-chart :global(.legend-item text:hover) {
 		fill: var(--accent) !important;
 		text-decoration: underline;
+	}
+	.unified-chart :global(.eye-toggle:hover path) {
+		stroke: var(--accent) !important;
 	}
 	.tooltip-html {
 		position: absolute;
