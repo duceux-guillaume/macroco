@@ -1,3 +1,5 @@
+mod diagnose;
+
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use plotters::prelude::*;
