@@ -6,7 +6,8 @@
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId, highlightedVariables } from '../stores/info';
 	import { hoveredYear, brushedXDomain } from '../stores/simulation';
-	import { visibleVariables, compareMode, compareVariable } from '../stores/chart-ui';
+	import { visibleVariables, compareMode, compareVariable, showHistorical } from '../stores/chart-ui';
+	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
 	import type { WorldState } from '../types';
@@ -94,6 +95,7 @@
 		rawPoints: Array<{ year: number; value: number }>;
 		label: string;
 		format: string;
+		historical?: boolean;
 	}
 
 	$effect(() => {
@@ -105,6 +107,8 @@
 		const _compareMode = $compareMode;
 		const _compareVariable = $compareVariable;
 		const _visibleVars = $visibleVariables;
+		const _showHistorical = $showHistorical;
+		const _historicalData = $historicalData;
 
 		const innerW = width - margin.left - margin.right;
 		const innerH = height - margin.top - margin.bottom;
@@ -130,6 +134,22 @@
 					label: scenarioId.slice(0, 8),
 					format: varConfig.format
 				});
+			}
+
+			// Add historical overlay in compare mode
+			if (_showHistorical) {
+				const histVar = _historicalData.get(varConfig.id);
+				if (histVar && histVar.data.length > 0) {
+					linesData.push({
+						id: `hist-${varConfig.id}`,
+						color: '#9ca3af',
+						points: histVar.data.map((d) => ({ year: d.year, normalized: d.value })),
+						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
+						label: 'Historical',
+						format: varConfig.format,
+						historical: true
+					});
+				}
 			}
 
 			for (const [scenarioId] of _data) {
@@ -165,6 +185,39 @@
 				}
 			}
 
+			// Add historical overlay lines
+			if (_showHistorical) {
+				for (const varConfig of unifiedVariables) {
+					if (!_visibleVars.has(varConfig.fieldPath)) continue;
+					const histVar = _historicalData.get(varConfig.id);
+					if (!histVar || histVar.data.length === 0) continue;
+
+					// Normalize historical data using same range as simulation
+					const simRawPoints = extractSeries(states, varConfig.fieldPath);
+					const { min, max } = normalizeSeries(simRawPoints);
+					const range = max - min;
+
+					const histPoints = histVar.data.map((d) => ({
+						year: d.year,
+						normalized: range > 0 ? (d.value - min) / range : 0.5
+					}));
+					const histRawPoints = histVar.data.map((d) => ({
+						year: d.year,
+						value: d.value
+					}));
+
+					linesData.push({
+						id: `hist-${varConfig.id}`,
+						color: varConfig.color,
+						points: histPoints,
+						rawPoints: histRawPoints,
+						label: `${varConfig.shortLabel} hist.`,
+						format: varConfig.format,
+						historical: true
+					});
+				}
+			}
+
 			legendData = unifiedVariables.map((v) => ({
 				id: v.id,
 				label: v.label,
@@ -172,6 +225,17 @@
 				fieldPath: v.fieldPath,
 				visible: _visibleVars.has(v.fieldPath)
 			}));
+
+			// Add historical toggle to legend
+			if (_historicalData.size > 0) {
+				legendData.push({
+					id: 'historical',
+					label: 'Historical',
+					color: '#9ca3af',
+					fieldPath: '__historical__',
+					visible: _showHistorical
+				});
+			}
 		}
 
 		if (linesData.length === 0 && !_compareMode) return;
@@ -247,17 +311,19 @@
 		}
 
 		function getLineOpacity(d: LineDatum): number {
-			if (!hasHighlight) return 1;
+			const base = d.historical ? 0.6 : 1;
+			if (!hasHighlight) return base;
 			const fieldPath = getFieldPathForLine(d);
-			if (fieldPath === null) return 1;
-			return highlighted.has(fieldPath) ? 1 : 0.15;
+			if (fieldPath === null) return base;
+			return highlighted.has(fieldPath) ? base : 0.15;
 		}
 
 		function getLineWidth(d: LineDatum): number {
-			if (!hasHighlight) return 2;
+			const base = d.historical ? 1.5 : 2;
+			if (!hasHighlight) return base;
 			const fieldPath = getFieldPathForLine(d);
-			if (fieldPath === null) return 2;
-			return highlighted.has(fieldPath) ? 2.5 : 2;
+			if (fieldPath === null) return base;
+			return highlighted.has(fieldPath) ? (d.historical ? 2 : 2.5) : base;
 		}
 
 		// Lines
@@ -271,6 +337,7 @@
 					.attr('class', 'var-line')
 					.attr('fill', 'none')
 					.attr('stroke-width', (d) => getLineWidth(d))
+					.attr('stroke-dasharray', (d) => d.historical ? '6,3' : null)
 					.attr('stroke', (d) => d.color)
 					.attr('opacity', 0)
 					.attr('d', (d) => line(d.points))
@@ -279,6 +346,8 @@
 					.attr('opacity', (d) => getLineOpacity(d)),
 			(update) =>
 				update
+					.attr('stroke-width', (d) => getLineWidth(d))
+					.attr('stroke-dasharray', (d) => d.historical ? '6,3' : null)
 					.transition()
 					.duration(400)
 					.attr('stroke', (d) => d.color)
@@ -429,7 +498,11 @@
 					.attr('cursor', 'pointer')
 					.attr('opacity', (d) => d.visible ? 1 : 0.35)
 					.on('click', (_, d) => {
-						if (!_compareMode) handleLegendToggle(d.fieldPath);
+						if (d.fieldPath === '__historical__') {
+							showHistorical.update((v) => !v);
+						} else if (!_compareMode) {
+							handleLegendToggle(d.fieldPath);
+						}
 					});
 
 				item.append('rect')
@@ -437,7 +510,8 @@
 					.attr('height', 3)
 					.attr('y', 5)
 					.attr('rx', 1.5)
-					.attr('fill', (d) => d.color);
+					.attr('fill', (d) => d.color)
+					.attr('stroke-dasharray', (d) => d.fieldPath === '__historical__' ? '3,2' : null);
 
 				item.append('text')
 					.attr('x', 18)
@@ -457,7 +531,11 @@
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
 				update.on('click', (_, d) => {
-					if (!_compareMode) handleLegendToggle(d.fieldPath);
+					if (d.fieldPath === '__historical__') {
+						showHistorical.update((v) => !v);
+					} else if (!_compareMode) {
+						handleLegendToggle(d.fieldPath);
+					}
 				});
 				return update;
 			},
