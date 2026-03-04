@@ -16,11 +16,11 @@
 
 **Files:**
 - Create: `data/historical/population.csv`
-- Create: `data/historical/resources_remaining.csv`
-- Create: `data/historical/food_per_capita.csv`
-- Create: `data/historical/industrial_output_per_capita.csv`
-- Create: `data/historical/pollution_index.csv`
-- Create: `data/historical/life_expectancy.csv`
+- Create: `data/historical/resources.csv`
+- Create: `data/historical/food.csv`
+- Create: `data/historical/industrial.csv`
+- Create: `data/historical/pollution.csv`
+- Create: `data/historical/life-expectancy.csv`
 
 Each CSV follows this format (comment headers for provenance, then `year,value`):
 
@@ -53,7 +53,7 @@ Create the file with data from 1960-2023 (one row per year). Include the provena
 # retrieved: 2026-03-04
 ```
 
-**Step 3: Create resources_remaining.csv**
+**Step 3: Create resources.csv**
 
 Source: Our World in Data Energy Dataset (`owid-energy-data.csv`, filter `country == "World"`).
 Download: `https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv`
@@ -61,18 +61,18 @@ Download: `https://raw.githubusercontent.com/owid/energy-data/master/owid-energy
 Transformation:
 1. Sum `oil_production + coal_production + gas_production` (TWh/yr) per year
 2. Compute cumulative sum from 1900 to each year
-3. Divide by URR estimate (3,900,000 TWh ≈ 14,000 EJ)
-4. `fraction_remaining = 1.0 - cumulative / 3900000`
+3. Divide by URR estimate (10,000,000 TWh ≈ 36,000 EJ)
+4. `fraction_remaining = max(0, 1.0 - cumulative / 10000000)`
 
 ```
 # source: Our World in Data Energy Dataset (Energy Institute / BP Statistical Review)
 # url: https://github.com/owid/energy-data
 # units: fraction remaining (0-1, 1900=1.0)
-# transformation: fraction_remaining = 1.0 - cumulative_fossil_production_twh / 3900000
+# transformation: max(0, 1.0 - cumulative_fossil_production_twh / 10,000,000)
 # retrieved: 2026-03-04
 ```
 
-**Step 4: Create food_per_capita.csv**
+**Step 4: Create food.csv**
 
 Source: FAOSTAT Food Balance Sheets — Grand Total food supply quantity.
 Download: `https://www.fao.org/faostat/en/#data/FBS` (select: World, Grand Total, Food supply quantity kg/capita/yr)
@@ -87,7 +87,7 @@ No arithmetic transformation — FAOSTAT units (kg/capita/yr) match World 3.
 # retrieved: 2026-03-04
 ```
 
-**Step 5: Create industrial_output_per_capita.csv**
+**Step 5: Create industrial.csv**
 
 Source: World Bank `NV.IND.TOTL.KD` (constant 2015 USD) divided by `SP.POP.TOTL`, then deflated.
 Download: `https://api.worldbank.org/v2/country/1W/indicator/NV.IND.TOTL.KD?date=1960:2023&format=json&per_page=200`
@@ -103,12 +103,12 @@ Transformation: `value_1975usd = (NV.IND.TOTL.KD / SP.POP.TOTL) / 3.51`
 # retrieved: 2026-03-04
 ```
 
-**Step 6: Create pollution_index.csv**
+**Step 6: Create pollution.csv**
 
 Source: NOAA Mauna Loa CO2 annual mean.
 Download: `https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.txt`
 
-Transformation: `pollution_index = (co2_ppm - 280) / (325.7 - 280)` where 280 = pre-industrial, 325.7 = 1970 value.
+Transformation: `(co2_ppm - 280) / (325.68 - 280)` where 280 = pre-industrial, 325.68 = 1970 value.
 
 ```
 # source: NOAA GML Mauna Loa CO2 annual mean
@@ -118,7 +118,7 @@ Transformation: `pollution_index = (co2_ppm - 280) / (325.7 - 280)` where 280 = 
 # retrieved: 2026-03-04
 ```
 
-**Step 7: Create life_expectancy.csv**
+**Step 7: Create life-expectancy.csv**
 
 Source: World Bank `SP.DYN.LE00.IN` (World aggregate). No transformation.
 Download: `https://api.worldbank.org/v2/country/1W/indicator/SP.DYN.LE00.IN?date=1960:2023&format=json&per_page=200`
@@ -1026,18 +1026,18 @@ Served by the backend via `GET /api/v1/historical`.
 - **Transformation:** none
 - **Range:** 1960–2023
 
-### resources_remaining.csv
+### resources.csv
 - **Source:** Our World in Data Energy Dataset (Energy Institute / BP Statistical Review)
 - **URL:** https://github.com/owid/energy-data
 - **Units:** fraction remaining (0–1, 1900=1.0)
-- **Transformation:** `fraction_remaining = 1.0 - cumulative_fossil_production_twh / 3,900,000`
+- **Transformation:** `fraction_remaining = max(0, 1.0 - cumulative_fossil_production_twh / 10,000,000)`
   - Sum `oil_production + coal_production + gas_production` (TWh/yr) for `country == "World"`
   - Compute cumulative sum from 1900
-  - URR estimate: 3,900,000 TWh (≈14,000 EJ total conventional fossil fuel)
+  - URR estimate: 10,000,000 TWh (≈36,000 EJ total recoverable fossil fuel)
 - **Range:** 1900–2023
 - **Caveat:** World 3 "resources" is broader than fossil fuels (includes metals/minerals). This is a proxy using the best available aggregate indicator. The URR estimate is debatable — proved reserves have grown over time.
 
-### food_per_capita.csv
+### food.csv
 - **Source:** FAOSTAT Food Balance Sheets — Grand Total food supply quantity
 - **URL:** https://www.fao.org/faostat/en/#data/FBS
 - **Units:** kg/person/year
@@ -1045,7 +1045,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1961–2022
 - **Caveat:** The World 3 1900 starting value (400 kg/capita/yr) is lower than modern FAO values (~900), reflecting genuine improvement in food supply.
 
-### industrial_output_per_capita.csv
+### industrial.csv
 - **Source:** World Bank `NV.IND.TOTL.KD` (industry value added, constant 2015 USD) ÷ `SP.POP.TOTL`
 - **URL:** https://data.worldbank.org/indicator/NV.IND.TOTL.KD
 - **Units:** 1975 USD/person/year
@@ -1054,7 +1054,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1960–2023
 - **Caveat:** `NV.IND.TOTL.KD` covers industry + construction, the closest match to World 3's "industrial output". The deflator ratio is approximate.
 
-### pollution_index.csv
+### pollution.csv
 - **Source:** NOAA Global Monitoring Laboratory, Mauna Loa CO₂ annual mean
 - **URL:** https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.txt
 - **Units:** index (1970=1.0)
@@ -1064,7 +1064,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1959–2025
 - **Caveat:** World 3 "persistent pollution" is a composite of all long-lived pollutants, not just CO₂. CO₂ is the best single proxy due to measurement quality and growth trajectory match.
 
-### life_expectancy.csv
+### life-expectancy.csv
 - **Source:** World Bank, indicator `SP.DYN.LE00.IN` (life expectancy at birth, World aggregate)
 - **URL:** https://data.worldbank.org/indicator/SP.DYN.LE00.IN?locations=1W
 - **Units:** years

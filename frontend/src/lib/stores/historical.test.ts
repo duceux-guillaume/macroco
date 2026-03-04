@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
 import { historicalData } from './historical';
+import { showHistorical } from './chart-ui';
 import type { HistoricalVariable } from './historical';
 
 beforeEach(() => {
 	historicalData.set(new Map());
+	showHistorical.set(true);
 });
 
 describe('historicalData store', () => {
@@ -34,5 +36,18 @@ describe('historicalData store', () => {
 		expect(data.size).toBe(1);
 		expect(data.get('population')?.data).toHaveLength(2);
 		expect(data.get('population')?.source).toBe('World Bank');
+	});
+});
+
+describe('showHistorical store', () => {
+	it('defaults to true', () => {
+		expect(get(showHistorical)).toBe(true);
+	});
+
+	it('can be toggled off and on', () => {
+		showHistorical.set(false);
+		expect(get(showHistorical)).toBe(false);
+		showHistorical.update((v) => !v);
+		expect(get(showHistorical)).toBe(true);
 	});
 });
