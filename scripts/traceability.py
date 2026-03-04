@@ -5,7 +5,7 @@ Parses // REQ: annotations from test files and cross-references
 docs/product-requirements.md. Outputs a traceability matrix and
 fails if any Done requirement has no test coverage.
 
-Usage: python3 scripts/traceability.py [--warn-only]
+Usage: python3 scripts/traceability.py [--warn-only] [--check]
 """
 
 import re
@@ -176,14 +176,27 @@ def generate_matrix(
 
 def main() -> int:
     warn_only = "--warn-only" in sys.argv
+    check_only = "--check" in sys.argv
 
     reqs = parse_requirements(REQS_FILE)
     coverage = scan_test_files(REPO_ROOT)
     matrix = generate_matrix(reqs, coverage)
 
-    # Write matrix
-    MATRIX_FILE.write_text(matrix)
-    print(f"Traceability matrix written to {MATRIX_FILE.relative_to(REPO_ROOT)}")
+    # Check mode: fail if committed matrix differs from generated
+    if check_only:
+        if MATRIX_FILE.exists():
+            committed = MATRIX_FILE.read_text()
+            if committed == matrix:
+                print("Traceability matrix is up to date.")
+            else:
+                print("[FAIL] Traceability matrix is stale. Run `python3 scripts/traceability.py` and commit the result.")
+                return 1
+        else:
+            print("[FAIL] Traceability matrix not found. Run `python3 scripts/traceability.py` and commit the result.")
+            return 1
+    else:
+        MATRIX_FILE.write_text(matrix)
+        print(f"Traceability matrix written to {MATRIX_FILE.relative_to(REPO_ROOT)}")
 
     # Check coverage
     done_reqs = {r: info for r, info in reqs.items() if info["status"] == "Done"}

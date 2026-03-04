@@ -57,7 +57,7 @@ jobs:
     needs: [test, frontend-test]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - run: python3 scripts/traceability.py --warn-only
+      - run: python3 scripts/traceability.py --check --warn-only
 
   deploy:
     name: Deploy to Fly.io
