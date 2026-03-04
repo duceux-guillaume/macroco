@@ -14,6 +14,7 @@ use tower_http::{
 use crate::state::AppState;
 
 mod health;
+mod historical;
 mod params;
 pub mod scenarios;
 pub mod ws;
@@ -40,6 +41,9 @@ pub fn build_router(state: AppState) -> Router {
         .route("/scenarios/:id", get(scenarios::get_scenario).delete(scenarios::delete_scenario))
         .route("/scenarios/:id/params", put(scenarios::update_params))
         .route("/scenarios/:id/run", post(scenarios::run_scenario))
+        // Historical data
+        .route("/historical", get(historical::list_all))
+        .route("/historical/:variable_id", get(historical::get_variable))
         // WebSocket
         .route("/ws", get(ws::ws_handler));
 
