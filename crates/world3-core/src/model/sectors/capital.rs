@@ -275,4 +275,29 @@ mod tests {
         assert!(s.capital.industrial_output_per_capita > 0.0, "IOPC should be set");
         assert!(s.capital.service_output_per_capita > 0.0, "SOPC should be set");
     }
+
+    #[test]
+    fn test_ifpc_rises_with_iopc() {
+        // IFPC should increase with IOPC, keeping food_ratio moderate at high industrialization
+        let (_, _, tables) = setup();
+        let ifpc_low = tables.indicated_food_per_capita.eval(100.0);
+        let ifpc_mid = tables.indicated_food_per_capita.eval(600.0);
+        let ifpc_high = tables.indicated_food_per_capita.eval(2000.0);
+        assert_relative_eq!(ifpc_low, 230.0, max_relative = 1e-10); // at low IOPC, IFPC = SFPC
+        assert!(ifpc_mid > ifpc_low, "IFPC should rise with IOPC");
+        assert!(ifpc_high > ifpc_mid, "IFPC should continue rising at high IOPC");
+        assert!(ifpc_high > 1000.0, "IFPC at IOPC=2000 should exceed 1000");
+    }
+
+    #[test]
+    fn test_fioaa_floor_prevents_zero_allocation() {
+        // Even at very high food_ratio, FIOAA floor ensures some agriculture allocation
+        let (_, _, tables) = setup();
+        let fioaa_at_3 = tables.industrial_fraction_to_agriculture.eval(3.0);
+        let fioaa_at_4 = tables.industrial_fraction_to_agriculture.eval(4.0);
+        let fioaa_at_10 = tables.industrial_fraction_to_agriculture.eval(10.0);
+        assert!(fioaa_at_3 >= 0.04, "FIOAA floor should be >= 0.04 at food_ratio=3.0");
+        assert!(fioaa_at_4 >= 0.04, "FIOAA floor should be >= 0.04 at food_ratio=4.0");
+        assert!(fioaa_at_10 >= 0.04, "FIOAA floor should be >= 0.04 beyond table range");
+    }
 }

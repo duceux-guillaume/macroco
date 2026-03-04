@@ -76,11 +76,11 @@ pub struct WorldLookupTables {
     /// y: fraction of industrial output to agriculture [0..1]
     pub industrial_fraction_to_agriculture: LookupTable,
 
-    /// Indicated food per capita (IFPC) — World3-03 table
+    /// Indicated food per capita (IFPC) — calibrated from World3-03
     /// x: industrial output per capita [$/person/yr]
     /// y: indicated food per capita [kg/person/yr]
     /// As societies industrialize, people demand better diets.
-    /// At IOPC=0: IFPC=230 (subsistence). At IOPC=1600: IFPC=1250 (saturation).
+    /// At IOPC=0: IFPC=230 (subsistence). At IOPC=1600: IFPC=1200. At IOPC=2500: IFPC=1600.
     pub indicated_food_per_capita: LookupTable,
 
     /// Fraction of industrial output allocated to services (FIOAS)
