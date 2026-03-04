@@ -149,6 +149,8 @@ Run `/permissions-audit` to review and improve permission settings.
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 
 ### Frontend
+- Svelte components live in `frontend/src/components/`, NOT `frontend/src/lib/components/`. Utilities/stores/types live in `frontend/src/lib/`.
+- SSR guard: use `import { browser } from '$app/environment'`, not `typeof navigator !== 'undefined'`.
 - Historical CSV file stems in `data/historical/` MUST match IDs in `frontend/src/lib/charts/unified-config.ts`: `population`, `resources`, `food`, `industrial`, `pollution`, `life-expectancy`.
 - Historical overlay uses combined min/max normalization (union of sim + historical data) so both lines fit [0,1] in UnifiedChart normalized mode.
 - `frontend/src/lib/env.ts` provides `getApiBase()` / `getWsBase()` — returns relative URLs in production (empty `PUBLIC_*` vars), absolute URLs in dev. All API/WS imports use this, not `$env/static/public` directly.
