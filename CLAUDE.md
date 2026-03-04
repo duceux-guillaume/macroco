@@ -143,7 +143,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
-- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values.
+- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with two intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), and FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Stabilized preset).
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
@@ -184,7 +184,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - Prefer `diagnose` over `simulate --chart` when debugging model behavior — the text output contains all the information needed to reason about trajectory shape without reading a PNG.
 - When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
 - `diagnose` auto-detects oscillations (rapid alternating phase reversals) — check the Anomalies section for `Oscillation` entries.
-- `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >1% between halvings is flagged UNSTABLE.
+- `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >3% between halvings is flagged UNSTABLE. Pollution peak is the most dt-sensitive variable (~2.4% drift).
 - After the IFPC food allocation rework, all presets (BAU, Technology, Stabilized) are stable at dt=1.0.
 
 ### Traceability
@@ -193,6 +193,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - When adding a new `#[test]` or `describe()` block, include the `// REQ:` annotation.
 - Docs-only and infrastructure requirements can be exempted with `- *Exempt:* <reason>` in `product-requirements.md`.
 - Impact analysis: `grep -r '// REQ:.*REQ-005' crates/ frontend/` finds all tests covering a given requirement.
+- When marking a REQ as Done in `product-requirements.md`, also run `python3 scripts/traceability.py` to update the matrix.
 
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
@@ -229,7 +230,7 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 - BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023.
 - Variables: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
 - Test: `cargo test -p world3-cli --test historical_calibration`
-- Design: `docs/plans/2026-03-04-bau-historical-calibration-design.md`
+- Design: `docs/plans/2026-03-04-pyworld3-alignment-design.md`
 - All 4 thresholds PASS after pyworld3 alignment (Population 14.1%, Food 24.8%, IOPC 28.2%, NNR 4.3%).
 
 ## CI/CD
