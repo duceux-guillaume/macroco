@@ -162,6 +162,17 @@
 					visible: true
 				});
 			}
+
+			// Add historical toggle to legend in compare mode
+			if (_historicalData.has(varConfig.id)) {
+				legendData.push({
+					id: 'historical',
+					label: 'Historical',
+					color: '#9ca3af',
+					fieldPath: '__historical__',
+					visible: _showHistorical
+				});
+			}
 		} else {
 			const scenarioId = _focusedId ?? _data.keys().next().value;
 			if (!scenarioId) return;

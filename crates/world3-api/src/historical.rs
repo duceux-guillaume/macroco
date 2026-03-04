@@ -267,4 +267,44 @@ bad_year,100
         let result = load_historical_data(&dir);
         assert!(result.is_empty());
     }
+
+    #[test]
+    fn load_reads_multiple_csv_files() {
+        let dir = std::env::temp_dir().join("historical_test_multi");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // Write two CSV files
+        std::fs::write(
+            dir.join("population.csv"),
+            "# source: Test Pop\n# units: persons\n# transformation: none\nyear,value\n1960,3e9\n",
+        ).unwrap();
+        std::fs::write(
+            dir.join("resources.csv"),
+            "# source: Test Res\n# units: fraction\n# transformation: cumulative\nyear,value\n1900,0.99\n",
+        ).unwrap();
+        // Write a non-CSV file that should be ignored
+        std::fs::write(dir.join("notes.txt"), "ignore me").unwrap();
+
+        let result = load_historical_data(&dir);
+        assert_eq!(result.len(), 2);
+        assert!(result.contains_key("population"));
+        assert!(result.contains_key("resources"));
+        assert_eq!(result["population"].data.len(), 1);
+        assert_eq!(result["population"].source, "Test Pop");
+        assert_eq!(result["resources"].data.len(), 1);
+        assert_eq!(result["resources"].source, "Test Res");
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn parse_handles_windows_line_endings() {
+        let csv = "# source: Test\r\n# units: index\r\nyear,value\r\n2000,42\r\n2010,84\r\n";
+        let result = parse_historical_csv("win", csv);
+        assert_eq!(result.source, "Test");
+        assert_eq!(result.units, "index");
+        assert_eq!(result.data.len(), 2);
+        assert!((result.data[0].value - 42.0).abs() < f64::EPSILON);
+    }
 }

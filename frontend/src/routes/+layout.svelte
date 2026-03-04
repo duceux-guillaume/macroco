@@ -78,59 +78,64 @@
 			console.error('Failed to load parameter schema:', e);
 		}
 
-		// 2. Fetch scenarios (presets are auto-created on server start)
-		try {
-			const scenarioList = await getScenarios();
-			scenarios.set(scenarioList);
+		// 2. Fetch scenarios and historical data in parallel
+		const scenarioPromise = (async () => {
+			try {
+				const scenarioList = await getScenarios();
+				scenarios.set(scenarioList);
 
-			// Activate all presets by default
-			const presetIds = new Set(scenarioList.filter((s) => s.is_preset).map((s) => s.id));
-			activeScenarioIds.set(presetIds);
+				// Activate all presets by default
+				const presetIds = new Set(scenarioList.filter((s) => s.is_preset).map((s) => s.id));
+				activeScenarioIds.set(presetIds);
 
-			// Focus the first preset
-			const firstPreset = scenarioList.find((s) => s.is_preset);
-			if (firstPreset) {
-				focusedScenarioId.set(firstPreset.id);
-			}
-
-			// Load params and run simulations for each preset via REST
-			for (const s of scenarioList.filter((s) => s.is_preset)) {
-				try {
-					const [scenario, output] = await Promise.all([
-						getScenario(s.id),
-						runScenario(s.id)
-					]);
-					scenarioParamsCache.update((cache) => {
-						const next = new Map(cache);
-						next.set(s.id, scenario.params);
-						return next;
-					});
-					simulationResults.update((results) => {
-						const next = new Map(results);
-						next.set(s.id, output.states);
-						return next;
-					});
-				} catch (e) {
-					console.error(`Failed to load/run scenario ${s.name}:`, e);
+				// Focus the first preset
+				const firstPreset = scenarioList.find((s) => s.is_preset);
+				if (firstPreset) {
+					focusedScenarioId.set(firstPreset.id);
 				}
-			}
-		} catch (e) {
-			console.error('Failed to load scenarios:', e);
-		}
 
-		// 3. Load historical data
-		try {
-			const histVars = await getHistoricalData();
-			const histMap = new Map<string, typeof histVars[0]>();
-			for (const v of histVars) {
-				histMap.set(v.variable, v);
+				// Load params and run simulations for each preset via REST
+				for (const s of scenarioList.filter((s) => s.is_preset)) {
+					try {
+						const [scenario, output] = await Promise.all([
+							getScenario(s.id),
+							runScenario(s.id)
+						]);
+						scenarioParamsCache.update((cache) => {
+							const next = new Map(cache);
+							next.set(s.id, scenario.params);
+							return next;
+						});
+						simulationResults.update((results) => {
+							const next = new Map(results);
+							next.set(s.id, output.states);
+							return next;
+						});
+					} catch (e) {
+						console.error(`Failed to load/run scenario ${s.name}:`, e);
+					}
+				}
+			} catch (e) {
+				console.error('Failed to load scenarios:', e);
 			}
-			historicalData.set(histMap);
-		} catch (e) {
-			console.warn('Historical data not available:', e);
-		}
+		})();
 
-		// 4. Connect WebSocket
+		const historicalPromise = (async () => {
+			try {
+				const histVars = await getHistoricalData();
+				const histMap = new Map<string, typeof histVars[0]>();
+				for (const v of histVars) {
+					histMap.set(v.variable, v);
+				}
+				historicalData.set(histMap);
+			} catch (e) {
+				console.warn('Historical data not available:', e);
+			}
+		})();
+
+		await Promise.all([scenarioPromise, historicalPromise]);
+
+		// 3. Connect WebSocket
 		connect();
 		unsubWs = onServerMessage(handleWsMessage);
 	});
