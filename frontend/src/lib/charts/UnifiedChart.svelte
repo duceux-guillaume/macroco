@@ -5,7 +5,7 @@
 	import { extractSeries } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId, highlightedVariables } from '../stores/info';
-	import { hoveredYear, brushedXDomain } from '../stores/simulation';
+	import { hoveredYear } from '../stores/simulation';
 	import { compareMode, compareVariable, showHistorical } from '../stores/chart-ui';
 	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
@@ -79,7 +79,6 @@
 			// Then clear brush
 			if (activeBrushGroup && activeBrush) {
 				activeBrushGroup.call(activeBrush.move, null);
-				brushedXDomain.set(null);
 				return;
 			}
 		}
@@ -124,7 +123,7 @@
 		if (innerW <= 0 || innerH <= 0) return;
 
 		let linesData: LineDatum[] = [];
-		let legendData: Array<{ id: string; label: string; color: string; fieldPath: string; visible: boolean }> = [];
+		let legendData: Array<{ id: string; label: string; color: string; fieldPath: string }> = [];
 		let useNormalizedY = true;
 
 		if (_compareMode) {
@@ -167,8 +166,7 @@
 					id: scenarioId,
 					label: scenarioId.slice(0, 8),
 					color,
-					fieldPath: varConfig.fieldPath,
-					visible: true
+					fieldPath: varConfig.fieldPath
 				});
 			}
 
@@ -178,8 +176,7 @@
 					id: 'historical',
 					label: 'Historical',
 					color: '#9ca3af',
-					fieldPath: '__historical__',
-					visible: _showHistorical
+					fieldPath: '__historical__'
 				});
 			}
 		} else {
@@ -240,8 +237,7 @@
 				id: v.id,
 				label: v.label,
 				color: v.color,
-				fieldPath: v.fieldPath,
-				visible: true
+				fieldPath: v.fieldPath
 			}));
 
 			// Add historical toggle to legend
@@ -250,8 +246,7 @@
 					id: 'historical',
 					label: 'Historical',
 					color: '#9ca3af',
-					fieldPath: '__historical__',
-					visible: _showHistorical
+					fieldPath: '__historical__'
 				});
 			}
 		}
@@ -343,6 +338,12 @@
 			const fieldPath = getFieldPathForLine(d);
 			if (fieldPath === null) return base;
 			return highlighted.has(fieldPath) ? (d.historical ? 2 : 2.5) : base;
+		}
+
+		function getLegendOpacity(d: typeof legendData[number]): number {
+			if (d.fieldPath === '__historical__') return _showHistorical ? 1 : 0.35;
+			if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
+			return 1;
 		}
 
 		// Lines
@@ -515,11 +516,7 @@
 					.attr('class', 'legend-item')
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
 					.attr('cursor', 'pointer')
-					.attr('opacity', (d) => {
-						if (d.fieldPath === '__historical__') return d.visible ? 1 : 0.35;
-						if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
-						return 1;
-					})
+					.attr('opacity', getLegendOpacity)
 					.on('click', (_, d) => {
 						if (d.fieldPath === '__historical__') {
 							showHistorical.update((v) => !v);
@@ -562,11 +559,7 @@
 					.transition()
 					.duration(400)
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
-					.attr('opacity', (d) => {
-						if (d.fieldPath === '__historical__') return d.visible ? 1 : 0.35;
-						if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
-						return 1;
-					});
+					.attr('opacity', getLegendOpacity);
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
 				update.select('line').attr('stroke', (d) => d.color);
@@ -595,19 +588,13 @@
 			})
 			.on('end', (event: d3.D3BrushEvent<null>) => {
 				isBrushing = false;
-				if (!event.selection) {
-					brushedXDomain.set(null);
-					return;
-				}
+				if (!event.selection) return;
 				const [x0, x1] = event.selection as [number, number];
 				const yearStart = Math.round(xScale.invert(x0));
 				const yearEnd = Math.round(xScale.invert(x1));
 				if (yearEnd - yearStart < 5) {
 					brushGroup.call(brush.move, null);
-					brushedXDomain.set(null);
-					return;
 				}
-				brushedXDomain.set([yearStart, yearEnd]);
 			});
 
 		brushGroup.call(brush);
