@@ -102,3 +102,68 @@ pub fn analyze_sim(sim: &SimulationOutput, preset_name: &str) -> SimDiagnostics 
         anomalies: all_anomalies,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bau_diagnostics_regression() {
+        let diag = run_analysis("bau", 1900.0, 2100.0, 1.0).expect("BAU sim failed");
+
+        // Population peaks in expected range
+        let pop = &diag.variables[0];
+        assert_eq!(pop.name, "Population");
+        assert!(pop.peak.year >= 2000.0 && pop.peak.year <= 2070.0,
+            "Population peak year {} outside [2000, 2070]", pop.peak.year);
+        assert!(pop.peak.value >= 5.0e9 && pop.peak.value <= 12.0e9,
+            "Population peak value {:.2e} outside [5B, 12B]", pop.peak.value);
+        assert!(!pop.is_monotonic, "Population should not be monotonic");
+        assert!(pop.phases.len() >= 2, "Population should have at least 2 phases");
+
+        // NNR is monotonically declining
+        let nnr = &diag.variables[4];
+        assert_eq!(nnr.name, "NNR fraction");
+        assert!(nnr.is_monotonic, "NNR should be monotonically declining");
+
+        // Food per capita should peak then decline
+        let food = &diag.variables[1];
+        assert_eq!(food.name, "Food / capita");
+        assert!(food.peak.value > food.final_value, "Food/cap should peak then decline");
+
+        // IOPC should collapse
+        let iopc = &diag.variables[2];
+        assert!(iopc.final_value < iopc.peak.value * 0.5,
+            "IOPC should collapse by 2100");
+
+        // No anomalies in standard BAU run
+        assert!(diag.anomalies.is_empty(),
+            "BAU should have no anomalies, found: {:?}", diag.anomalies);
+    }
+
+    #[test]
+    fn comparative_bau_vs_technology() {
+        let base = run_analysis("bau", 1900.0, 2100.0, 1.0).expect("BAU failed");
+        let comp = run_analysis("technology", 1900.0, 2100.0, 1.0).expect("Tech failed");
+        let result = compare::compare(base, comp);
+
+        assert_eq!(result.deltas.len(), 6, "Should have 6 variable deltas");
+
+        // All deltas computed without NaN
+        for d in &result.deltas {
+            assert!(!d.peak_value_change.is_nan(), "{} peak_value_change is NaN", d.name);
+            assert!(!d.peak_value_pct_change.is_nan(), "{} pct_change is NaN", d.name);
+            assert!(!d.peak_year_shift.is_nan(), "{} peak_year_shift is NaN", d.name);
+            assert!(!d.final_value_change.is_nan(), "{} final_value_change is NaN", d.name);
+        }
+    }
+
+    #[test]
+    fn json_output_roundtrips() {
+        let diag = run_analysis("bau", 1900.0, 2100.0, 1.0).expect("BAU failed");
+        let json = format_json::format_json(&diag);
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("Invalid JSON");
+        assert_eq!(parsed["variables"].as_array().unwrap().len(), 6);
+        assert!(parsed["anomalies"].as_array().unwrap().is_empty());
+    }
+}
