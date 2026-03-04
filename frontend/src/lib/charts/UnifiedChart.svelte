@@ -6,7 +6,7 @@
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId, highlightedVariables } from '../stores/info';
 	import { hoveredYear, brushedXDomain } from '../stores/simulation';
-	import { visibleVariables, compareMode, compareVariable, showHistorical } from '../stores/chart-ui';
+	import { compareMode, compareVariable, showHistorical } from '../stores/chart-ui';
 	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
@@ -53,31 +53,41 @@
 		height = h;
 	}
 
-	function handleLegendToggle(fieldPath: string) {
-		visibleVariables.update((set) => {
-			const next = new Set(set);
-			if (next.has(fieldPath)) {
-				if (next.size > 1) next.delete(fieldPath);
-			} else {
-				next.add(fieldPath);
-			}
-			return next;
-		});
+	function handleLegendSelect(fieldPath: string) {
+		// Read current value synchronously
+		let currentVal: string | null = null;
+		const unsub = selectedVariableId.subscribe((v) => (currentVal = v));
+		unsub();
+		if (currentVal === fieldPath) {
+			selectedVariableId.set(null);
+		} else {
+			selectedVariableId.set(fieldPath);
+		}
 	}
 
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
-		// Escape clears brush
-		if (e.key === 'Escape' && activeBrushGroup && activeBrush) {
-			activeBrushGroup.call(activeBrush.move, null);
-			brushedXDomain.set(null);
-			return;
+		if (e.key === 'Escape') {
+			// Deselect variable first
+			let currentVar: string | null = null;
+			const unsub = selectedVariableId.subscribe((v) => (currentVar = v));
+			unsub();
+			if (currentVar) {
+				selectedVariableId.set(null);
+				return;
+			}
+			// Then clear brush
+			if (activeBrushGroup && activeBrush) {
+				activeBrushGroup.call(activeBrush.move, null);
+				brushedXDomain.set(null);
+				return;
+			}
 		}
-		// Number keys 1-6 toggle variables (only in normal mode)
+		// Number keys 1-6 select variables (only in normal mode)
 		if (!$compareMode && e.key >= '1' && e.key <= '6') {
 			const idx = parseInt(e.key) - 1;
 			if (idx < unifiedVariables.length) {
-				handleLegendToggle(unifiedVariables[idx].fieldPath);
+				handleLegendSelect(unifiedVariables[idx].fieldPath);
 			}
 		}
 	}
@@ -106,7 +116,6 @@
 		const _focusedId = focusedScenarioId;
 		const _compareMode = $compareMode;
 		const _compareVariable = $compareVariable;
-		const _visibleVars = $visibleVariables;
 		const _showHistorical = $showHistorical;
 		const _historicalData = $historicalData;
 
@@ -181,9 +190,6 @@
 
 			// Extract series and compute combined sim+historical range for normalization
 			for (const varConfig of unifiedVariables) {
-				const visible = _visibleVars.has(varConfig.fieldPath);
-				if (!visible) continue;
-
 				const rawPoints = extractSeries(states, varConfig.fieldPath);
 				if (rawPoints.length === 0) continue;
 
@@ -235,7 +241,7 @@
 				label: v.label,
 				color: v.color,
 				fieldPath: v.fieldPath,
-				visible: _visibleVars.has(v.fieldPath)
+				visible: true
 			}));
 
 			// Add historical toggle to legend
@@ -315,6 +321,7 @@
 		// Highlighting: dim lines not related to the selected parameter
 		const highlighted = $highlightedVariables;
 		const hasHighlight = highlighted.size > 0;
+		const selectedVarFieldPath = $selectedVariableId;
 
 		function getFieldPathForLine(d: LineDatum): string | null {
 			if (_compareMode) return null;
@@ -508,12 +515,16 @@
 					.attr('class', 'legend-item')
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
 					.attr('cursor', 'pointer')
-					.attr('opacity', (d) => d.visible ? 1 : 0.35)
+					.attr('opacity', (d) => {
+						if (d.fieldPath === '__historical__') return d.visible ? 1 : 0.35;
+						if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
+						return 1;
+					})
 					.on('click', (_, d) => {
 						if (d.fieldPath === '__historical__') {
 							showHistorical.update((v) => !v);
 						} else if (!_compareMode) {
-							handleLegendToggle(d.fieldPath);
+							handleLegendSelect(d.fieldPath);
 						}
 					});
 
@@ -551,7 +562,11 @@
 					.transition()
 					.duration(400)
 					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
-					.attr('opacity', (d) => d.visible ? 1 : 0.35);
+					.attr('opacity', (d) => {
+						if (d.fieldPath === '__historical__') return d.visible ? 1 : 0.35;
+						if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
+						return 1;
+					});
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
 				update.select('line').attr('stroke', (d) => d.color);
@@ -559,7 +574,7 @@
 					if (d.fieldPath === '__historical__') {
 						showHistorical.update((v) => !v);
 					} else if (!_compareMode) {
-						handleLegendToggle(d.fieldPath);
+						handleLegendSelect(d.fieldPath);
 					}
 				});
 				return update;
