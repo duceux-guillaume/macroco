@@ -177,6 +177,7 @@ pub fn analyze_sim(sim: &SimulationOutput, preset_name: &str) -> SimDiagnostics 
     }
 }
 
+// REQ: REQ-003
 #[cfg(test)]
 mod tests {
     use super::*;

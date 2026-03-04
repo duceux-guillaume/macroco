@@ -82,6 +82,7 @@ fn extract_field(state: &WorldState, path: &str) -> Option<f64> {
     }
 }
 
+// REQ: REQ-003
 #[cfg(test)]
 mod tests {
     use super::*;

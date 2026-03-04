@@ -16,6 +16,7 @@ pub fn format_json_stability(report: &StabilityReport) -> String {
     serde_json::to_string_pretty(report).expect("failed to serialize StabilityReport")
 }
 
+// REQ: REQ-003
 #[cfg(test)]
 mod tests {
     use super::*;

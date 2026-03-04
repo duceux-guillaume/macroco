@@ -85,6 +85,7 @@ pub fn pollution_derivatives(
     (d_persistent, d_buffer)
 }
 
+// REQ: REQ-001
 #[cfg(test)]
 mod tests {
     use super::*;

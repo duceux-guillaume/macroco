@@ -78,6 +78,7 @@ fn phase_kinds_to_string(kinds: &[&PhaseKind]) -> String {
         .join("/")
 }
 
+// REQ: REQ-003
 #[cfg(test)]
 mod tests {
     use super::*;

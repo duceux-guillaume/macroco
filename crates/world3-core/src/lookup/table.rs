@@ -45,6 +45,7 @@ impl LookupTable {
     }
 }
 
+// REQ: REQ-002
 #[cfg(test)]
 mod tests {
     use super::*;

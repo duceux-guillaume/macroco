@@ -245,6 +245,7 @@ pub fn format_text_stability(report: &StabilityReport) -> String {
     out
 }
 
+// REQ: REQ-003
 #[cfg(test)]
 mod tests {
     use super::*;

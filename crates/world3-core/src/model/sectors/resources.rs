@@ -57,6 +57,7 @@ pub fn compute_resource_auxiliaries(state: &mut WorldState, _tables: &WorldLooku
     // allocated to resource extraction in capital.rs), not through ICOR. ICOR is constant.
 }
 
+// REQ: REQ-001
 #[cfg(test)]
 mod tests {
     use super::*;

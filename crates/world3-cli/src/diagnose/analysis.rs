@@ -468,6 +468,7 @@ pub fn find_inflection_points(years: &[f64], values: &[f64]) -> Vec<ValueAtYear>
     inflections
 }
 
+// REQ: REQ-003
 #[cfg(test)]
 mod tests {
     use super::*;
