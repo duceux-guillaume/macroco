@@ -13,7 +13,7 @@
 | REQ-005 | Validation against Meadows 1972 | Done | `crates/world3-core/src/solver/rk4.rs` |
 | REQ-006 | PNG chart output | Done | — |
 | REQ-007 | REST API server | Done | `frontend/src/lib/api.test.ts` |
-| REQ-008 | WebSocket streaming simulation | Done | — |
+| REQ-008 | WebSocket streaming simulation | Done | `crates/world3-api/src/routes/ws.rs`, `frontend/src/lib/ws.test.ts` |
 | REQ-009 | SvelteKit frontend | Done | `frontend/src/lib/api.test.ts`, `frontend/src/lib/charts/chart-config.test.ts`, `frontend/src/lib/charts/unified-config.test.ts`, `frontend/src/lib/stores/stores.test.ts`, `frontend/src/lib/utils/extract.test.ts`, `frontend/src/lib/utils/format.test.ts` |
 | REQ-010 | CI pipeline | Done (exempt: CI infrastructure, validated by pipeline execution) | — |
 | REQ-011 | Extension sectors — climate, energy, biodiversity, inequality | Planned | — |
@@ -39,6 +39,7 @@
 | Test File | REQs Covered |
 |-----------|-------------|
 | `crates/world3-api/src/historical.rs` | REQ-012 |
+| `crates/world3-api/src/routes/ws.rs` | REQ-008 |
 | `crates/world3-cli/src/diagnose/analysis.rs` | REQ-003 |
 | `crates/world3-cli/src/diagnose/compare.rs` | REQ-003 |
 | `crates/world3-cli/src/diagnose/format_json.rs` | REQ-003 |
@@ -65,17 +66,17 @@
 | `frontend/src/lib/stores/stores.test.ts` | REQ-009, REQ-025 |
 | `frontend/src/lib/utils/extract.test.ts` | REQ-009 |
 | `frontend/src/lib/utils/format.test.ts` | REQ-009, REQ-021 |
+| `frontend/src/lib/ws.test.ts` | REQ-008 |
 
 ## Summary
 
 - **Done requirements:** 23
-- **Covered by tests:** 13
+- **Covered by tests:** 14
 - **Exempt:** 6
-- **Uncovered:** 4
+- **Uncovered:** 3
 
 ### Uncovered Done Requirements
 
 - REQ-006: PNG chart output
-- REQ-008: WebSocket streaming simulation
 - REQ-022: Variable info panels
 - REQ-023: Simulation controls
