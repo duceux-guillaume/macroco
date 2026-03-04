@@ -88,6 +88,7 @@ pub fn pollution_derivatives(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
     use crate::lookup::tables::WorldLookupTables;
     use crate::model::params::ScenarioParams;
     use crate::model::state::WorldState;
@@ -164,7 +165,6 @@ mod tests {
         let gen_control = s2.pollution.generation_rate;
 
         // control=0.8 → generation is 20% of uncontrolled
-        use approx::assert_relative_eq;
         assert_relative_eq!(gen_control, gen_no_control * 0.2, epsilon = 1e-15);
     }
 
@@ -214,7 +214,6 @@ mod tests {
         let generation = s.pollution.generation_rate;
         let appearance_rate = s.pollution.pollution_appearance_buffer / POLLUTION_APPEARANCE_DELAY;
         // d_buffer = generation - appearance_rate
-        use approx::assert_relative_eq;
         assert_relative_eq!(d_buffer, generation - appearance_rate, epsilon = 1e-15);
         // d_persistent = appearance_rate - assimilation
         assert_relative_eq!(d_persistent, appearance_rate - s.pollution.assimilation_rate, epsilon = 1e-15);
