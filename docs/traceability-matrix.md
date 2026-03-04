@@ -31,7 +31,7 @@
 | REQ-023 | Simulation controls | Done | — |
 | REQ-024 | Chart annotations | Done | `frontend/src/lib/content/chart-annotations.test.ts` |
 | REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
-| REQ-026 | BAU historical calibration regression tests | In Progress | `crates/world3-cli/tests/historical_calibration.rs` |
+| REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-cli/tests/historical_calibration.rs` |
 | REQ-027 | Bi-directional traceability | Done (exempt: Infrastructure tooling; the traceability script itself is the implementation) | — |
 
 ## Reverse: Test -> REQs
@@ -68,8 +68,8 @@
 
 ## Summary
 
-- **Done requirements:** 22
-- **Covered by tests:** 12
+- **Done requirements:** 23
+- **Covered by tests:** 13
 - **Exempt:** 6
 - **Uncovered:** 4
 
