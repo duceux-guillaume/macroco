@@ -92,4 +92,10 @@
 		border-radius: 8px;
 		padding: 8px;
 	}
+
+	@media (max-width: 767px) {
+		.chart-section {
+			min-height: 250px;
+		}
+	}
 </style>
