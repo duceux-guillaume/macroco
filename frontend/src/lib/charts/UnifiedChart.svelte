@@ -31,7 +31,11 @@
 	let tooltipYear = $state(0);
 	let tooltipItems = $state<Array<{ label: string; color: string; rawValue: string; unit: string; trend: string }>>([]);
 
-	const margin = { top: 32, right: 200, bottom: 32, left: 48 };
+	let margin = $derived(
+		width < 500
+			? { top: 24, right: 16, bottom: 80, left: 36 }
+			: { top: 32, right: 200, bottom: 32, left: 48 }
+	);
 	let isBrushing = false;
 
 	// Eye icon SVG paths (16x16 viewBox)
@@ -516,12 +520,18 @@
 			(exit) => exit.transition().duration(200).attr('opacity', 0).remove()
 		);
 
-		// Legend (right side, inside SVG)
+		// Legend (right side on wide screens, below chart on narrow)
+		const isNarrow = width < 500;
 		const legendGroup = svg.selectAll<SVGGElement, null>('g.legend')
 			.data([null])
 			.join('g')
-			.attr('class', 'legend')
-			.attr('transform', `translate(${margin.left + innerW + 16}, ${margin.top + 8})`);
+			.attr('class', 'legend');
+
+		if (isNarrow) {
+			legendGroup.attr('transform', `translate(${margin.left}, ${margin.top + innerH + 24})`);
+		} else {
+			legendGroup.attr('transform', `translate(${margin.left + innerW + 16}, ${margin.top + 8})`);
+		}
 
 		const legendItems = legendGroup
 			.selectAll<SVGGElement, typeof legendData[number]>('g.legend-item')
@@ -558,7 +568,14 @@
 			(enter) => {
 				const item = enter.append('g')
 					.attr('class', 'legend-item')
-					.attr('transform', (_, i) => `translate(0, ${i * 28})`)
+					.attr('transform', (_, i) => {
+						if (isNarrow) {
+							const col = i % 3;
+							const row = Math.floor(i / 3);
+							return `translate(${col * Math.floor(innerW / 3)}, ${row * 18})`;
+						}
+						return `translate(0, ${i * 28})`;
+					})
 					.attr('cursor', 'pointer')
 					.attr('opacity', getLegendOpacity)
 					.on('click', handleItemClick);
@@ -611,7 +628,14 @@
 				update
 					.transition()
 					.duration(400)
-					.attr('transform', (_, i) => `translate(0, ${i * 28})`)
+					.attr('transform', (_, i) => {
+						if (isNarrow) {
+							const col = i % 3;
+							const row = Math.floor(i / 3);
+							return `translate(${col * Math.floor(innerW / 3)}, ${row * 18})`;
+						}
+						return `translate(0, ${i * 28})`;
+					})
 					.attr('opacity', getLegendOpacity);
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
