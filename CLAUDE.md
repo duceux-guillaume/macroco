@@ -51,6 +51,7 @@ docs/
   examples/            # Generated example charts
 Dockerfile            # Multi-stage build (Rust + Node + slim runtime)
 fly.toml              # Fly.io app configuration
+.claude/commands/      # Project-local Claude Code slash commands (/audit-tables)
 ```
 
 ## Commands
@@ -101,6 +102,8 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - `WorldState::N` = 16 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - All non-linear relationships encoded as `LookupTable` (piecewise-linear). Tables loaded from `/data/lookup_tables/*.json`.
+- Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
+- pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 
 ### API Server (`world3-api`)
