@@ -8,18 +8,25 @@
   },
   "permissions": {
     "allow": [
-      "Bash(cargo build*)",
-      "Bash(cargo test*)",
-      "Bash(cargo clippy*)",
-      "Bash(cargo run*)",
-      "Bash(git status*)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(git push*)",
-      "Bash(gh pr *)",
-      "Bash(gh api *)"
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Agent(*)"
+    ],
+    "deny": [
+      "Bash(rm *)",
+      "Bash(rm -rf *)",
+      "Bash(npm install*)",
+      "Bash(npm add*)",
+      "Bash(npm remove*)",
+      "Bash(cargo add*)",
+      "Bash(cargo remove*)",
+      "Bash(brew *)",
+      "Bash(pip install*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
+      "Bash(git branch -D*)"
     ]
   }
 }
