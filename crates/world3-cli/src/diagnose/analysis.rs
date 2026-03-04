@@ -285,6 +285,31 @@ pub fn max_decline_rate(years: &[f64], values: &[f64]) -> ValueAtYear {
     ValueAtYear { value: best_rate, year: best_year }
 }
 
+/// Analyze a single time series variable and produce its diagnostics.
+pub fn analyze_variable(name: &str, unit: &str, years: &[f64], values: &[f64]) -> VariableDiagnostics {
+    let peak = find_peak(years, values);
+    let trough = find_trough_after_peak(years, values, peak.year);
+    let phases = segment_phases(years, values);
+    let inflection_points = find_inflection_points(years, values);
+    let monotonic = is_monotonic(values);
+    let growth = max_growth_rate(years, values);
+    let decline = max_decline_rate(years, values);
+
+    VariableDiagnostics {
+        name: name.to_string(),
+        unit: unit.to_string(),
+        initial: values[0],
+        final_value: *values.last().unwrap_or(&0.0),
+        peak,
+        trough,
+        phases,
+        inflection_points,
+        is_monotonic: monotonic,
+        max_growth_rate: growth,
+        max_decline_rate: decline,
+    }
+}
+
 /// Detect inflection points where the second derivative changes sign.
 ///
 /// Uses second differences of the value series. Returns the year and value
@@ -536,5 +561,21 @@ mod tests {
         let near_2000 = inflections.iter().any(|ip| (ip.year - 2000.0).abs() < 5.0);
         assert!(near_2000, "expected inflection near 2000, got: {:?}",
             inflections.iter().map(|ip| ip.year).collect::<Vec<_>>());
+    }
+
+    // --- Task 5: analyze_variable tests ---
+
+    #[test]
+    fn analyze_variable_grow_then_decline() {
+        let years: Vec<f64> = (0..=100).map(|i| 1900.0 + i as f64).collect();
+        let values: Vec<f64> = years.iter().map(|&y| -(y - 1950.0).powi(2) + 2500.0).collect();
+        let diag = analyze_variable("Test", "units", &years, &values);
+        assert_eq!(diag.name, "Test");
+        assert_eq!(diag.peak.year, 1950.0);
+        assert_eq!(diag.peak.value, 2500.0);
+        assert!(!diag.is_monotonic);
+        assert!(diag.phases.len() >= 2);
+        assert_eq!(diag.initial, values[0]);
+        assert_eq!(diag.final_value, *values.last().unwrap());
     }
 }
