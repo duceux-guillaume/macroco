@@ -1,3 +1,4 @@
+// REQ: REQ-007, REQ-009
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock $env/static/public before importing api module
