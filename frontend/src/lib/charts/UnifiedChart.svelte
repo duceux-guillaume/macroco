@@ -2,7 +2,7 @@
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
 	import { resize } from '../utils/resize';
-	import { extractSeries, normalizeSeries, type NormalizedPoint } from '../utils/extract';
+	import { extractSeries } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId, highlightedVariables } from '../stores/info';
 	import { hoveredYear, brushedXDomain } from '../stores/simulation';
@@ -179,53 +179,50 @@
 			const states = _data.get(scenarioId);
 			if (!states || states.length === 0) return;
 
-			// Extract and cache series for each variable (used for both sim lines and historical normalization)
-			const seriesCache = new Map<string, { rawPoints: ReturnType<typeof extractSeries>; normalized: ReturnType<typeof normalizeSeries> }>();
+			// Extract series and compute combined sim+historical range for normalization
 			for (const varConfig of unifiedVariables) {
+				const visible = _visibleVars.has(varConfig.fieldPath);
+				if (!visible) continue;
+
 				const rawPoints = extractSeries(states, varConfig.fieldPath);
 				if (rawPoints.length === 0) continue;
-				const normalized = normalizeSeries(rawPoints);
-				seriesCache.set(varConfig.id, { rawPoints, normalized });
-				const visible = _visibleVars.has(varConfig.fieldPath);
-				if (visible) {
-					linesData.push({
-						id: varConfig.id,
-						color: varConfig.color,
-						points: normalized.points,
-						rawPoints,
-						label: varConfig.shortLabel,
-						format: varConfig.format
-					});
+
+				// Compute combined min/max including historical data
+				let combinedMin = Infinity;
+				let combinedMax = -Infinity;
+				for (const p of rawPoints) {
+					if (p.value < combinedMin) combinedMin = p.value;
+					if (p.value > combinedMax) combinedMax = p.value;
 				}
-			}
 
-			// Add historical overlay lines
-			if (_showHistorical) {
-				for (const varConfig of unifiedVariables) {
-					if (!_visibleVars.has(varConfig.fieldPath)) continue;
-					const histVar = _historicalData.get(varConfig.id);
-					if (!histVar || histVar.data.length === 0) continue;
+				const histVar = _showHistorical ? _historicalData.get(varConfig.id) : undefined;
+				if (histVar && histVar.data.length > 0) {
+					for (const d of histVar.data) {
+						if (d.value < combinedMin) combinedMin = d.value;
+						if (d.value > combinedMax) combinedMax = d.value;
+					}
+				}
 
-					// Normalize historical data using same range as simulation
-					const cached = seriesCache.get(varConfig.id);
-					if (!cached) continue;
-					const { min, max } = cached.normalized;
-					const range = max - min;
+				const range = combinedMax - combinedMin;
+				const normalize = (v: number) => range > 0 ? (v - combinedMin) / range : 0.5;
 
-					const histPoints = histVar.data.map((d) => ({
-						year: d.year,
-						normalized: range > 0 ? (d.value - min) / range : 0.5
-					}));
-					const histRawPoints = histVar.data.map((d) => ({
-						year: d.year,
-						value: d.value
-					}));
+				// Add simulation line
+				linesData.push({
+					id: varConfig.id,
+					color: varConfig.color,
+					points: rawPoints.map((p) => ({ year: p.year, normalized: normalize(p.value) })),
+					rawPoints,
+					label: varConfig.shortLabel,
+					format: varConfig.format
+				});
 
+				// Add historical overlay line
+				if (histVar && histVar.data.length > 0) {
 					linesData.push({
 						id: `hist-${varConfig.id}`,
 						color: varConfig.color,
-						points: histPoints,
-						rawPoints: histRawPoints,
+						points: histVar.data.map((d) => ({ year: d.year, normalized: normalize(d.value) })),
+						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: `${varConfig.shortLabel} hist.`,
 						format: varConfig.format,
 						historical: true
@@ -521,24 +518,24 @@
 					});
 
 				// Solid rect for normal variables, dashed line for historical
-			item.each(function(d) {
-				const el = d3.select(this);
-				if (d.fieldPath === '__historical__') {
-					el.append('line')
-						.attr('x1', 0).attr('y1', 6)
-						.attr('x2', 12).attr('y2', 6)
-						.attr('stroke', d.color)
-						.attr('stroke-width', 2)
-						.attr('stroke-dasharray', '3,2');
-				} else {
-					el.append('rect')
-						.attr('width', 12)
-						.attr('height', 3)
-						.attr('y', 5)
-						.attr('rx', 1.5)
-						.attr('fill', d.color);
-				}
-			});
+				item.each(function(d) {
+					const el = d3.select(this);
+					if (d.fieldPath === '__historical__') {
+						el.append('line')
+							.attr('x1', 0).attr('y1', 6)
+							.attr('x2', 12).attr('y2', 6)
+							.attr('stroke', d.color)
+							.attr('stroke-width', 2)
+							.attr('stroke-dasharray', '3,2');
+					} else {
+						el.append('rect')
+							.attr('width', 12)
+							.attr('height', 3)
+							.attr('y', 5)
+							.attr('rx', 1.5)
+							.attr('fill', d.color);
+					}
+				});
 
 				item.append('text')
 					.attr('x', 18)
