@@ -175,6 +175,8 @@ Run `/permissions-audit` to review and improve permission settings.
 - `f64::parse()` accepts "NaN", "inf", "-inf" as valid. Always add `.is_finite()` guard when parsing external data destined for JSON serialization.
 - `world3-cli` is a binary crate — use `cargo test -p world3-cli` (not `--lib`).
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
+- `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"bau"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
+- `init_app_state()` loads historical CSVs from `HISTORICAL_DATA_DIR` (default `./data/historical`). Integration tests using it must run from the repo root or set the env var.
 
 ### Debugging Workflow
 - For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.
@@ -189,7 +191,7 @@ Run `/permissions-audit` to review and improve permission settings.
 
 ### Traceability
 - Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates. Rust: place before `#[cfg(test)]`. TypeScript: first line of `.test.ts` file.
-- Run `python3 scripts/traceability.py` locally to regenerate `docs/traceability-matrix.md`, then commit it. CI runs `--check` mode and fails if the matrix is stale.
+- Run `python3 scripts/traceability.py` locally to regenerate `docs/traceability-matrix.md`, then commit it. CI runs `--check` mode and fails if the matrix is stale. The script exits non-zero when any Done REQ lacks test coverage — this is a coverage gate, not a script error; the matrix is still written.
 - When adding a new `#[test]` or `describe()` block, include the `// REQ:` annotation.
 - Docs-only and infrastructure requirements can be exempted with `- *Exempt:* <reason>` in `product-requirements.md`.
 - Impact analysis: `grep -r '// REQ:.*REQ-005' crates/ frontend/` finds all tests covering a given requirement.
