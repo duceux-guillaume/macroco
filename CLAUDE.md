@@ -1,14 +1,12 @@
 # Macroco — Developer Guide
 
 ## Project Overview
-Online live macroeconomic model based on the World 3 system dynamics model (Meadows et al., *Limits to Growth*). Extended with modern indicators: climate, energy mix, biodiversity, inequality.
+Online live macroeconomic model based on World3-03 (Meadows et al., 2004 — *Limits to Growth: The 30-Year Update*), as implemented in [pyworld3](https://github.com/cvanwynsberghe/pyworld3). Extended with modern indicators: climate, energy mix, biodiversity, inequality.
 
 **Stack:** Rust backend (Axum) + SvelteKit/TypeScript frontend + D3 v7. Deployed on Fly.io.
 
 ## Current Objective
-Milestone 1: Interactive Limits to Growth. The frontend must be a self-contained
-educational experience. Every chart variable has a human-readable explanation.
-Users can change assumptions and immediately understand consequences.
+Milestone 1: Interactive Limits to Growth. The BAU scenario must be a good fit to historical data (1960–2023) and reproduce the overshoot-and-collapse trajectory from the original study. Other scenarios (Technology, Stabilized) must also fit historical data but diverge into alternative futures based on different assumed human behaviors (e.g. pollution controls, resource efficiency, birth rate policies). The frontend must be a self-contained educational experience where users can change assumptions and immediately understand consequences.
 
 Priority order:
 1. Quick start guide (docs/quick-start.md + run.sh)
