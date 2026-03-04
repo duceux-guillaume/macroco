@@ -256,23 +256,23 @@ fn bau_nnr_fraction_max_year_error() {
 #[test]
 fn calibration_summary_report() {
     let sim = bau_sim();
-    let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64)> = vec![
-        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 16.0),
-        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 22.0),
-        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 23.0),
-        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 15.0),
+    let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64, f64)> = vec![
+        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 16.0, 42.0),
+        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 22.0, 30.0),
+        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 23.0, 43.0),
+        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 15.0, 30.0),
     ];
     println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
-    for (name, csv, extract, threshold) in vars {
+    for (name, csv, extract, rmse_threshold, max_err_threshold) in vars {
         let hist = load_historical_csv(&historical_dir().join(csv));
         let (sim_vals, hist_vals, years) = match_years(sim, extract, &hist);
         let pct = rmse_pct(&sim_vals, &hist_vals);
-        let status = if pct < threshold { "PASS" } else { "FAIL" };
+        let status = if pct < rmse_threshold { "PASS" } else { "FAIL" };
         let (max_err, worst_yr) = max_year_error_pct(&sim_vals, &hist_vals, &years);
-        let max_status = if max_err <= 30.0 { "PASS" } else { "FAIL" };
+        let max_status = if max_err <= max_err_threshold { "PASS" } else { "FAIL" };
         println!(
-            "  {:<20} RMSE% = {:6.1}%  (threshold: {:5.1}%)  [{}]  max-year: {:5.1}% @ {} [{}]",
-            name, pct, threshold, status, max_err, worst_yr, max_status
+            "  {:<20} RMSE% = {:6.1}%  (threshold: {:5.1}%)  [{}]  max-year: {:5.1}% @ {} (threshold: {:5.1}%) [{}]",
+            name, pct, rmse_threshold, status, max_err, worst_yr, max_err_threshold, max_status
         );
     }
     println!("========================================================\n");

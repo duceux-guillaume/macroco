@@ -216,7 +216,7 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             field: "technology_growth_rate".into(),
             label: "Technology Progress Rate".into(),
             unit: "yr⁻¹".into(),
-            min: 0.0, max: 0.03, default: 0.002, step: 0.001,
+            min: 0.0, max: 0.03, default: 0.014, step: 0.001,
             sector: "capital".into(),
             description: "Annual improvement in industrial output per unit capital.".into(),
         },
