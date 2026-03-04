@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as d3 from 'd3';
+	import { onDestroy } from 'svelte';
 	import { selectedParameterId, selectedVariableId } from '$lib/stores/info';
 	import { simulationResults } from '$lib/stores/simulation';
 	import { scenarios, activeScenarioIds } from '$lib/stores/scenarios';
@@ -10,7 +11,9 @@
 		type ParameterInfo,
 		type FeedbackLoopInfo
 	} from '$lib/content/variable-descriptions';
+	import { extractSeries, type DataPoint } from '$lib/utils/extract';
 	import type { WorldState } from '$lib/types';
+	import InfoPanelShell from './InfoPanelShell.svelte';
 
 	let showExpert = $state(false);
 	let parameterId = $state<string | null>(null);
@@ -19,6 +22,7 @@
 		parameterId = p;
 		showExpert = false;
 	});
+	onDestroy(unsub);
 
 	let info = $derived<ParameterInfo | null>(
 		parameterId ? parameterDescriptions[parameterId] ?? null : null
@@ -87,14 +91,6 @@
 		const innerW = W - m.left - m.right;
 		const innerH = H - m.top - m.bottom;
 
-		function extractValues(states: WorldState[]): Array<{ year: number; value: number }> {
-			return states.map((s) => {
-				const [sector, field] = fieldPath.split('.');
-				const val = (s as any)[sector]?.[field] ?? 0;
-				return { year: s.time, value: val };
-			});
-		}
-
 		const svg = d3
 			.select(el)
 			.selectAll<SVGSVGElement, null>('svg')
@@ -110,9 +106,9 @@
 			.attr('class', 'spark')
 			.attr('transform', `translate(${m.left},${m.top})`);
 
-		const allPoints: Array<{ year: number; value: number }> = [];
-		const bauPoints = bauStates ? extractValues(bauStates) : [];
-		const compPoints = compStates ? extractValues(compStates) : [];
+		const allPoints: DataPoint[] = [];
+		const bauPoints = bauStates ? extractSeries(bauStates, fieldPath) : [];
+		const compPoints = compStates ? extractSeries(compStates, fieldPath) : [];
 		allPoints.push(...bauPoints, ...compPoints);
 
 		if (allPoints.length === 0) {
@@ -132,7 +128,7 @@
 			.range([innerH, 0]);
 
 		const line = d3
-			.line<{ year: number; value: number }>()
+			.line<DataPoint>()
 			.x((d) => xScale(d.year))
 			.y((d) => yScale(d.value));
 
@@ -174,145 +170,71 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if info && parameterId}
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="panel-backdrop" onclick={close}></div>
-	<div class="info-panel" role="dialog" aria-label="Parameter information">
-		<div class="panel-header">
-			<div>
-				<h2>{info.name}</h2>
-				<span class="meta">{info.sector} · {info.unit}</span>
+	<InfoPanelShell
+		title={info.name}
+		meta="{info.sector} · {info.unit}"
+		ariaLabel="Parameter information"
+		onclose={close}
+	>
+		<section>
+			<p class="description">{info.beginner}</p>
+		</section>
+
+		<section>
+			<button class="toggle-btn" onclick={() => (showExpert = !showExpert)}>
+				{showExpert ? '▾' : '▸'} Technical Detail
+			</button>
+			{#if showExpert}
+				<p class="expert">{info.expert}</p>
+			{/if}
+		</section>
+
+		<section>
+			<h3>Impact</h3>
+			<div class="impact-card increase">
+				<span class="impact-arrow">&#x2191;</span>
+				<p>{info.impact.increase}</p>
 			</div>
-			<button class="close-btn" onclick={close} aria-label="Close panel">&times;</button>
-		</div>
+			<div class="impact-card decrease">
+				<span class="impact-arrow">&#x2193;</span>
+				<p>{info.impact.decrease}</p>
+			</div>
+			<div class="sparkline" bind:this={sparklineEl}></div>
+		</section>
 
-		<div class="panel-body">
+		{#if relatedLoops.length > 0}
 			<section>
-				<p class="description">{info.beginner}</p>
-			</section>
-
-			<section>
-				<button class="toggle-btn" onclick={() => (showExpert = !showExpert)}>
-					{showExpert ? '▾' : '▸'} Technical Detail
-				</button>
-				{#if showExpert}
-					<p class="expert">{info.expert}</p>
-				{/if}
-			</section>
-
-			<section>
-				<h3>Impact</h3>
-				<div class="impact-card increase">
-					<span class="impact-arrow">&#x2191;</span>
-					<p>{info.impact.increase}</p>
-				</div>
-				<div class="impact-card decrease">
-					<span class="impact-arrow">&#x2193;</span>
-					<p>{info.impact.decrease}</p>
-				</div>
-				<div class="sparkline" bind:this={sparklineEl}></div>
-			</section>
-
-			{#if relatedLoops.length > 0}
-				<section>
-					<h3>Feedback Loops</h3>
-					{#each relatedLoops as loop}
-						<div class="loop-card">
-							<div class="loop-header">
-								<span class="loop-type" class:reinforcing={loop.type === 'reinforcing'} class:stabilizing={loop.type === 'stabilizing'}>
-									{loop.type === 'reinforcing' ? '+' : '−'}
-								</span>
-								<strong>{loop.name}</strong>
-							</div>
-							<p class="loop-desc">{loop.description}</p>
+				<h3>Feedback Loops</h3>
+				{#each relatedLoops as loop}
+					<div class="loop-card">
+						<div class="loop-header">
+							<span class="loop-type" class:reinforcing={loop.type === 'reinforcing'} class:stabilizing={loop.type === 'stabilizing'}>
+								{loop.type === 'reinforcing' ? '+' : '−'}
+							</span>
+							<strong>{loop.name}</strong>
 						</div>
-					{/each}
-				</section>
-			{/if}
-
-			{#if relatedVars.length > 0}
-				<section>
-					<h3>Related Variables</h3>
-					<div class="related-list">
-						{#each relatedVars as v}
-							<button class="related-btn" onclick={() => selectVariable(v.path)}>
-								{v.name}
-							</button>
-						{/each}
+						<p class="loop-desc">{loop.description}</p>
 					</div>
-				</section>
-			{/if}
-		</div>
-	</div>
+				{/each}
+			</section>
+		{/if}
+
+		{#if relatedVars.length > 0}
+			<section>
+				<h3>Related Variables</h3>
+				<div class="related-list">
+					{#each relatedVars as v}
+						<button class="related-btn" onclick={() => selectVariable(v.path)}>
+							{v.name}
+						</button>
+					{/each}
+				</div>
+			</section>
+		{/if}
+	</InfoPanelShell>
 {/if}
 
 <style>
-	.panel-backdrop {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.3);
-		z-index: 90;
-	}
-	.info-panel {
-		position: fixed;
-		top: 0;
-		right: 0;
-		width: 340px;
-		max-width: 90vw;
-		height: 100vh;
-		background: var(--surface);
-		border-left: 1px solid var(--border);
-		z-index: 100;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		animation: slide-in 0.2s ease-out;
-	}
-	@keyframes slide-in {
-		from {
-			transform: translateX(100%);
-		}
-		to {
-			transform: translateX(0);
-		}
-	}
-	.panel-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		padding: 16px;
-		border-bottom: 1px solid var(--border);
-	}
-	h2 {
-		font-size: 16px;
-		font-weight: 600;
-		color: var(--text);
-		margin: 0;
-	}
-	.meta {
-		font-size: 11px;
-		color: var(--text-secondary);
-	}
-	.close-btn {
-		background: none;
-		border: none;
-		color: var(--text-secondary);
-		font-size: 20px;
-		cursor: pointer;
-		padding: 0 4px;
-		line-height: 1;
-	}
-	.close-btn:hover {
-		color: var(--text);
-	}
-	.panel-body {
-		flex: 1;
-		overflow-y: auto;
-		padding: 16px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
 	section h3 {
 		font-size: 11px;
 		text-transform: uppercase;
