@@ -95,11 +95,9 @@ pub fn find_trough_after_peak(years: &[f64], values: &[f64], peak_year: f64) -> 
     let mut best_val = f64::INFINITY;
 
     for (i, (&y, &v)) in years.iter().zip(values.iter()).enumerate() {
-        if y >= peak_year {
-            if v.partial_cmp(&best_val) == Some(std::cmp::Ordering::Less) {
-                best_val = v;
-                best_idx = i;
-            }
+        if y >= peak_year && v.partial_cmp(&best_val) == Some(std::cmp::Ordering::Less) {
+            best_val = v;
+            best_idx = i;
         }
     }
     ValueAtYear { value: values[best_idx], year: years[best_idx] }
@@ -141,59 +139,36 @@ pub fn segment_phases(years: &[f64], values: &[f64]) -> Vec<Phase> {
         }
     }
 
+    // Helper to build a Phase from index range
+    let make_phase = |kind: &PhaseKind, start: usize, end: usize| -> Phase {
+        let start_year = years[start];
+        let end_year = years[end];
+        let start_value = values[start];
+        let end_value = values[end];
+        let duration = end_year - start_year;
+        let avg_annual_rate = if duration > 0.0 && start_value.abs() > 1e-12 {
+            (end_value - start_value) / (start_value * duration)
+        } else if duration > 0.0 {
+            (end_value - start_value) / duration
+        } else {
+            0.0
+        };
+        Phase { kind: kind.clone(), start_year, end_year, start_value, end_value, avg_annual_rate }
+    };
+
     // Merge consecutive same-kind steps into phases
     let mut phases: Vec<Phase> = Vec::new();
     let mut phase_start = 0;
 
     for i in 1..step_kinds.len() {
         if step_kinds[i] != step_kinds[phase_start] {
-            // Close previous phase (covers years[phase_start]..=years[i])
-            let start_year = years[phase_start];
-            let end_year = years[i];
-            let start_value = values[phase_start];
-            let end_value = values[i];
-            let duration = end_year - start_year;
-            let avg_annual_rate = if duration > 0.0 && start_value.abs() > 1e-12 {
-                (end_value - start_value) / (start_value * duration)
-            } else if duration > 0.0 {
-                (end_value - start_value) / duration
-            } else {
-                0.0
-            };
-            phases.push(Phase {
-                kind: step_kinds[phase_start].clone(),
-                start_year,
-                end_year,
-                start_value,
-                end_value,
-                avg_annual_rate,
-            });
+            phases.push(make_phase(&step_kinds[phase_start], phase_start, i));
             phase_start = i;
         }
     }
 
-    // Close the last phase (covers years[phase_start]..=years[last])
-    let last = years.len() - 1;
-    let start_year = years[phase_start];
-    let end_year = years[last];
-    let start_value = values[phase_start];
-    let end_value = values[last];
-    let duration = end_year - start_year;
-    let avg_annual_rate = if duration > 0.0 && start_value.abs() > 1e-12 {
-        (end_value - start_value) / (start_value * duration)
-    } else if duration > 0.0 {
-        (end_value - start_value) / duration
-    } else {
-        0.0
-    };
-    phases.push(Phase {
-        kind: step_kinds[phase_start].clone(),
-        start_year,
-        end_year,
-        start_value,
-        end_value,
-        avg_annual_rate,
-    });
+    // Close the last phase
+    phases.push(make_phase(&step_kinds[phase_start], phase_start, years.len() - 1));
 
     phases
 }
@@ -464,8 +439,9 @@ mod tests {
 
     #[test]
     fn monotonic_false_for_up_then_down() {
-        let years: Vec<f64> = (1900..=2000).map(|y| y as f64).collect();
-        let values: Vec<f64> = years.iter().map(|&y| -(y - 1950.0).powi(2) + 2500.0).collect();
+        let values: Vec<f64> = (1900..=2000)
+            .map(|y| -(y as f64 - 1950.0).powi(2) + 2500.0)
+            .collect();
         assert!(!is_monotonic(&values));
     }
 
