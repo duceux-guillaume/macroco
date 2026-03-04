@@ -11,12 +11,21 @@ export interface VariableInfo {
 	relatedVariables: string[];
 }
 
+export interface ParameterImpact {
+	increase: string;
+	decrease: string;
+	sparklineVariable: string;
+}
+
 export interface ParameterInfo {
 	name: string;
 	unit: string;
 	sector: string;
 	beginner: string;
 	expert: string;
+	feedbackLoops: string[];
+	relatedVariables: string[];
+	impact: ParameterImpact;
 }
 
 export interface FeedbackLoopInfo {
@@ -345,7 +354,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'The year when family planning programs become fully effective. Earlier = earlier fertility decline.',
 		expert:
-			'Controls the ramp function: fp_ramp = clamp((time − 1900) / (fp_year − 1900), 0, 1). Multiplied by efficacy to get effective family planning input.'
+			'Controls the ramp function: fp_ramp = clamp((time − 1900) / (fp_year − 1900), 0, 1). Multiplied by efficacy to get effective family planning input.',
+		feedbackLoops: ['demographic-transition'],
+		relatedVariables: ['population.population', 'population.fertility_rate', 'population.birth_rate'],
+		impact: {
+			increase: 'Delays fertility decline — population grows larger before stabilizing',
+			decrease: 'Earlier fertility decline — population peaks sooner and at a lower level',
+			sparklineVariable: 'population.population'
+		}
 	},
 	family_planning_efficacy: {
 		name: 'Family Planning Efficacy',
@@ -354,7 +370,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How effective family planning programs are at reducing birth rates. 0 = no effect, 1 = maximum effect.',
 		expert:
-			'Scales the family_planning_multiplier lookup input. At efficacy=1.0 and full ramp, fertility multiplier ≈ 0.40.'
+			'Scales the family_planning_multiplier lookup input. At efficacy=1.0 and full ramp, fertility multiplier ≈ 0.40.',
+		feedbackLoops: ['demographic-transition'],
+		relatedVariables: ['population.population', 'population.fertility_rate', 'population.birth_rate'],
+		impact: {
+			increase: 'Stronger fertility reduction — smaller peak population, less resource pressure',
+			decrease: 'Weaker family planning — higher birth rates persist longer',
+			sparklineVariable: 'population.population'
+		}
 	},
 	health_investment_multiplier: {
 		name: 'Health Investment Multiplier',
@@ -362,7 +385,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		sector: 'Population',
 		beginner:
 			'How much the economy invests in healthcare. Higher values mean better health services and longer life expectancy.',
-		expert: 'Scales service_output_per_capita input to life_exp_multiplier_health lookup.'
+		expert: 'Scales service_output_per_capita input to life_exp_multiplier_health lookup.',
+		feedbackLoops: ['demographic-transition', 'food-population'],
+		relatedVariables: ['population.life_expectancy', 'population.death_rate', 'population.population'],
+		impact: {
+			increase: 'Better health → longer life expectancy → slower population decline',
+			decrease: 'Worse health → higher death rates → faster population decline',
+			sparklineVariable: 'population.life_expectancy'
+		}
 	},
 	industrial_depreciation_rate: {
 		name: 'Industrial Depreciation Rate',
@@ -371,7 +401,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How fast factories and machines wear out. Higher = capital decays faster, requiring more investment just to maintain.',
 		expert:
-			'Used in d(IC)/dt = investment − IC × depreciation_rate. Default 0.05 = 20-year average capital lifetime.'
+			'Used in d(IC)/dt = investment − IC × depreciation_rate. Default 0.05 = 20-year average capital lifetime.',
+		feedbackLoops: ['resource-collapse'],
+		relatedVariables: ['capital.industrial_capital', 'capital.industrial_output', 'capital.industrial_output_per_capita'],
+		impact: {
+			increase: 'Capital wears out faster — economy needs more investment just to stay level',
+			decrease: 'Capital lasts longer — more output available for services and consumption',
+			sparklineVariable: 'capital.industrial_output_per_capita'
+		}
 	},
 	service_depreciation_rate: {
 		name: 'Service Depreciation Rate',
@@ -380,7 +417,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How fast service infrastructure (hospitals, schools) wears out.',
 		expert:
-			'Used in d(SC)/dt = service_investment − SC × depreciation_rate. Default 0.05.'
+			'Used in d(SC)/dt = service_investment − SC × depreciation_rate. Default 0.05.',
+		feedbackLoops: ['demographic-transition'],
+		relatedVariables: ['capital.service_output_per_capita', 'population.life_expectancy'],
+		impact: {
+			increase: 'Services decay faster — health and education quality drops',
+			decrease: 'Services last longer — sustained life expectancy improvements',
+			sparklineVariable: 'capital.service_output_per_capita'
+		}
 	},
 	technology_growth_rate: {
 		name: 'Technology Growth Rate',
@@ -389,7 +433,30 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'Annual improvement in how efficiently capital produces output. Compounds over time — even small rates have big long-term effects.',
 		expert:
-			'tech_multiplier = (1 + rate)^max(time−1970, 0). Applied to productive capital before ICOR division.'
+			'tech_multiplier = (1 + rate)^max(time−1970, 0). Applied to productive capital before ICOR division.',
+		feedbackLoops: ['resource-collapse'],
+		relatedVariables: ['capital.industrial_output', 'capital.industrial_output_per_capita', 'resources.fraction_remaining'],
+		impact: {
+			increase: 'More output per unit capital — delays resource-driven collapse',
+			decrease: 'Slower technological progress — economy hits limits earlier',
+			sparklineVariable: 'capital.industrial_output_per_capita'
+		}
+	},
+	investment_rate: {
+		name: 'Investment Rate',
+		unit: 'fraction',
+		sector: 'Capital',
+		beginner:
+			'What fraction of industrial output is reinvested in building new capital. Higher = faster growth but less available for services and agriculture.',
+		expert:
+			'Fraction of industrial_output allocated to gross investment. d(IC)/dt investment term = IO × investment_rate.',
+		feedbackLoops: ['resource-collapse'],
+		relatedVariables: ['capital.industrial_capital', 'capital.industrial_output', 'capital.service_output_per_capita'],
+		impact: {
+			increase: 'Faster capital growth but less output for services — trade-off between growth and welfare',
+			decrease: 'Slower capital growth but more services available — better short-term welfare',
+			sparklineVariable: 'capital.industrial_capital'
+		}
 	},
 	agricultural_technology: {
 		name: 'Agricultural Technology',
@@ -397,7 +464,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		sector: 'Agriculture',
 		beginner:
 			'Multiplier on crop yields from improved farming techniques — better seeds, irrigation, precision agriculture.',
-		expert: 'Direct multiplier on land_yield: LY = 600 × LYMC × LYMAP × agri_tech.'
+		expert: 'Direct multiplier on land_yield: LY = 600 × LYMC × LYMAP × agri_tech.',
+		feedbackLoops: ['food-population', 'pollution-food'],
+		relatedVariables: ['agriculture.food_per_capita', 'agriculture.land_yield', 'agriculture.food'],
+		impact: {
+			increase: 'More food per hectare — delays food crisis, supports larger population',
+			decrease: 'Lower yields — food shortages arrive earlier',
+			sparklineVariable: 'agriculture.food_per_capita'
+		}
 	},
 	land_protection_fraction: {
 		name: 'Land Protection',
@@ -406,7 +480,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How much farmland is protected from erosion through conservation practices. 0 = no protection, 0.5 = half of erosion prevented.',
 		expert:
-			'Reduces erosion: erosion × (1 − land_protection_fraction). Clamped to [0, 0.5].'
+			'Reduces erosion: erosion × (1 − land_protection_fraction). Clamped to [0, 0.5].',
+		feedbackLoops: ['food-population'],
+		relatedVariables: ['agriculture.arable_land', 'agriculture.food_per_capita', 'agriculture.land_yield'],
+		impact: {
+			increase: 'Less farmland lost to erosion — sustained food production capacity',
+			decrease: 'More erosion — arable land shrinks faster, food production drops',
+			sparklineVariable: 'agriculture.arable_land'
+		}
 	},
 	subsistence_food_per_capita: {
 		name: 'Subsistence Food Level',
@@ -415,7 +496,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'The minimum food per person needed for basic health. Below this level, life expectancy drops sharply.',
 		expert:
-			'Denominator in food_ratio = FPC / subsistence_food. Drives multiple lookup tables. Default 230 kg/yr.'
+			'Denominator in food_ratio = FPC / subsistence_food. Drives multiple lookup tables. Default 230 kg/yr.',
+		feedbackLoops: ['food-population'],
+		relatedVariables: ['agriculture.food_per_capita', 'population.life_expectancy', 'population.death_rate'],
+		impact: {
+			increase: 'Higher bar for adequate nutrition — more people classified as food-insecure',
+			decrease: 'Lower nutrition threshold — fewer people in food crisis at same production',
+			sparklineVariable: 'agriculture.food_per_capita'
+		}
 	},
 	resource_efficiency: {
 		name: 'Resource Efficiency',
@@ -424,7 +512,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How efficiently resources are used. Higher values mean the economy gets more output per unit of resource consumed. Technology preset uses 4x.',
 		expert:
-			'Divides extraction rate: extraction = pop × IOPC × coeff / resource_efficiency.'
+			'Divides extraction rate: extraction = pop × IOPC × coeff / resource_efficiency.',
+		feedbackLoops: ['resource-collapse', 'population-resource'],
+		relatedVariables: ['resources.nonrenewable_resources', 'resources.fraction_remaining', 'capital.industrial_output'],
+		impact: {
+			increase: 'Resources last longer — industrial output sustained further into the future',
+			decrease: 'Faster resource depletion — earlier industrial collapse',
+			sparklineVariable: 'resources.fraction_remaining'
+		}
 	},
 	initial_nnr_fraction: {
 		name: 'Initial Resource Level',
@@ -432,7 +527,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		sector: 'Resources',
 		beginner:
 			'Starting level of non-renewable resources. 1.0 = full initial endowment. Lower values simulate a world where resources are already partially depleted.',
-		expert: 'Initial condition for nonrenewable_resources ODE stock.'
+		expert: 'Initial condition for nonrenewable_resources ODE stock.',
+		feedbackLoops: ['resource-collapse'],
+		relatedVariables: ['resources.nonrenewable_resources', 'resources.fraction_remaining', 'capital.industrial_output_per_capita'],
+		impact: {
+			increase: 'More starting resources — delays the resource depletion crisis',
+			decrease: 'Fewer starting resources — collapse arrives much sooner',
+			sparklineVariable: 'resources.nonrenewable_resources'
+		}
 	},
 	pollution_control: {
 		name: 'Pollution Control',
@@ -441,7 +543,14 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How much pollution is prevented at the source. 0 = no control, 0.8 = 80% of pollution eliminated before it enters the environment.',
 		expert:
-			'generation = (gen_industry + gen_agriculture) × (1 − pollution_control). Clamped to [0, 1].'
+			'generation = (gen_industry + gen_agriculture) × (1 − pollution_control). Clamped to [0, 1].',
+		feedbackLoops: ['pollution-food', 'pollution-tipping'],
+		relatedVariables: ['pollution.persistent_pollution', 'pollution.pollution_index', 'agriculture.food_per_capita'],
+		impact: {
+			increase: 'Less pollution — protects food production and avoids pollution tipping point',
+			decrease: 'More pollution accumulates — food yields drop, pollution may spiral',
+			sparklineVariable: 'pollution.pollution_index'
+		}
 	}
 };
 

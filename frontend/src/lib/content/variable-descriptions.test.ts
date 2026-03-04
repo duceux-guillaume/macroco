@@ -23,7 +23,10 @@ const REQUIRED_PARAM_FIELDS: (keyof ParameterInfo)[] = [
 	'unit',
 	'sector',
 	'beginner',
-	'expert'
+	'expert',
+	'feedbackLoops',
+	'relatedVariables',
+	'impact'
 ];
 
 /** All field paths that extractSeries supports (from extract.ts switch). */
@@ -104,6 +107,37 @@ describe('parameterDescriptions', () => {
 
 	it('has at least 10 parameters', () => {
 		expect(Object.keys(parameterDescriptions).length).toBeGreaterThanOrEqual(10);
+	});
+
+	it('all feedbackLoop IDs reference existing feedbackLoops', () => {
+		const validLoopIds = new Set(Object.keys(feedbackLoops));
+		for (const [key, info] of Object.entries(parameterDescriptions)) {
+			for (const loopId of info.feedbackLoops) {
+				expect(
+					validLoopIds.has(loopId),
+					`${key} references unknown feedback loop: ${loopId}`
+				).toBe(true);
+			}
+		}
+	});
+
+	it('all relatedVariables reference existing variableDescriptions', () => {
+		const validKeys = new Set(Object.keys(variableDescriptions));
+		for (const [key, info] of Object.entries(parameterDescriptions)) {
+			for (const ref of info.relatedVariables) {
+				expect(validKeys.has(ref), `${key} references unknown variable: ${ref}`).toBe(true);
+			}
+		}
+	});
+
+	it('all impact.sparklineVariable reference existing variableDescriptions', () => {
+		const validKeys = new Set(Object.keys(variableDescriptions));
+		for (const [key, info] of Object.entries(parameterDescriptions)) {
+			expect(
+				validKeys.has(info.impact.sparklineVariable),
+				`${key} impact.sparklineVariable references unknown variable: ${info.impact.sparklineVariable}`
+			).toBe(true);
+		}
 	});
 });
 
