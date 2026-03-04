@@ -1,3 +1,4 @@
+// REQ: REQ-009
 import { describe, it, expect } from 'vitest';
 import { chartConfigs } from './chart-config';
 import { variableDescriptions } from '../content/variable-descriptions';

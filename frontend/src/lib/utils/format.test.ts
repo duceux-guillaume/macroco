@@ -1,3 +1,4 @@
+// REQ: REQ-009, REQ-021
 import { describe, it, expect } from 'vitest';
 import { formatBillions, formatPercent, formatDecimal, formatInteger, formatAuto } from './format';
 

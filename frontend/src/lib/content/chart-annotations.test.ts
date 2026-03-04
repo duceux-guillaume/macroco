@@ -1,3 +1,4 @@
+// REQ: REQ-024
 import { describe, it, expect } from 'vitest';
 import { getAnnotations } from './chart-annotations';
 import { makeWorldState } from '../test-helpers';
