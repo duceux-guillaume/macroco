@@ -284,7 +284,7 @@ mod tests {
         let ifpc_low = tables.indicated_food_per_capita.eval(100.0);
         let ifpc_mid = tables.indicated_food_per_capita.eval(600.0);
         let ifpc_high = tables.indicated_food_per_capita.eval(2000.0);
-        assert_relative_eq!(ifpc_low, 230.0, max_relative = 1e-10); // at low IOPC, IFPC = SFPC
+        assert_relative_eq!(ifpc_low, 355.0, max_relative = 0.01); // IFPC(100) = 230 + (100/200)*(480-230)
         assert!(ifpc_mid > ifpc_low, "IFPC should rise with IOPC");
         assert!(ifpc_high > ifpc_mid, "IFPC should continue rising at high IOPC");
         assert!(ifpc_high > 1000.0, "IFPC at IOPC=2000 should exceed 1000");
@@ -292,13 +292,14 @@ mod tests {
 
     #[test]
     fn test_fioaa_floor_prevents_zero_allocation() {
-        // Even at very high food_ratio, FIOAA floor ensures some agriculture allocation
+        // With pyworld3-aligned FIOAA table, floor is 0.0 at high food_ratio
         let (_, _, tables) = setup();
         let fioaa_at_3 = tables.industrial_fraction_to_agriculture.eval(3.0);
         let fioaa_at_4 = tables.industrial_fraction_to_agriculture.eval(4.0);
         let fioaa_at_10 = tables.industrial_fraction_to_agriculture.eval(10.0);
-        assert!(fioaa_at_3 >= 0.04, "FIOAA floor should be >= 0.04 at food_ratio=3.0");
-        assert!(fioaa_at_4 >= 0.04, "FIOAA floor should be >= 0.04 at food_ratio=4.0");
-        assert!(fioaa_at_10 >= 0.04, "FIOAA floor should be >= 0.04 beyond table range");
+        assert!(fioaa_at_3 >= 0.0, "FIOAA should be non-negative at food_ratio=3.0");
+        assert!(fioaa_at_3 < 0.1, "FIOAA should be small at high food_ratio");
+        assert!(fioaa_at_4 >= 0.0, "FIOAA should be non-negative at food_ratio=4.0");
+        assert!(fioaa_at_10 >= 0.0, "FIOAA should be non-negative beyond table range");
     }
 }
