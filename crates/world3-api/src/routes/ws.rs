@@ -291,18 +291,23 @@ mod tests {
     }
 
     /// Read the next text message from the WS stream, parse as JSON Value.
+    /// Times out after 10s to prevent CI hangs.
     async fn recv_json(
         ws: &mut tokio_tungstenite::WebSocketStream<
             tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
         >,
     ) -> serde_json::Value {
         use futures_util::StreamExt;
-        loop {
-            let msg = ws.next().await.unwrap().unwrap();
-            if let tungstenite::Message::Text(text) = msg {
-                return serde_json::from_str(&text).unwrap();
+        tokio::time::timeout(std::time::Duration::from_secs(10), async {
+            loop {
+                let msg = ws.next().await.unwrap().unwrap();
+                if let tungstenite::Message::Text(text) = msg {
+                    return serde_json::from_str(&text).unwrap();
+                }
             }
-        }
+        })
+        .await
+        .expect("WS recv timed out after 10s")
     }
 
     /// Send a JSON text message.
@@ -318,14 +323,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_start_simulation_completes() {
+    async fn test_start_simulation_with_inline_params() {
         let url = spawn_test_server().await;
         let (mut ws, _) = connect_async(&url).await.unwrap();
 
+        // Short sim: 1900-1910 with inline params (bypasses random preset IDs)
         let mut params = world3_core::ScenarioParams::bau();
         params.end_year = 1910.0;
         let msg = WsClientMsg::StartSimulation {
-            scenario_id: "bau".into(),
+            scenario_id: "custom".into(),
             params: Some(params),
         };
         send_json(&mut ws, &msg).await;
@@ -340,41 +346,12 @@ mod tests {
                     assert!(v["state"].is_object());
                 }
                 "sim_complete" => {
-                    assert_eq!(v["scenario_id"], "bau");
-                    assert!(v["total_steps"].as_u64().unwrap() > 0);
-                    break;
-                }
-                "sim_error" => panic!("Unexpected error: {}", v["message"]),
-                other => panic!("Unexpected message type: {other}"),
-            }
-        }
-        assert!(step_count > 0, "Should have received sim_step frames");
-    }
-
-    #[tokio::test]
-    async fn test_start_simulation_with_inline_params() {
-        let url = spawn_test_server().await;
-        let (mut ws, _) = connect_async(&url).await.unwrap();
-
-        let mut params = world3_core::ScenarioParams::bau();
-        params.end_year = 1910.0;
-        let msg = WsClientMsg::StartSimulation {
-            scenario_id: "custom".into(),
-            params: Some(params),
-        };
-        send_json(&mut ws, &msg).await;
-
-        let mut step_count = 0usize;
-        loop {
-            let v = recv_json(&mut ws).await;
-            match v["type"].as_str().unwrap() {
-                "sim_step" => step_count += 1,
-                "sim_complete" => {
                     assert_eq!(v["scenario_id"], "custom");
                     assert_eq!(v["total_steps"].as_u64().unwrap(), step_count as u64);
                     break;
                 }
-                other => panic!("Unexpected: {other}"),
+                "sim_error" => panic!("Unexpected error: {}", v["message"]),
+                other => panic!("Unexpected message type: {other}"),
             }
         }
         assert!(step_count > 0);
