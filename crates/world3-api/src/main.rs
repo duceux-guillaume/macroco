@@ -1,4 +1,5 @@
 mod error;
+pub mod historical;
 mod models;
 mod routes;
 mod state;
