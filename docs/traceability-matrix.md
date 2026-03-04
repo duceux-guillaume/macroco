@@ -28,7 +28,7 @@
 | REQ-020 | Variable descriptions content module | Done | `frontend/src/lib/content/variable-descriptions.test.ts` |
 | REQ-021 | Rich chart tooltips | Done | `frontend/src/lib/utils/format.test.ts` |
 | REQ-022 | Variable info panels | Done | — |
-| REQ-023 | Simulation controls | Done | — |
+| REQ-023 | Simulation controls | Done | `frontend/src/lib/stores/simulation-controls.test.ts` |
 | REQ-024 | Chart annotations | Done | `frontend/src/lib/content/chart-annotations.test.ts` |
 | REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
 | REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-cli/tests/historical_calibration.rs` |
@@ -63,6 +63,7 @@
 | `frontend/src/lib/content/chart-annotations.test.ts` | REQ-024 |
 | `frontend/src/lib/content/variable-descriptions.test.ts` | REQ-020 |
 | `frontend/src/lib/stores/historical.test.ts` | REQ-012 |
+| `frontend/src/lib/stores/simulation-controls.test.ts` | REQ-023 |
 | `frontend/src/lib/stores/stores.test.ts` | REQ-009, REQ-025 |
 | `frontend/src/lib/utils/extract.test.ts` | REQ-009 |
 | `frontend/src/lib/utils/format.test.ts` | REQ-009, REQ-021 |
@@ -71,12 +72,11 @@
 ## Summary
 
 - **Done requirements:** 23
-- **Covered by tests:** 14
+- **Covered by tests:** 15
 - **Exempt:** 6
-- **Uncovered:** 3
+- **Uncovered:** 2
 
 ### Uncovered Done Requirements
 
 - REQ-006: PNG chart output
 - REQ-022: Variable info panels
-- REQ-023: Simulation controls
