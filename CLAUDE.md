@@ -143,6 +143,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with three intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Stabilized preset), and FIOAC consumption fraction is capped at 0.70 (pyworld3 goes to 0.83, which over-allocates to consumption and suppresses IOPC growth).
 - ISOPC lookup table provides dynamic service demand reference based on IOPC (replaces hardcoded 200.0). This allows service allocation to scale with industrial development.
 - BAU `technology_growth_rate` = 0.014 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
+- BAU model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `validate` and `diagnose` after parameter changes to catch qualitative shifts.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
@@ -176,6 +177,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
 - `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"bau"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
 - `init_app_state()` loads historical CSVs from `HISTORICAL_DATA_DIR` (default `./data/historical`). Integration tests using it must run from the repo root or set the env var.
+- Historical calibration tests: `cargo test -p world3-cli --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one BAU sim across all tests.
 
 ### Debugging Workflow
 - For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.

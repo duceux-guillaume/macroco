@@ -11,7 +11,8 @@
       "Bash(*)",
       "Edit(*)",
       "Write(*)",
-      "Agent(*)"
+      "Agent(*)",
+      "WebFetch(*)"
     ],
     "deny": [
       "Bash(rm *)",
@@ -23,9 +24,12 @@
       "Bash(brew *)",
       "Bash(pip install*)",
       "Bash(git push --force*)",
+      "Bash(git push -f*)",
       "Bash(git reset --hard*)",
       "Bash(git clean*)",
       "Bash(git branch -D*)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore *)",
       "Bash(flyctl deploy*)",
       "Bash(docker push*)"
     ]
