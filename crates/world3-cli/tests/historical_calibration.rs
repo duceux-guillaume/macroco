@@ -93,15 +93,14 @@ fn max_year_error_pct(sim_vals: &[f64], hist_vals: &[f64], hist_years: &[f64]) -
     assert_eq!(sim_vals.len(), hist_vals.len());
     assert_eq!(sim_vals.len(), hist_years.len());
     assert!(!sim_vals.is_empty(), "No overlapping years found");
-    let mut max_err = 0.0_f64;
-    let mut worst_year = 0.0_f64;
-    for i in 0..sim_vals.len() {
-        let err = ((sim_vals[i] - hist_vals[i]) / hist_vals[i]).abs() * 100.0;
-        if err > max_err {
-            max_err = err;
-            worst_year = hist_years[i];
-        }
-    }
+    let (max_err, worst_year) = sim_vals
+        .iter()
+        .zip(hist_vals)
+        .zip(hist_years)
+        .map(|((&s, &h), &y)| (((s - h) / h).abs() * 100.0, y))
+        .fold((0.0_f64, 0.0_f64), |(me, wy), (e, y)| {
+            if e > me { (e, y) } else { (me, wy) }
+        });
     (max_err, worst_year)
 }
 
