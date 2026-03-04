@@ -35,7 +35,6 @@ Design principles:
 - Adding a new feature → create a new REQ-NNN in product-requirements.md first
 - Changing system design (new crate, new API endpoint, new store) → update architecture.md
 - Completing a REQ → mark it done and verify Components field is accurate
-- Writing a design doc in docs/plans/ → reference the REQ-NNN it addresses
 
 ## Repository Structure
 
@@ -232,7 +231,6 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 - BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023.
 - Variables: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
 - Test: `cargo test -p world3-cli --test historical_calibration`
-- Design: `docs/plans/2026-03-04-pyworld3-alignment-design.md`
 - All 4 thresholds PASS after pyworld3 alignment (Population 14.1%, Food 24.8%, IOPC 28.2%, NNR 4.3%).
 
 ## CI/CD
