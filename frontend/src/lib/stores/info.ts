@@ -7,15 +7,28 @@ export const selectedVariableId = writable<string | null>(null);
 /** The field name of the currently selected parameter for the info panel (null = closed). */
 export const selectedParameterId = writable<string | null>(null);
 
-// Mutual exclusion: setting one clears the other.
-// The null guards prevent infinite loops: A sets B→null, which triggers B's
-// subscriber, but since null is set it stops (guard fails). Without these
-// guards, the cascade would loop indefinitely.
+/** Whether the historical data info panel is open (null = closed). */
+export const selectedHistoricalId = writable<string | null>(null);
+
+// Mutual exclusion: setting any one clears the other two.
+// The null guards prevent infinite loops.
 selectedVariableId.subscribe((v) => {
-	if (v !== null) selectedParameterId.set(null);
+	if (v !== null) {
+		selectedParameterId.set(null);
+		selectedHistoricalId.set(null);
+	}
 });
 selectedParameterId.subscribe((p) => {
-	if (p !== null) selectedVariableId.set(null);
+	if (p !== null) {
+		selectedVariableId.set(null);
+		selectedHistoricalId.set(null);
+	}
+});
+selectedHistoricalId.subscribe((h) => {
+	if (h !== null) {
+		selectedVariableId.set(null);
+		selectedParameterId.set(null);
+	}
 });
 
 /** Set of variable field paths to highlight on the chart. */

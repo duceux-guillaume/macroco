@@ -20,6 +20,7 @@ describe('historicalData store', () => {
 			source: 'World Bank',
 			units: 'persons',
 			transformation: 'none',
+			url: 'https://data.worldbank.org/indicator/SP.POP.TOTL',
 			data: [
 				{ year: 1960, value: 3.034e9 },
 				{ year: 1970, value: 3.700e9 }
