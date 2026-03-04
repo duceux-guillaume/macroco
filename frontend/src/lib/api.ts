@@ -6,6 +6,7 @@ import type {
 	ScenarioSummary,
 	SimulationOutput
 } from './types';
+import type { HistoricalVariable } from './stores/historical';
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 	const res = await fetch(`${getApiBase()}${path}`, {
@@ -55,4 +56,8 @@ export function deleteScenario(id: string): Promise<void> {
 
 export function runScenario(id: string): Promise<SimulationOutput> {
 	return apiFetch(`/scenarios/${encodeURIComponent(id)}/run`, { method: 'POST' });
+}
+
+export function getHistoricalData(): Promise<HistoricalVariable[]> {
+	return apiFetch('/historical');
 }
