@@ -19,6 +19,7 @@ pub struct HistoricalVariable {
     pub source: String,
     pub units: String,
     pub transformation: String,
+    pub url: String,
     pub data: Vec<HistoricalDataPoint>,
 }
 
@@ -46,6 +47,7 @@ pub fn parse_historical_csv(variable_id: &str, content: &str) -> HistoricalVaria
     let mut source = String::new();
     let mut units = String::new();
     let mut transformation = String::new();
+    let mut url = String::new();
     let mut data = Vec::new();
     let mut header_seen = false;
 
@@ -66,8 +68,9 @@ pub fn parse_historical_csv(variable_id: &str, content: &str) -> HistoricalVaria
                 units = val.trim().to_string();
             } else if let Some(val) = comment.strip_prefix("transformation:") {
                 transformation = val.trim().to_string();
+            } else if let Some(val) = comment.strip_prefix("url:") {
+                url = val.trim().to_string();
             }
-            // Other comment lines (url, retrieved, etc.) are ignored
             continue;
         }
 
@@ -105,6 +108,7 @@ pub fn parse_historical_csv(variable_id: &str, content: &str) -> HistoricalVaria
         source,
         units,
         transformation,
+        url,
         data,
     }
 }
@@ -204,6 +208,7 @@ year,value
         let result = parse_historical_csv("population", SAMPLE_CSV);
         assert_eq!(result.variable, "population");
         assert_eq!(result.source, "World Bank SP.POP.TOTL");
+        assert_eq!(result.url, "https://data.worldbank.org/indicator/SP.POP.TOTL");
         assert_eq!(result.units, "persons");
         assert_eq!(result.transformation, "none");
     }
