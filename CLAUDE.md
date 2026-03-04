@@ -203,6 +203,13 @@ The "standard run" (BAU preset, 1900–2100, no policy interventions) must repro
 
 Run `cargo run --bin world3-cli -- validate` to check against bundled reference trajectories.
 
+### Historical Calibration (REQ-HIST-001)
+- BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023.
+- Variables: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
+- Test: `cargo test -p world3-cli --test historical_calibration`
+- Design: `docs/plans/2026-03-04-bau-historical-calibration-design.md`
+- Currently FAILING — thresholds are aspirational calibration targets.
+
 ## CI/CD
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
 - Deploy gated on `environment: production` with required status checks
