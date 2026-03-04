@@ -83,7 +83,13 @@ pub fn agriculture_derivatives(
     let uilpc = tables.urban_industrial_land_per_capita.eval(iopc);
     let uil_desired = uilpc * pop;
     let uil = state.agriculture.urban_industrial_land;
-    let d_uil = (uil_desired - uil) / UIL_DEVELOPMENT_TIME;
+    let d_uil_unconstrained = (uil_desired - uil) / UIL_DEVELOPMENT_TIME;
+    // Constrain UIL growth: cannot convert more arable land than available
+    let d_uil = if d_uil_unconstrained > 0.0 {
+        d_uil_unconstrained.min(arable * 0.1) // max 10% of arable per year
+    } else {
+        d_uil_unconstrained
+    };
 
     // ---- Land development ----
     // New land is developed when food pressure is high and potentially-arable land exists

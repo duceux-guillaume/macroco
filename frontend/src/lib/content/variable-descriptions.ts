@@ -98,6 +98,30 @@ export const variableDescriptions: Record<string, VariableInfo> = {
 		feedbackLoops: ['demographic-transition'],
 		relatedVariables: ['population.population', 'capital.industrial_output_per_capita']
 	},
+	'population.perceived_le': {
+		name: 'Perceived Life Expectancy',
+		unit: 'years',
+		sector: 'Population',
+		isStock: true,
+		beginner:
+			'What people believe the average lifespan to be, based on recent experience. Lags behind actual life expectancy by about 20 years. Drives family size decisions — when parents perceive high child mortality, they have more children as compensation.',
+		expert:
+			'First-order delay of actual LE with time constant 20 years (World3-03: PLE = Smooth(LE, LPD=20yr), simplified from Delay3). Feeds CMPLE lookup: at low perceived LE, compensatory fertility multiplier > 1.',
+		feedbackLoops: ['demographic-transition'],
+		relatedVariables: ['population.life_expectancy', 'population.fertility_rate']
+	},
+	'capital.perceived_iopc': {
+		name: 'Perceived Income',
+		unit: '$/person/yr (1975)',
+		sector: 'Capital',
+		isStock: true,
+		beginner:
+			'What people perceive as their standard of living, lagging behind actual income by about 20 years. Social norms and family size expectations adjust to this delayed perception, not to current income.',
+		expert:
+			'First-order delay of IOPC with time constant 20 years (World3-03: DIOPC = Smooth(IOPC, SAD=20yr)). Drives desired family size lookup (SFSN) — social norms adjust slowly to income changes.',
+		feedbackLoops: ['demographic-transition'],
+		relatedVariables: ['capital.industrial_output_per_capita', 'population.fertility_rate']
+	},
 	'capital.industrial_capital': {
 		name: 'Industrial Capital',
 		unit: 'USD (1975)',
@@ -165,6 +189,42 @@ export const variableDescriptions: Record<string, VariableInfo> = {
 			'd(AL)/dt = development_rate − erosion_rate. Development limited by potentially_arable_land and investment. Erosion = AL × 0.002 × erosion_mult(yield_ratio) × (1 − land_protection).',
 		feedbackLoops: ['pollution-food'],
 		relatedVariables: ['agriculture.food', 'agriculture.food_per_capita', 'agriculture.land_yield']
+	},
+	'agriculture.urban_industrial_land': {
+		name: 'Urban-Industrial Land',
+		unit: 'hectares',
+		sector: 'Agriculture',
+		isStock: true,
+		beginner:
+			'Land used for cities, roads, and factories. As the economy grows, more land is converted from farmland to urban use. This reduces the amount of land available for food production.',
+		expert:
+			'First-order delay converging to UILPC(IOPC) × POP with time constant UILD=10yr. Growth subtracts from arable land stock, constrained by available arable land.',
+		feedbackLoops: ['pollution-food'],
+		relatedVariables: ['agriculture.arable_land', 'capital.industrial_output_per_capita']
+	},
+	'agriculture.land_fertility': {
+		name: 'Land Fertility',
+		unit: 'kg/hectare/yr',
+		sector: 'Agriculture',
+		isStock: true,
+		beginner:
+			'How productive the soil is. Starts at 600 kg/ha/yr. Pollution degrades soil fertility over time, while land maintenance investments can regenerate it. This is the base yield before capital and technology multipliers.',
+		expert:
+			'd(LFERT)/dt = LFR - LFD. LFD = LFERT × LFDR(pollution_index). LFR = (ILF - LFERT) / LFRT(FALM(food_ratio)). ILF = 600 kg/ha/yr. World3-03 ODE stock.',
+		feedbackLoops: ['pollution-food'],
+		relatedVariables: ['agriculture.land_yield', 'pollution.pollution_index']
+	},
+	'agriculture.food_per_capita_smooth': {
+		name: 'Perceived Food Per Capita',
+		unit: 'kg/person/yr',
+		sector: 'Agriculture',
+		isStock: true,
+		beginner:
+			'Smoothed food per capita with a 2-year perception delay. The economy allocates capital to agriculture based on this smoothed value, preventing rapid oscillation between over- and under-investment in food production.',
+		expert:
+			'First-order delay: d(FPC_smooth)/dt = (FPC - FPC_smooth) / FSPD. FSPD = 2 years. Used instead of raw FPC for industrial_fraction_to_agriculture lookup, preventing period-2 numerical oscillation.',
+		feedbackLoops: ['food-population'],
+		relatedVariables: ['agriculture.food_per_capita']
 	},
 	'agriculture.food': {
 		name: 'Total Food Production',
@@ -245,6 +305,18 @@ export const variableDescriptions: Record<string, VariableInfo> = {
 			'd(PP)/dt = generation − assimilation. generation = (gen_industry + gen_agriculture) × (1 − pollution_control). assimilation = PP / assimilation_time(PP).',
 		feedbackLoops: ['pollution-tipping', 'pollution-food'],
 		relatedVariables: ['pollution.pollution_index', 'capital.industrial_output']
+	},
+	'pollution.pollution_appearance_buffer': {
+		name: 'Pollution Appearance Pipeline',
+		unit: 'index units',
+		sector: 'Pollution',
+		isStock: true,
+		beginner:
+			'Pollution that has been generated but not yet appeared in the environment. It takes about 20 years for industrial pollution to become persistent — think of CO2 accumulation, chemical contamination, and waste that takes decades to reach harmful concentrations.',
+		expert:
+			'First-order delay buffer (World3-03 uses Delay3, simplified here as Delay1). d(buffer)/dt = generation - buffer/PPTD. PPTD = 20 years. Appearance rate = buffer/PPTD feeds into persistent_pollution stock.',
+		feedbackLoops: ['pollution-tipping'],
+		relatedVariables: ['pollution.persistent_pollution', 'pollution.pollution_index']
 	},
 	'pollution.pollution_index': {
 		name: 'Pollution Index',

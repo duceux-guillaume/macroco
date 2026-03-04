@@ -132,7 +132,10 @@ pub fn population_derivatives(
     state.population.death_rate = total_deaths / pop;
 
     // ---- Perceived life expectancy (20-year delay) ----
-    // World3-03: PLE = Delay3(LE, LPD=20yr). Simplified as first-order delay.
+    // KNOWN DEVIATION: World3-03 uses Delay3(LE, LPD=20yr). Our first-order
+    // approximation responds faster, causing CMPLE to adjust sooner than in
+    // the original model. A proper Delay3 would use 3 cascaded Delay1 stages
+    // with time constant LPD/3 ≈ 6.67 years each.
     let d_perceived_le = (life_expectancy - perceived_le) / LIFETIME_PERCEPTION_DELAY;
 
     // ---- Cohort aging rates ----
