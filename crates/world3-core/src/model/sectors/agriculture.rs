@@ -11,6 +11,10 @@ use crate::model::{params::ScenarioParams, state::WorldState};
 
 /// Inherent land fertility [kg / hectare / year] — World3-03: ILF = 600
 const INHERENT_LAND_FERTILITY: f64 = 600.0;
+/// Land Fraction Harvested — World3-03: LFH = 0.7
+const LAND_FRACTION_HARVESTED: f64 = 0.7;
+/// Processing Loss fraction — World3-03: PL = 0.1
+const PROCESSING_LOSS: f64 = 0.1;
 /// Total potential arable land area [hectares] (estimate based on FAO)
 const TOTAL_POTENTIAL_ARABLE: f64 = 3.2e9;
 /// Land development time [years] — delay between investment decision and land available
@@ -75,7 +79,7 @@ pub fn agriculture_derivatives(
     state.agriculture.land_yield = land_yield;
 
     // ---- Food production ----
-    let food = arable * land_yield;
+    let food = arable * land_yield * LAND_FRACTION_HARVESTED * (1.0 - PROCESSING_LOSS);
     state.agriculture.food = food;
     state.agriculture.food_per_capita = food / pop;
 
@@ -211,8 +215,8 @@ mod tests {
         // food = arable_land × land_yield
         assert!(s.agriculture.food > 0.0, "food should be positive");
         assert!(s.agriculture.food_per_capita > 0.0, "food/cap should be positive");
-        // food ≈ arable_land × land_yield
-        let expected_food = s.agriculture.arable_land * s.agriculture.land_yield;
+        // food ≈ arable_land × land_yield × LFH × (1 - PL)
+        let expected_food = s.agriculture.arable_land * s.agriculture.land_yield * 0.7 * 0.9;
         assert!((s.agriculture.food - expected_food).abs() / expected_food < 0.01);
     }
 
