@@ -116,6 +116,11 @@
   - *Components:* `frontend`: ScenarioBar, ScenarioSelector
   - *Done:* `ScenarioBar` with click-to-toggle and double-click-to-focus; `ScenarioSelector` with "Compare All" button and per-scenario descriptions.
 
+- [x] **REQ-027: Bi-directional traceability**
+  - *Context:* Coverage visibility and impact analysis require bidirectional links between requirements and tests.
+  - *Components:* `scripts/traceability.py`, `docs/traceability-matrix.md`, CI traceability job
+  - *Done:* `// REQ:` annotations in test files, CI script checks coverage, auto-generated traceability matrix.
+
 ---
 
 ## In Progress

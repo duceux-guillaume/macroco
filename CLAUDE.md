@@ -187,6 +187,13 @@ Run `/permissions-audit` to review and improve permission settings.
 - `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >1% between halvings is flagged UNSTABLE.
 - After the IFPC food allocation rework, all presets (BAU, Technology, Stabilized) are stable at dt=1.0.
 
+### Traceability
+- Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates.
+- Run `python3 scripts/traceability.py` locally to check coverage before pushing.
+- CI runs the traceability check after tests pass. See `docs/traceability-matrix.md` for the current coverage map.
+- When adding a new `#[test]` or `describe()` block, include the `// REQ:` annotation.
+- Docs-only and infrastructure requirements can be exempted with `- *Exempt:* <reason>` in `product-requirements.md`.
+
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
 
