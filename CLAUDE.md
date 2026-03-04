@@ -122,6 +122,21 @@ cd frontend && npm run test:watch          # vitest in watch mode
 
 > System architecture is in `docs/architecture.md`. Below are conventions and gotchas for working in this codebase.
 
+### Permission & Autonomy Guidelines
+
+Claude has broad tool permissions in this project. The deny-list in `.claude/settings.json` blocks dangerous shell commands. In addition, ALWAYS ask the user before:
+
+- Deleting or renaming any file (even via Edit/Write — not just `rm`)
+- Adding, removing, or upgrading dependencies (Cargo.toml, package.json)
+- Any destructive git operation (force push, reset, rebase, branch delete)
+- Modifying CI/CD configuration (.github/workflows/*)
+- Changing .claude/settings.json permissions
+- Running commands that send data to external services (deploy, publish, curl POST)
+
+These actions require explicit user confirmation regardless of tool permissions.
+
+Run `/permissions-audit` to review and improve permission settings.
+
 ### Simulation Engine (`world3-core`)
 - Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
 - `WorldState::N` = 16 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`.
