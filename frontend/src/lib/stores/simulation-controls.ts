@@ -15,10 +15,10 @@ export function getSimParams(): ScenarioParams | null {
 	return get(scenarioParamsCache).get(id) ?? null;
 }
 
-export function updateSimField(field: string, value: number): void {
+export function updateSimField(field: keyof ScenarioParams, value: number): void {
 	const id = get(focusedScenarioId);
 	if (!id) return;
-	const params = getSimParams();
+	const params = get(scenarioParamsCache).get(id);
 	if (!params) return;
 
 	const updated = { ...params, [field]: value };
