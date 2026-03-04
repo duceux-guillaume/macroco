@@ -9,8 +9,9 @@
 	} from '$lib/stores/simulation-controls';
 </script>
 
-{#if $focusedScenarioId && getSimParams()}
-	{@const params = getSimParams()!}
+{#if $focusedScenarioId}
+	{@const params = getSimParams()}
+	{#if params}
 	<div class="sim-controls">
 		<h3>Simulation</h3>
 		<div class="controls-row">
@@ -51,6 +52,7 @@
 			</label>
 		</div>
 	</div>
+	{/if}
 {/if}
 
 <style>
