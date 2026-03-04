@@ -140,4 +140,98 @@ mod tests {
         assert!(d_buffer.abs() < generation * 0.01,
             "d_buffer {} should be near zero at steady state (gen={})", d_buffer, generation);
     }
+
+    #[test]
+    fn test_pollution_generation_rate_positive() {
+        let (mut s, params, tables) = setup();
+        pollution_derivatives(&mut s, &params, &tables);
+        assert!(s.pollution.generation_rate > 0.0,
+            "generation rate should be positive at standard conditions");
+    }
+
+    #[test]
+    fn test_pollution_control_reduces_generation() {
+        let (mut s1, _, tables) = setup();
+        let mut params_no_control = ScenarioParams::bau();
+        params_no_control.pollution_control = 0.0;
+        pollution_derivatives(&mut s1, &params_no_control, &tables);
+        let gen_no_control = s1.pollution.generation_rate;
+
+        let (mut s2, _, _) = setup();
+        let mut params_control = ScenarioParams::bau();
+        params_control.pollution_control = 0.8;
+        pollution_derivatives(&mut s2, &params_control, &tables);
+        let gen_control = s2.pollution.generation_rate;
+
+        // control=0.8 → generation is 20% of uncontrolled
+        use approx::assert_relative_eq;
+        assert_relative_eq!(gen_control, gen_no_control * 0.2, epsilon = 1e-15);
+    }
+
+    #[test]
+    fn test_zero_industrial_output_minimal_generation() {
+        let (mut s, params, tables) = setup();
+        s.capital.industrial_output = 0.0;
+        s.capital.industrial_output_per_capita = 0.0;
+        pollution_derivatives(&mut s, &params, &tables);
+        // Only agricultural pollution remains
+        assert!(s.pollution.generation_rate > 0.0,
+            "should still have agricultural pollution");
+        // Should be much less than with industrial output
+        let gen_no_industry = s.pollution.generation_rate;
+
+        let (mut s2, _, _) = setup();
+        pollution_derivatives(&mut s2, &params, &tables);
+        assert!(gen_no_industry < s2.pollution.generation_rate,
+            "generation without industry ({gen_no_industry}) should be less than with ({}))",
+            s2.pollution.generation_rate);
+    }
+
+    #[test]
+    fn test_assimilation_time_increases_with_pollution() {
+        let tables = WorldLookupTables::load();
+        // At low pollution, assimilation is fast
+        let at_low = tables.pollution_assimilation_time.eval(0.1);
+        // At high pollution, assimilation is slower (longer time)
+        let at_high = tables.pollution_assimilation_time.eval(20.0);
+        assert!(at_high > at_low,
+            "assimilation time at high pollution ({at_high}) should exceed low ({at_low})");
+    }
+
+    #[test]
+    fn test_pollution_index_tracks_persistent_pollution() {
+        let (mut s, params, tables) = setup();
+        s.pollution.persistent_pollution = 5.0;
+        pollution_derivatives(&mut s, &params, &tables);
+        assert_eq!(s.pollution.pollution_index, 5.0,
+            "pollution_index should equal persistent_pollution");
+    }
+
+    #[test]
+    fn test_buffer_flow_balance() {
+        let (mut s, params, tables) = setup();
+        let (d_persistent, d_buffer) = pollution_derivatives(&mut s, &params, &tables);
+        let generation = s.pollution.generation_rate;
+        let appearance_rate = s.pollution.pollution_appearance_buffer / POLLUTION_APPEARANCE_DELAY;
+        // d_buffer = generation - appearance_rate
+        use approx::assert_relative_eq;
+        assert_relative_eq!(d_buffer, generation - appearance_rate, epsilon = 1e-15);
+        // d_persistent = appearance_rate - assimilation
+        assert_relative_eq!(d_persistent, appearance_rate - s.pollution.assimilation_rate, epsilon = 1e-15);
+    }
+
+    #[test]
+    fn test_high_pollution_net_accumulation() {
+        let (mut s, params, tables) = setup();
+        // High industrial output → lots of generation
+        s.capital.industrial_output = 5e12;
+        s.capital.industrial_output_per_capita = 1000.0;
+        s.pollution.persistent_pollution = 0.1;
+        s.pollution.pollution_index = 0.1;
+        s.pollution.pollution_appearance_buffer = 5.0;
+        let (d_persistent, _) = pollution_derivatives(&mut s, &params, &tables);
+        // At high generation with low persistent pollution, net should be positive
+        assert!(d_persistent > 0.0,
+            "d_persistent {d_persistent} should be positive at high generation / low stock");
+    }
 }

@@ -208,4 +208,143 @@ mod tests {
             "d_perceived_le {} should be positive when perceived_le < actual LE",
             d.d_perceived_le);
     }
+
+    #[test]
+    fn test_life_expectancy_components() {
+        let (mut s, params, tables) = setup();
+        population_derivatives(&mut s, &params, &tables);
+        // LE = 28 × LEM_food × LEM_health × LEM_crowding × LEM_pollution
+        let food_ratio = s.agriculture.food_per_capita / params.subsistence_food_per_capita;
+        let health_fraction = tables.fraction_services_health.eval(
+            s.capital.service_output_per_capita / 100.0,
+        );
+        let health_services = s.capital.service_output_per_capita
+            * health_fraction * params.health_investment_multiplier;
+        let crowding = s.population.population.max(1.0) / 3.6e9;
+        let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
+        let lem_health = tables.life_exp_multiplier_health.eval(health_services);
+        let lem_crowding = tables.life_exp_multiplier_crowding.eval(crowding);
+        let lem_pollution = tables.life_exp_multiplier_pollution.eval(s.pollution.pollution_index);
+        let expected = (LIFE_EXPECTANCY_BASE * lem_food * lem_health * lem_crowding * lem_pollution)
+            .clamp(5.0, 90.0);
+        use approx::assert_relative_eq;
+        assert_relative_eq!(s.population.life_expectancy, expected, max_relative = 1e-10);
+    }
+
+    #[test]
+    fn test_starvation_crashes_life_expectancy() {
+        let (mut s, params, tables) = setup();
+        s.agriculture.food_per_capita = 50.0; // severe starvation
+        population_derivatives(&mut s, &params, &tables);
+        // Life expectancy should be near floor
+        assert!(s.population.life_expectancy <= 15.0,
+            "LE {} should be near floor at fpc=50", s.population.life_expectancy);
+    }
+
+    #[test]
+    fn test_high_pollution_reduces_life_expectancy() {
+        let (mut s_clean, params, tables) = setup();
+        s_clean.pollution.pollution_index = 0.05;
+        population_derivatives(&mut s_clean, &params, &tables);
+        let le_clean = s_clean.population.life_expectancy;
+
+        let (mut s_dirty, _, _) = setup();
+        s_dirty.pollution.pollution_index = 50.0;
+        population_derivatives(&mut s_dirty, &params, &tables);
+        let le_dirty = s_dirty.population.life_expectancy;
+
+        assert!(le_dirty < le_clean,
+            "LE at high pollution ({le_dirty}) should be less than clean ({le_clean})");
+    }
+
+    #[test]
+    fn test_fertility_rate_clamping() {
+        let (mut s, params, tables) = setup();
+        population_derivatives(&mut s, &params, &tables);
+        assert!(s.population.fertility_rate >= 0.5,
+            "fertility {} should be >= 0.5", s.population.fertility_rate);
+        assert!(s.population.fertility_rate <= 8.0,
+            "fertility {} should be <= 8.0", s.population.fertility_rate);
+    }
+
+    #[test]
+    fn test_family_planning_reduces_fertility() {
+        let (mut s1, _, tables) = setup();
+        let mut params_no_fp = ScenarioParams::bau();
+        params_no_fp.family_planning_efficacy = 0.0;
+        s1.time = 2020.0;
+        population_derivatives(&mut s1, &params_no_fp, &tables);
+        let fert_no_fp = s1.population.fertility_rate;
+
+        let (mut s2, _, _) = setup();
+        let mut params_fp = ScenarioParams::bau();
+        params_fp.family_planning_efficacy = 0.95;
+        params_fp.family_planning_year = 1975.0;
+        s2.time = 2020.0;
+        population_derivatives(&mut s2, &params_fp, &tables);
+        let fert_fp = s2.population.fertility_rate;
+
+        assert!(fert_fp < fert_no_fp,
+            "fertility with FP ({fert_fp}) should be less than without ({fert_no_fp})");
+    }
+
+    #[test]
+    fn test_cohort_aging_rates() {
+        let (mut s, params, tables) = setup();
+        let d = population_derivatives(&mut s, &params, &tables);
+        // aging_0_to_15 = cohort_0_14 / 15
+        let aging_0 = s.population.cohort_0_14 / COHORT_0_14_DURATION;
+        // aging_15_to_45 = cohort_15_44 / 30
+        let aging_15 = s.population.cohort_15_44 / COHORT_15_44_DURATION;
+        // aging_45_to_65 = cohort_45_64 / 20
+        let aging_45 = s.population.cohort_45_64 / COHORT_45_64_DURATION;
+        // These aging flows should all be positive
+        assert!(aging_0 > 0.0);
+        assert!(aging_15 > 0.0);
+        assert!(aging_45 > 0.0);
+        // Cohort 15-44 receives from 0-14 and loses to 45-64
+        // d_cohort_15_44 = aging_0 - aging_15 - deaths_15_44
+        // All terms should be finite
+        assert!(d.d_cohort_15_44.is_finite());
+    }
+
+    #[test]
+    fn test_births_proportional_to_fertile_women() {
+        let (mut s1, params, tables) = setup();
+        population_derivatives(&mut s1, &params, &tables);
+        let births1 = s1.population.birth_rate * s1.population.population;
+
+        let (mut s2, _, _) = setup();
+        s2.population.cohort_15_44 = s2.population.cohort_15_44 * 2.0;
+        s2.population.population += s2.population.cohort_15_44 / 2.0; // update total
+        population_derivatives(&mut s2, &params, &tables);
+        let births2 = s2.population.birth_rate * s2.population.population;
+
+        // Doubling fertile-age women should roughly double births
+        // (not exactly due to crowding/food ratio changes from higher pop)
+        assert!(births2 > births1 * 1.5,
+            "births2 ({births2}) should be > 1.5 × births1 ({births1})");
+    }
+
+    #[test]
+    fn test_all_derivatives_finite() {
+        let (mut s, params, tables) = setup();
+        let d = population_derivatives(&mut s, &params, &tables);
+        assert!(d.d_cohort_0_14.is_finite());
+        assert!(d.d_cohort_15_44.is_finite());
+        assert!(d.d_cohort_45_64.is_finite());
+        assert!(d.d_cohort_65_plus.is_finite());
+        assert!(d.d_perceived_le.is_finite());
+    }
+
+    #[test]
+    fn test_compensatory_fertility_at_low_perceived_le() {
+        let (mut s, params, tables) = setup();
+        // Low perceived LE → CMPLE > 1 (compensatory births)
+        s.population.perceived_le = 20.0;
+        population_derivatives(&mut s, &params, &tables);
+        let cmple_low = tables.compensatory_fertility.eval(20.0);
+        assert!(cmple_low > 1.0,
+            "CMPLE at perceived_le=20 should be > 1.0, got {cmple_low}");
+    }
 }
