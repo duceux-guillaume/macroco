@@ -74,6 +74,22 @@ def parse_requirements(path: Path) -> dict[str, dict]:
     return reqs
 
 
+def _is_test_file(filepath: str, content: str) -> bool:
+    """Return True if the file contains tests.
+
+    - crates/*/tests/**/*.rs → always a test file (integration tests)
+    - crates/*/src/**/*.rs   → only if it contains a #[cfg(test)] block
+    - *.test.ts              → always a test file
+    """
+    if "/tests/" in filepath:
+        return True
+    if filepath.endswith(".test.ts"):
+        return True
+    if filepath.endswith(".rs"):
+        return "#[cfg(test)]" in content
+    return False
+
+
 def scan_test_files(repo_root: Path) -> dict[str, list[str]]:
     """Scan test files for // REQ: annotations -> {req_id: [file_paths]}."""
     coverage: dict[str, list[str]] = {}
@@ -90,6 +106,9 @@ def scan_test_files(repo_root: Path) -> dict[str, list[str]]:
             try:
                 content = Path(filepath).read_text()
             except OSError:
+                continue
+
+            if not _is_test_file(rel_path, content):
                 continue
 
             for m in REQ_ANNOTATION_RE.finditer(content):
