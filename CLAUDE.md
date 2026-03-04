@@ -82,6 +82,9 @@ cargo run --bin world3-cli -- diagnose --preset bau --compare technology
 # JSON output for programmatic use
 cargo run --bin world3-cli -- diagnose --preset bau --format json
 
+# Check dt-sensitivity (runs at dt, dt/2, dt/4 and reports convergence)
+cargo run --bin world3-cli -- diagnose --preset bau --stability-check
+
 # Run API server (serving static frontend)
 STATIC_DIR=frontend/build RUST_LOG=debug cargo run --bin world3-api
 
@@ -154,6 +157,7 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - Sector test modules use a shared `setup() -> (WorldState, ScenarioParams, WorldLookupTables)` that pre-populates upstream auxiliary fields. Reuse it; don't create new setup fns unless the file has none.
 - Import `approx::assert_relative_eq` at module level in `#[cfg(test)] mod tests`, not inside individual test functions.
 - `f64::parse()` accepts "NaN", "inf", "-inf" as valid. Always add `.is_finite()` guard when parsing external data destined for JSON serialization.
+- `world3-cli` is a binary crate — use `cargo test -p world3-cli` (not `--lib`).
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
 
 ### Debugging Workflow
@@ -163,6 +167,9 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - `diagnose --format json` produces machine-readable output for programmatic assertions.
 - Prefer `diagnose` over `simulate --chart` when debugging model behavior — the text output contains all the information needed to reason about trajectory shape without reading a PNG.
 - When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
+- `diagnose` auto-detects oscillations (rapid alternating phase reversals) — check the Anomalies section for `Oscillation` entries.
+- `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >1% between halvings is flagged UNSTABLE.
+- The technology preset is known to be unstable at dt=1.0 (Food/capita oscillates 1940-1949, IOPC drifts ~15%). It converges at dt=0.5.
 
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
