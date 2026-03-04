@@ -5,9 +5,10 @@
 		descriptor: ParameterDescriptor;
 		value: number;
 		onchange: (field: string, value: number) => void;
+		oninfo: (field: string) => void;
 	}
 
-	let { descriptor, value, onchange }: Props = $props();
+	let { descriptor, value, onchange, oninfo }: Props = $props();
 
 	function handleInput(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -21,9 +22,14 @@
 
 <div class="slider-row">
 	<div class="slider-header">
-		<label for={descriptor.field} title={descriptor.description}>
-			{descriptor.label}
-		</label>
+		<div class="label-group">
+			<button class="info-btn" onclick={() => oninfo(descriptor.field)} title="Learn about this parameter" aria-label={`Info about ${descriptor.label}`}>
+				&#x24D8;
+			</button>
+			<label for={descriptor.field}>
+				{descriptor.label}
+			</label>
+		</div>
 		<span class="slider-value">
 			{value.toFixed(descriptor.step < 0.01 ? 3 : descriptor.step < 0.1 ? 2 : 1)}
 			<span class="unit">{descriptor.unit}</span>
@@ -60,10 +66,29 @@
 		align-items: baseline;
 		margin-bottom: 2px;
 	}
+	.label-group {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+	.info-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-size: 14px;
+		color: var(--text-secondary);
+		padding: 0;
+		line-height: 1;
+		opacity: 0.5;
+		transition: opacity 0.15s, color 0.15s;
+	}
+	.info-btn:hover {
+		opacity: 1;
+		color: var(--accent);
+	}
 	label {
 		font-size: 12px;
 		color: var(--text);
-		cursor: help;
 	}
 	.slider-value {
 		font-size: 12px;
