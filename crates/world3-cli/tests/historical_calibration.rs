@@ -72,17 +72,37 @@ fn match_years(
     sim: &SimulationOutput,
     extract: fn(&WorldState) -> f64,
     historical: &[(f64, f64)],
-) -> (Vec<f64>, Vec<f64>) {
+) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
     let mut sim_vals = Vec::new();
     let mut hist_vals = Vec::new();
+    let mut years = Vec::new();
     for &(year, hist_val) in historical {
         // Find simulation state at this year (dt=1.0, integer years)
         if let Some(state) = sim.states.iter().find(|s| (s.time - year).abs() < 0.5) {
             sim_vals.push(extract(state));
             hist_vals.push(hist_val);
+            years.push(year);
         }
     }
-    (sim_vals, hist_vals)
+    (sim_vals, hist_vals, years)
+}
+
+/// Maximum absolute percentage error across all matched years.
+/// Returns (max_error_pct, worst_year).
+fn max_year_error_pct(sim_vals: &[f64], hist_vals: &[f64], hist_years: &[f64]) -> (f64, f64) {
+    assert_eq!(sim_vals.len(), hist_vals.len());
+    assert_eq!(sim_vals.len(), hist_years.len());
+    assert!(!sim_vals.is_empty(), "No overlapping years found");
+    let mut max_err = 0.0_f64;
+    let mut worst_year = 0.0_f64;
+    for i in 0..sim_vals.len() {
+        let err = ((sim_vals[i] - hist_vals[i]) / hist_vals[i]).abs() * 100.0;
+        if err > max_err {
+            max_err = err;
+            worst_year = hist_years[i];
+        }
+    }
+    (max_err, worst_year)
 }
 
 /// RMSE as percentage of mean historical value.
@@ -120,7 +140,7 @@ fn historical_dir() -> std::path::PathBuf {
 fn bau_population_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("population.csv"));
-    let (sim_vals, hist_vals) = match_years(sim, |s| s.population.population, &hist);
+    let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.population.population, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 15.0,
@@ -135,7 +155,7 @@ fn bau_population_tracks_historical() {
 fn bau_food_per_capita_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("food.csv"));
-    let (sim_vals, hist_vals) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
+    let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 25.0,
@@ -150,7 +170,7 @@ fn bau_food_per_capita_tracks_historical() {
 fn bau_iopc_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("industrial.csv"));
-    let (sim_vals, hist_vals) =
+    let (sim_vals, hist_vals, _years) =
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
@@ -166,12 +186,69 @@ fn bau_iopc_tracks_historical() {
 fn bau_nnr_fraction_tracks_historical() {
     let sim = bau_sim();
     let hist = load_historical_csv(&historical_dir().join("resources.csv"));
-    let (sim_vals, hist_vals) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
+    let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
         pct < 20.0,
         "REQ-026 NNR: RMSE% = {:.1}%, threshold = 20.0%",
         pct
+    );
+}
+
+/// REQ-026: BAU population max per-year error must be ≤ 30%.
+#[test]
+fn bau_population_max_year_error() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("population.csv"));
+    let (sim_vals, hist_vals, years) = match_years(sim, |s| s.population.population, &hist);
+    let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
+    assert!(
+        max_err <= 30.0,
+        "REQ-026 Population max-year: {:.1}% in year {} (threshold 30.0%)",
+        max_err, worst_year
+    );
+}
+
+/// REQ-026: BAU food/capita max per-year error must be ≤ 30%.
+#[test]
+fn bau_food_per_capita_max_year_error() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("food.csv"));
+    let (sim_vals, hist_vals, years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
+    let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
+    assert!(
+        max_err <= 30.0,
+        "REQ-026 Food/capita max-year: {:.1}% in year {} (threshold 30.0%)",
+        max_err, worst_year
+    );
+}
+
+/// REQ-026: BAU IOPC max per-year error must be ≤ 30%.
+#[test]
+fn bau_iopc_max_year_error() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("industrial.csv"));
+    let (sim_vals, hist_vals, years) =
+        match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
+    let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
+    assert!(
+        max_err <= 30.0,
+        "REQ-026 IOPC max-year: {:.1}% in year {} (threshold 30.0%)",
+        max_err, worst_year
+    );
+}
+
+/// REQ-026: BAU NNR fraction max per-year error must be ≤ 30%.
+#[test]
+fn bau_nnr_fraction_max_year_error() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("resources.csv"));
+    let (sim_vals, hist_vals, years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
+    let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
+    assert!(
+        max_err <= 30.0,
+        "REQ-026 NNR max-year: {:.1}% in year {} (threshold 30.0%)",
+        max_err, worst_year
     );
 }
 
@@ -189,12 +266,14 @@ fn calibration_summary_report() {
     println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
     for (name, csv, extract, threshold) in vars {
         let hist = load_historical_csv(&historical_dir().join(csv));
-        let (sim_vals, hist_vals) = match_years(sim, extract, &hist);
+        let (sim_vals, hist_vals, years) = match_years(sim, extract, &hist);
         let pct = rmse_pct(&sim_vals, &hist_vals);
         let status = if pct < threshold { "PASS" } else { "FAIL" };
+        let (max_err, worst_yr) = max_year_error_pct(&sim_vals, &hist_vals, &years);
+        let max_status = if max_err <= 30.0 { "PASS" } else { "FAIL" };
         println!(
-            "  {:<20} RMSE% = {:6.1}%  (threshold: {:5.1}%)  [{}]",
-            name, pct, threshold, status
+            "  {:<20} RMSE% = {:6.1}%  (threshold: {:5.1}%)  [{}]  max-year: {:5.1}% @ {} [{}]",
+            name, pct, threshold, status, max_err, worst_yr, max_status
         );
     }
     println!("========================================================\n");
