@@ -134,8 +134,7 @@ fn historical_dir() -> std::path::PathBuf {
 // Tests — REQ-026
 // ---------------------------------------------------------------------------
 
-/// REQ-026: BAU population must track World Bank SP.POP.TOTL within 15% RMSE.
-/// Current RMSE% = 14.1% after pyworld3 alignment.
+/// REQ-026: BAU population must track World Bank SP.POP.TOTL within 12% RMSE.
 #[test]
 fn bau_population_tracks_historical() {
     let sim = bau_sim();
@@ -143,14 +142,13 @@ fn bau_population_tracks_historical() {
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.population.population, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 15.0,
-        "REQ-026 Population: RMSE% = {:.1}%, threshold = 15.0%",
+        pct < 12.0,
+        "REQ-026 Population: RMSE% = {:.1}%, threshold = 12.0%",
         pct
     );
 }
 
-/// REQ-026: BAU food/capita must track FAO Food Balance data within 25% RMSE.
-/// Current RMSE% = 24.8% after pyworld3 alignment.
+/// REQ-026: BAU food/capita must track FAO Food Balance data within 20% RMSE.
 #[test]
 fn bau_food_per_capita_tracks_historical() {
     let sim = bau_sim();
@@ -158,14 +156,13 @@ fn bau_food_per_capita_tracks_historical() {
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 25.0,
-        "REQ-026 Food/capita: RMSE% = {:.1}%, threshold = 25.0%",
+        pct < 20.0,
+        "REQ-026 Food/capita: RMSE% = {:.1}%, threshold = 20.0%",
         pct
     );
 }
 
-/// REQ-026: BAU IOPC must track World Bank industrial VA data within 30% RMSE.
-/// Current RMSE% = 28.2% after pyworld3 alignment.
+/// REQ-026: BAU IOPC must track World Bank industrial VA data within 20% RMSE.
 #[test]
 fn bau_iopc_tracks_historical() {
     let sim = bau_sim();
@@ -174,14 +171,13 @@ fn bau_iopc_tracks_historical() {
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 30.0,
-        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 30.0%",
+        pct < 20.0,
+        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 20.0%",
         pct
     );
 }
 
-/// REQ-026: BAU NNR fraction must track OWID resource depletion within 20% RMSE.
-/// Current RMSE% = 4.3% after pyworld3 alignment.
+/// REQ-026: BAU NNR fraction must track OWID resource depletion within 15% RMSE.
 #[test]
 fn bau_nnr_fraction_tracks_historical() {
     let sim = bau_sim();
@@ -189,8 +185,8 @@ fn bau_nnr_fraction_tracks_historical() {
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 20.0,
-        "REQ-026 NNR: RMSE% = {:.1}%, threshold = 20.0%",
+        pct < 15.0,
+        "REQ-026 NNR: RMSE% = {:.1}%, threshold = 15.0%",
         pct
     );
 }
@@ -258,10 +254,10 @@ fn bau_nnr_fraction_max_year_error() {
 fn calibration_summary_report() {
     let sim = bau_sim();
     let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64)> = vec![
-        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 15.0),
-        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 25.0),
-        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 30.0),
-        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 20.0),
+        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 12.0),
+        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 20.0),
+        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 20.0),
+        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 15.0),
     ];
     println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
     for (name, csv, extract, threshold) in vars {
