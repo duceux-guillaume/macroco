@@ -107,7 +107,9 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 
 ### API Server (`world3-api`)
-- `AppState` holds: solver, lookup tables, scenario store (`RwLock<HashMap<Uuid, Scenario>>`), live data snapshot, ingestion broadcast sender.
+- `AppState` holds: solver, lookup tables, scenario store (`RwLock<HashMap<Uuid, Scenario>>`), live data snapshot, ingestion broadcast sender, historical data.
+- `AppState.historical`: `HashMap<String, HistoricalVariable>` loaded at startup from `data/historical/*.csv`. Env var `HISTORICAL_DATA_DIR` overrides path.
+- Historical API: `GET /api/v1/historical` (all variables) and `GET /api/v1/historical/{variable_id}`. Both return `Cache-Control: public, max-age=86400`.
 - WebSocket sessions stream simulation steps via `mpsc` channel from blocking task to async handler.
 - Parameter updates from the frontend are debounced 50ms server-side; current task is aborted and replaced.
 - In production, serves static frontend via `tower-http::ServeDir` with SPA fallback (`STATIC_DIR` env var). API at `/api/v1/*`, frontend at all other paths.
@@ -119,6 +121,8 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - `mapping.rs` is the single source of truth for translating real-world observations into `WorldState` initial conditions.
 
 ### Frontend
+- Historical CSV file stems in `data/historical/` MUST match IDs in `frontend/src/lib/charts/unified-config.ts`: `population`, `resources`, `food`, `industrial`, `pollution`, `life-expectancy`.
+- Historical overlay uses combined min/max normalization (union of sim + historical data) so both lines fit [0,1] in UnifiedChart normalized mode.
 - `frontend/src/lib/env.ts` provides `getApiBase()` / `getWsBase()` — returns relative URLs in production (empty `PUBLIC_*` vars), absolute URLs in dev. All API/WS imports use this, not `$env/static/public` directly.
 - `frontend/.env.production` has empty `PUBLIC_API_BASE=` and `PUBLIC_WS_BASE=` to trigger same-origin fallback.
 - Svelte 5 runes (`$state`, `$derived`, `$effect`) drive all reactivity. Use `$store` auto-subscription in `.svelte` files; use manual `.subscribe()` + `onDestroy(unsub)` only when you need side effects on store change (e.g. resetting local state).
@@ -140,6 +144,7 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - Run full verification after model changes: `cargo test --workspace && cargo clippy --workspace -- -D warnings && cargo run --bin world3-cli -- validate`
 - Sector test modules use a shared `setup() -> (WorldState, ScenarioParams, WorldLookupTables)` that pre-populates upstream auxiliary fields. Reuse it; don't create new setup fns unless the file has none.
 - Import `approx::assert_relative_eq` at module level in `#[cfg(test)] mod tests`, not inside individual test functions.
+- `f64::parse()` accepts "NaN", "inf", "-inf" as valid. Always add `.is_finite()` guard when parsing external data destined for JSON serialization.
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
 
 ## Model Sectors (5 — original World 3)
@@ -153,6 +158,7 @@ Future extensions (Milestone 2): Climate (CO₂/EBM temperature) · Energy Mix �
 # Backend
 RUST_LOG=info,world3_api=debug
 STATIC_DIR=./static    # path to frontend build output (default: ./static)
+HISTORICAL_DATA_DIR=./data/historical  # path to bundled historical CSVs (default: ./data/historical)
 DATABASE_URL=sqlite:///data/cache.db
 CORS_ORIGINS=http://localhost:5173
 FAO_API_KEY=           # optional — FAO FAOSTAT
