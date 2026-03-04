@@ -188,11 +188,11 @@ Run `/permissions-audit` to review and improve permission settings.
 - After the IFPC food allocation rework, all presets (BAU, Technology, Stabilized) are stable at dt=1.0.
 
 ### Traceability
-- Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates.
-- Run `python3 scripts/traceability.py` locally to check coverage before pushing.
-- CI runs the traceability check after tests pass. See `docs/traceability-matrix.md` for the current coverage map.
+- Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates. Rust: place before `#[cfg(test)]`. TypeScript: first line of `.test.ts` file.
+- Run `python3 scripts/traceability.py` locally to regenerate `docs/traceability-matrix.md`, then commit it. CI runs `--check` mode and fails if the matrix is stale.
 - When adding a new `#[test]` or `describe()` block, include the `// REQ:` annotation.
 - Docs-only and infrastructure requirements can be exempted with `- *Exempt:* <reason>` in `product-requirements.md`.
+- Impact analysis: `grep -r '// REQ:.*REQ-005' crates/ frontend/` finds all tests covering a given requirement.
 
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
