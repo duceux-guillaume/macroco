@@ -188,11 +188,12 @@ mod tests {
         assert!(final_state.resources.fraction_remaining < 0.5,
             "NNR should be significantly depleted by 2100");
 
-        // Pollution should have risen above 1.0
+        // Pollution should have risen meaningfully (PPASR pyworld3 alignment
+        // gives faster assimilation, so pollution peaks lower than before)
         let max_poll = states.iter()
             .map(|s| s.pollution.pollution_index)
             .fold(0.0_f64, f64::max);
-        assert!(max_poll > 1.0, "peak pollution {} should exceed 1.0", max_poll);
+        assert!(max_poll > 0.5, "peak pollution {} should exceed 0.5", max_poll);
     }
 
     #[test]

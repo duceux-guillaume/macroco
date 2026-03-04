@@ -89,7 +89,7 @@ pub struct WorldLookupTables {
     pub industrial_fraction_to_services: LookupTable,
 
     /// Jobs per industrial capital unit (JPICU)
-    /// x: industrial output per capita (normalized)
+    /// x: industrial output per capita [$/person/yr]
     /// y: jobs per unit capital
     pub jobs_per_capital: LookupTable,
 
@@ -185,8 +185,8 @@ impl WorldLookupTables {
             // helps but doesn't dominate LE like health services do.
             life_exp_multiplier_food: LookupTable::new(
                 "life_exp_multiplier_food",
-                vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 3.0, 4.0],
-                vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.04, 1.08, 1.12, 1.16, 1.20, 1.33, 1.40],
+                vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+                vec![0.0, 1.0, 1.2, 1.3, 1.35, 1.4],
             ),
 
             // Life expectancy multiplier from health services (LMHS)
@@ -201,8 +201,8 @@ impl WorldLookupTables {
             //   1970: EHSPC ≈ $150 → LMHS ≈ 1.85 (modern health services)
             life_exp_multiplier_health: LookupTable::new(
                 "life_exp_multiplier_health",
-                vec![0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 150.0, 200.0],
-                vec![1.0, 1.0, 1.0, 1.20, 1.50, 1.70, 1.85, 1.95],
+                vec![0.0, 20.0, 40.0, 60.0, 80.0, 100.0],
+                vec![1.0, 1.1, 1.4, 1.6, 1.7, 1.8],
             ),
 
             // Life expectancy multiplier from crowding
@@ -265,8 +265,8 @@ impl WorldLookupTables {
             //   IOPC=$800: 2.10 × CMPLE(60)≈0.95 → effective ~2.00
             desired_family_size: LookupTable::new(
                 "desired_family_size",
-                vec![0.0, 50.0, 100.0, 200.0, 400.0, 600.0, 800.0, 1200.0, 1600.0],
-                vec![3.60, 3.58, 3.55, 3.75, 3.00, 2.45, 2.10, 1.95, 1.85],
+                vec![0.0, 200.0, 400.0, 600.0, 800.0],
+                vec![4.75, 3.80, 2.70, 2.10, 1.80],
             ),
 
             // Family planning multiplier on fertility
@@ -342,12 +342,12 @@ impl WorldLookupTables {
                 vec![0.30, 0.20, 0.10, 0.05, 0.0],
             ),
 
-            // Jobs per unit of industrial capital
-            // x: industrial output per capita normalized
+            // Jobs per unit of industrial capital (JPICU)
+            // World3-03: x = IOPC [$/person/yr], y = jobs per unit capital
             jobs_per_capital: LookupTable::new(
                 "jobs_per_capital",
-                vec![0.0, 0.5, 1.0, 2.0, 3.0, 4.0],
-                vec![0.0007, 0.0014, 0.0017, 0.0018, 0.0019, 0.002],
+                vec![50.0, 200.0, 350.0, 500.0, 650.0, 800.0],
+                vec![0.00037, 0.00018, 0.00012, 0.00009, 0.00007, 0.00006],
             ),
 
             // Labor force participation
@@ -487,8 +487,8 @@ impl WorldLookupTables {
             // At low PP the environment assimilates quickly; above PP=10 it slows dramatically.
             pollution_assimilation_time: LookupTable::new(
                 "pollution_assimilation_time",
-                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0],
-                vec![20.0, 45.0, 90.0, 150.0, 220.0, 320.0, 480.0],
+                vec![0.0, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0],
+                vec![1.5, 2.5, 5.0, 10.0, 20.0, 40.0, 80.0, 160.0],
             ),
         }
     }
