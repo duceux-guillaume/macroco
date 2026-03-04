@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { schemaBySector } from '$lib/stores/schema';
 	import { focusedScenarioId, scenarioParamsCache } from '$lib/stores/scenarios';
+	import { selectedParameterId } from '$lib/stores/info';
 	import { send } from '$lib/ws';
 	import type { ScenarioParams } from '$lib/types';
 	import ParameterSlider from './ParameterSlider.svelte';
@@ -54,6 +55,10 @@
 		}, 200);
 	}
 
+	function handleParamInfo(field: string) {
+		selectedParameterId.set(field);
+	}
+
 	function getParamValue(params: ScenarioParams, field: string): number {
 		return (params as unknown as Record<string, number>)[field] ?? 0;
 	}
@@ -75,6 +80,7 @@
 								descriptor={desc}
 								value={getParamValue(params, desc.field)}
 								onchange={handleParamChange}
+								oninfo={handleParamInfo}
 							/>
 						{/each}
 					</div>
