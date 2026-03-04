@@ -20,7 +20,7 @@ pub fn format_text(diag: &SimDiagnostics) -> String {
     .unwrap();
 
     for var in &diag.variables {
-        format_variable(&mut out, var);
+        format_variable(&mut out, var, diag.time_range);
     }
 
     writeln!(out, "-- Anomalies ----------------------------------------").unwrap();
@@ -40,14 +40,14 @@ pub fn format_text(diag: &SimDiagnostics) -> String {
     out
 }
 
-fn format_variable(out: &mut String, var: &VariableDiagnostics) {
+fn format_variable(out: &mut String, var: &VariableDiagnostics, time_range: (f64, f64)) {
     writeln!(
         out,
         "-- {} ------------------------------------------------",
         var.name
     )
     .unwrap();
-    writeln!(out, "  Initial ({:.0}):  {:.3e}", 1900.0, var.initial).unwrap();
+    writeln!(out, "  Initial ({:.0}):  {:.3e}", time_range.0, var.initial).unwrap();
     writeln!(
         out,
         "  Peak:            {:.3e}  at year {:.0}",
@@ -63,7 +63,7 @@ fn format_variable(out: &mut String, var: &VariableDiagnostics) {
     writeln!(
         out,
         "  Final ({:.0}):    {:.3e}",
-        2100.0, var.final_value
+        time_range.1, var.final_value
     )
     .unwrap();
 
