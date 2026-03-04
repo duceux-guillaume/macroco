@@ -80,7 +80,7 @@ pub struct WorldLookupTables {
     /// x: industrial output per capita [$/person/yr]
     /// y: indicated food per capita [kg/person/yr]
     /// As societies industrialize, people demand better diets.
-    /// At IOPC=0: IFPC=230 (subsistence). At IOPC=1600: IFPC=1200. At IOPC=2500: IFPC=1600.
+    /// At IOPC=0: IFPC=230 (subsistence). At IOPC=1600: IFPC=1250.
     pub indicated_food_per_capita: LookupTable,
 
     /// Fraction of industrial output allocated to services (FIOAS)
@@ -408,8 +408,8 @@ impl WorldLookupTables {
             // Urban-industrial land per capita (UILPC)
             // World3-03: maps IOPC to hectares per person needed for urban/industrial use.
             // At subsistence (IOPC≈$40): 0.005 ha/person (rural, low urbanization)
-            // At 1970 levels (IOPC≈$200): 0.05 ha/person (significant urbanization)
-            // At high income (IOPC≈$1600): 0.16 ha/person (sprawl, infrastructure)
+            // At 1970 levels (IOPC≈$200): 0.008 ha/person (moderate urbanization)
+            // At high income (IOPC≈$1600): 0.09 ha/person (sprawl, infrastructure)
             urban_industrial_land_per_capita: LookupTable::new(
                 "urban_industrial_land_per_capita",
                 vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0],
