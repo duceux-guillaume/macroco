@@ -3,6 +3,7 @@
 	import ScenarioBar from '../components/ScenarioBar.svelte';
 	import ChartGrid from '../components/ChartGrid.svelte';
 	import VariableInfoPanel from '../components/VariableInfoPanel.svelte';
+	import ParameterInfoPanel from '../components/ParameterInfoPanel.svelte';
 </script>
 
 <svelte:head>
@@ -16,6 +17,7 @@
 		<ChartGrid />
 	</main>
 	<VariableInfoPanel />
+	<ParameterInfoPanel />
 </div>
 
 <style>
