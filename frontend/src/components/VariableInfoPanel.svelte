@@ -66,11 +66,6 @@
 	>
 		<FeedbackLoops loops={relatedLoops} />
 		<RelatedVars vars={relatedVars} onselect={selectVariable} />
-		{#if relatedParams.length > 0}
-			<section>
-				<h3>Related Parameters</h3>
-				<RelatedVars vars={relatedParams} onselect={selectParameter} />
-			</section>
-		{/if}
+		<RelatedVars vars={relatedParams} onselect={selectParameter} title="Related Parameters" />
 	</InfoPanelShell>
 {/if}
