@@ -84,12 +84,23 @@ Implements: REQ-013, REQ-014
 
 ## CLI (`world3-cli`)
 
-Implements: REQ-003, REQ-005, REQ-006
+Implements: REQ-003, REQ-005, REQ-006, REQ-026
 
-- Subcommands: `simulate`, `validate`, `presets`.
+- Subcommands: `simulate`, `validate`, `diagnose`, `presets`.
 - CSV output with 22 columns covering all World 3 stocks and derived variables.
 - PNG chart rendering via the `plotters` crate.
 - Validation compares BAU simulation output against Meadows 1972 reference trajectories.
+- `diagnose` produces structured text/JSON reports for simulation debugging (peaks, phases, anomalies, oscillation detection, dt-sensitivity).
+
+### Historical Calibration Tests (REQ-026)
+
+- Integration test in `crates/world3-cli/tests/historical_calibration.rs` compares BAU simulation against real-world historical CSVs.
+- Metric: RMSE as percentage of mean historical value, computed over overlapping years (~1960-2023).
+- Four variables tested: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
+- Tests are `#[ignore]` because thresholds are aspirational — the model is not yet calibrated to historical data. A summary report test runs in CI and prints all RMSE% values.
+- Shared `OnceLock<SimulationOutput>` avoids redundant BAU simulation runs across tests.
+- Historical CSVs loaded with a minimal inline parser (no dependency on `world3-api`'s parser). Uses `CARGO_MANIFEST_DIR` to resolve `data/historical/` path.
+- Run: `cargo test -p world3-cli --test historical_calibration` (summary only); `-- --ignored` for threshold checks.
 
 ## Deployment
 
