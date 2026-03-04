@@ -58,7 +58,7 @@
   - *Exempt:* CI infrastructure, validated by pipeline execution
 
 - [x] **REQ-012: Historical data calibration**
-  - *Context:* Milestone 2 requires calibrating model parameters against real historical data (World Bank, NOAA, FAO, UN, BP) to improve predictive accuracy.
+  - *Context:* Calibrating model parameters against real historical data (World Bank, FAO, OWID) improves predictive accuracy and validates the simulation against observed trends.
   - *Components:* `world3-api`: historical.rs, CSV parser, `/api/v1/historical`; `frontend`: historicalStore, chart overlays; `data/historical/*.csv`
   - *Done:* Historical data API and frontend overlay implemented with bundled CSVs.
 
@@ -131,6 +131,16 @@
 ---
 
 ## In Progress
+
+- [ ] **REQ-028: Multi-scenario historical calibration**
+  - *Context:* All scenarios (Technology, Stabilized) must fit real-world historical data over the shared 1960–2023 period, not just BAU. Scenarios share the same history but diverge only after policy switch years.
+  - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
+  - *Priority:* high
+
+- [ ] **REQ-029: Scenario trajectory validation**
+  - *Context:* Non-BAU scenarios must produce meaningfully divergent futures compared to BAU. Technology should show extended resource availability and delayed decline; Stabilized should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
+  - *Components:* `world3-cli`: validate subcommand or dedicated test
+  - *Priority:* high
 
 ---
 
