@@ -172,7 +172,7 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
 - `diagnose` auto-detects oscillations (rapid alternating phase reversals) — check the Anomalies section for `Oscillation` entries.
 - `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >1% between halvings is flagged UNSTABLE.
-- The technology preset is known to be unstable at dt=1.0 (Food/capita oscillates 1940-1949, IOPC drifts ~15%). It converges at dt=0.5.
+- After the IFPC food allocation rework, all presets (BAU, Technology, Stabilized) are stable at dt=1.0.
 
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
