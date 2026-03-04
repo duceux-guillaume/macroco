@@ -13,14 +13,15 @@
 | Category | Count | Tables |
 |----------|------:|--------|
 | Exact Match | 7 | M1, M2, M3, M4, FIOAS1, LFRT, FALM |
-| Intentional Deviation | 17 | LMF, LMHS, LMCR, LMP, DCFS, FRSN, FM, CMPLE, FIOACV, FIOAA, JPICU, LYMC, LYMAP, UILPC, LFDR, FCAOR, PPASR |
+| Intentional Deviation | 18 | LMF, LMHS, LMCR, LMP, DCFS, FRSN, FM, CMPLE, FIOACV, FIOAA, IFPC, JPICU, LYMC, LYMAP, UILPC, LFDR, FCAOR, PPASR |
 | Custom / No Reference | 7 | FSH, LFP, LERD, LDCO, FRNF, PPGIO, PPGAO |
-| **Total** | **31** | |
+| **Total** | **32** | |
 
 **Risk assessment:**
 - The 7 exact-match tables (all mortality + FIOAS + LFRT + FALM) cover critical population dynamics faithfully.
 - Most intentional deviations are documented calibration adjustments to compensate for structural simplifications in our model (missing delay loops, merged sub-tables, different x-axis normalizations).
 - Highest-risk deviations: FM (fecundity caps at 0.87 vs 1.1), CMPLE (rescaled), FCAOR (steeper depletion), LFDR (slower degradation). These directly affect BAU trajectory shape.
+- IFPC and FIOAA were recalibrated in March 2026 to fix Technology/Stabilized scenario instability. See IFPC and FIOAA entries below for details.
 
 ---
 
@@ -250,7 +251,7 @@ Differences:
 
 | | x | y |
 |---|---|---|
-| **Ours** | 0, 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0 | 0.40, 0.30, 0.20, 0.16, 0.12, 0.08, 0.04, 0.0, 0.0 |
+| **Ours** | 0, 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0 | 0.40, 0.30, 0.20, 0.16, 0.12, 0.08, 0.05, 0.04, 0.04 |
 | **pyworld3 (FIOAA1)** | 0, 0.5, 1.0, 1.5, 2.0, 2.5 | 0.4, 0.2, 0.1, 0.025, 0.0, 0.0 |
 
 **Status: Intentional Deviation**
@@ -258,8 +259,30 @@ Differences:
 Differences:
 - Slower decline: at x=0.5 ours=0.30 vs pyworld3=0.20. At x=1.0 ours=0.20 vs pyworld3=0.10.
 - Extended x-range (up to 4.0 vs 2.5) with more gradual tail.
-- **Rationale:** Our food_ratio x-axis uses FPC/subsistence_food directly. In World3-03, x = FPC/IFPC where IFPC > subsistence. Because our x includes the subsistence factor, agricultural investment persists longer.
-- **Impact:** Moderate — more agricultural investment at moderate food ratios sustains food production longer in BAU.
+- Floor of 0.04 at high food_ratio (x≥3.0) instead of zero — ensures minimum agricultural maintenance even in wealthy societies.
+- **Input change (2026-03-04):** x-axis now uses `food_per_capita_smooth / IFPC(IOPC)` instead of `food_per_capita / subsistence_food`. The smooth is an ODE stock preserved across RK4 stages, giving consistent allocation fractions. IFPC replaces the constant subsistence denominator.
+- **Rationale:** Our model produces ~59% more food than World3-03 (missing LFH=0.7, PL=0.1 factors), so the food_ratio reaches higher values. The 0.04 floor prevents yield collapse when food_ratio exceeds 3.0 (which happens in Technology and Stabilized scenarios). Combined with IFPC as the dynamic denominator, this prevents the zero-allocation trap that caused instability.
+- **Impact:** Moderate — BAU unchanged (food_ratio stays below 2.5). Technology and Stabilized scenarios now stable (max 3.5% YoY oscillation vs 15-18% before).
+
+---
+
+#### IFPC — Indicated Food Per Capita (`indicated_food_per_capita`)
+
+| | x | y |
+|---|---|---|
+| **Ours** | 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 2000, 2500 | 230, 230, 350, 500, 650, 800, 950, 1100, 1200, 1400, 1600 |
+| **pyworld3 (IFPC1)** | 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600 | 230, 480, 690, 850, 970, 1070, 1150, 1210, 1250 |
+
+**Status: Intentional Deviation**
+
+*Added 2026-03-04 as part of IFPC food allocation rework.*
+
+Differences:
+- Same x-axis range at low IOPC (both start at 0, step 200). Extended to 2500 for Stabilized scenario (peaks ~2000 IOPC).
+- Much lower values at moderate IOPC: at x=200 ours=230 vs pyworld3=480 (−52%). At x=400 ours=350 vs pyworld3=690 (−49%). At x=1600 ours=1200 vs pyworld3=1250 (−4%).
+- Convergence at high IOPC: the curves approach each other. At x=1600 only 4% difference.
+- **Rationale:** Our model produces ~59% more food than World3-03 at identical parameters (missing LFH=0.7 land fraction harvested, PL=0.1 processing loss). Using World3-03's IFPC values would make the food_ratio (FPC_smooth/IFPC) too low at BAU IOPC levels (≤330), causing over-allocation to agriculture and starving industrial investment. Our lower IFPC at low IOPC preserves BAU dynamics. The steeper rise at high IOPC (extending to 2500) prevents the zero-allocation trap in Technology/Stabilized scenarios.
+- **Impact:** BAU unaffected (IOPC<330, IFPC=230=SFPC). Technology and Stabilized: food_ratio stays moderate (~1.5-2.5 instead of reaching 3.0+), preventing allocation collapse.
 
 ---
 
@@ -515,6 +538,8 @@ Differences:
 5. **FCAOR plateau**: Investigate whether pyworld3's plateau at 0.05 (minimum extraction cost) is physically meaningful vs. our linear-to-zero approach.
 
 6. **Policy-switch tables**: World3-03 has paired tables (LMHS1/LMHS2, FIOAA1/FIOAA2, LYMAP1/LYMAP2, etc.) for pre/post policy switch. We use single tables. Consider adding policy-switch variants for Milestone 2 scenario analysis.
+
+7. **LFH/PL factors**: Our model omits Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) from World3-03. This causes ~59% higher food production at identical parameters. The IFPC table was calibrated lower to compensate, but adding these factors explicitly would allow using World3-03 IFPC values directly and improve cross-model comparability.
 
 ---
 
