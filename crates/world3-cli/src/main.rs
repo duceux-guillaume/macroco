@@ -81,6 +81,10 @@ enum Commands {
         /// Time step (years)
         #[arg(long, default_value_t = 1.0)]
         dt: f64,
+
+        /// Run dt-sensitivity stability check (tests dt, dt/2, dt/4)
+        #[arg(long)]
+        stability_check: bool,
     },
 }
 
@@ -134,25 +138,35 @@ fn main() -> Result<()> {
             println!("  stabilized   Stabilized World scenario");
         }
 
-        Commands::Diagnose { preset, compare: compare_preset, format, start, end, dt } => {
-            eprintln!("Running diagnostics for '{}'...", preset);
-            let diag = diagnose::run_analysis(&preset, start, end, dt)?;
-
-            if let Some(ref comp_name) = compare_preset {
-                eprintln!("Running comparison against '{}'...", comp_name);
-                let comp_diag = diagnose::run_analysis(comp_name, start, end, dt)?;
-                let comparative = diagnose::compare::compare(diag, comp_diag);
+        Commands::Diagnose { preset, compare: compare_preset, format, start, end, dt, stability_check } => {
+            if stability_check {
+                eprintln!("Running stability check for '{}' (dt={}, {}, {})...", preset, dt, dt / 2.0, dt / 4.0);
+                let report = diagnose::run_stability_check(&preset, start, end, dt)?;
                 let output = match format.as_str() {
-                    "json" => diagnose::format_json::format_json_comparative(&comparative),
-                    _ => diagnose::format_text::format_text_comparative(&comparative),
+                    "json" => diagnose::format_json::format_json_stability(&report),
+                    _ => diagnose::format_text::format_text_stability(&report),
                 };
                 println!("{}", output);
             } else {
-                let output = match format.as_str() {
-                    "json" => diagnose::format_json::format_json(&diag),
-                    _ => diagnose::format_text::format_text(&diag),
-                };
-                println!("{}", output);
+                eprintln!("Running diagnostics for '{}'...", preset);
+                let diag = diagnose::run_analysis(&preset, start, end, dt)?;
+
+                if let Some(ref comp_name) = compare_preset {
+                    eprintln!("Running comparison against '{}'...", comp_name);
+                    let comp_diag = diagnose::run_analysis(comp_name, start, end, dt)?;
+                    let comparative = diagnose::compare::compare(diag, comp_diag);
+                    let output = match format.as_str() {
+                        "json" => diagnose::format_json::format_json_comparative(&comparative),
+                        _ => diagnose::format_text::format_text_comparative(&comparative),
+                    };
+                    println!("{}", output);
+                } else {
+                    let output = match format.as_str() {
+                        "json" => diagnose::format_json::format_json(&diag),
+                        _ => diagnose::format_text::format_text(&diag),
+                    };
+                    println!("{}", output);
+                }
             }
         }
     }

@@ -1,4 +1,4 @@
-use super::analysis::SimDiagnostics;
+use super::analysis::{SimDiagnostics, StabilityReport};
 use super::compare::ComparativeDiagnostics;
 
 /// Format a SimDiagnostics as pretty-printed JSON.
@@ -9,6 +9,11 @@ pub fn format_json(diag: &SimDiagnostics) -> String {
 /// Format a ComparativeDiagnostics as pretty-printed JSON.
 pub fn format_json_comparative(comp: &ComparativeDiagnostics) -> String {
     serde_json::to_string_pretty(comp).expect("failed to serialize ComparativeDiagnostics")
+}
+
+/// Format a StabilityReport as pretty-printed JSON.
+pub fn format_json_stability(report: &StabilityReport) -> String {
+    serde_json::to_string_pretty(report).expect("failed to serialize StabilityReport")
 }
 
 #[cfg(test)]
