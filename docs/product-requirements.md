@@ -144,12 +144,12 @@
 
 ## In Progress
 
-- [ ] **REQ-028: Multi-scenario historical calibration**
+- [ ] **REQ-030: Multi-scenario historical calibration**
   - *Context:* All scenarios (Technology, Stabilized) must fit real-world historical data over the shared 1960–2023 period, not just BAU. Scenarios share the same history but diverge only after policy switch years.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Priority:* high
 
-- [ ] **REQ-029: Scenario trajectory validation**
+- [ ] **REQ-031: Scenario trajectory validation**
   - *Context:* Non-BAU scenarios must produce meaningfully divergent futures compared to BAU. Technology should show extended resource availability and delayed decline; Stabilized should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
   - *Components:* `world3-cli`: validate subcommand or dedicated test
   - *Priority:* high
