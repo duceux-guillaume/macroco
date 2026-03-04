@@ -120,6 +120,7 @@
   - *Context:* Coverage visibility and impact analysis require bidirectional links between requirements and tests.
   - *Components:* `scripts/traceability.py`, `docs/traceability-matrix.md`, CI traceability job
   - *Done:* `// REQ:` annotations in test files, CI script checks coverage, auto-generated traceability matrix.
+  - *Exempt:* Infrastructure tooling; the traceability script itself is the implementation
 
 ---
 
