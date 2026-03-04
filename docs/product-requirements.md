@@ -69,7 +69,7 @@
   - *Exempt:* Deployment infrastructure, validated by deploy job
 
 - [x] **REQ-017: Frontend test suite**
-  - *Context:* Vitest unit test suite: 8 test files, ~150 tests covering format/extract utils, chart configs, variable descriptions, annotations, stores, and API client. CI pipeline runs tests on every PR.
+  - *Context:* Vitest unit test suite: 10 test files, ~170 tests covering format/extract utils, chart configs, variable descriptions, annotations, stores, API client, and WebSocket client. CI pipeline runs tests on every PR.
   - *Components:* `frontend`: vitest suite, test-helpers.ts, CI frontend-test job
   - *Done:* Vitest test suite with CI integration.
   - *Exempt:* Meta-requirement; test suite existence is the implementation
