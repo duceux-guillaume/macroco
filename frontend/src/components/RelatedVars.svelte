@@ -2,14 +2,15 @@
 	interface Props {
 		vars: Array<{ path: string; name: string }>;
 		onselect: (path: string) => void;
+		title?: string;
 	}
 
-	let { vars, onselect }: Props = $props();
+	let { vars, onselect, title = 'Related Variables' }: Props = $props();
 </script>
 
 {#if vars.length > 0}
 	<section>
-		<h3>Related Variables</h3>
+		<h3>{title}</h3>
 		<div class="related-list">
 			{#each vars as v}
 				<button class="related-btn" onclick={() => onselect(v.path)}>
