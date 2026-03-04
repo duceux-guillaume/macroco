@@ -155,6 +155,7 @@ pub fn population_derivatives(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
     use crate::lookup::tables::WorldLookupTables;
     use crate::model::params::ScenarioParams;
     use crate::model::state::WorldState;
@@ -227,7 +228,6 @@ mod tests {
         let lem_pollution = tables.life_exp_multiplier_pollution.eval(s.pollution.pollution_index);
         let expected = (LIFE_EXPECTANCY_BASE * lem_food * lem_health * lem_crowding * lem_pollution)
             .clamp(5.0, 90.0);
-        use approx::assert_relative_eq;
         assert_relative_eq!(s.population.life_expectancy, expected, max_relative = 1e-10);
     }
 
@@ -307,7 +307,6 @@ mod tests {
         let m2 = tables.mortality_15_44.eval(s.population.life_expectancy);
         let deaths_15_44 = s.population.cohort_15_44 * m2;
         let expected = aging_0 - aging_15 - deaths_15_44;
-        use approx::assert_relative_eq;
         assert_relative_eq!(d.d_cohort_15_44, expected, max_relative = 1e-10);
     }
 
