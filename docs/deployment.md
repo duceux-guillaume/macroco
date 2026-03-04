@@ -126,7 +126,7 @@ The server exposes `GET /api/v1/health` which returns:
 {"status": "ok", "version": "0.1.0"}
 ```
 
-Fly.io checks this every 30 seconds with a 10-second grace period on startup.
+Fly.io checks this every 15 seconds with a 30-second grace period on cold start.
 
 ## Monitoring
 

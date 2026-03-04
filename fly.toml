@@ -20,8 +20,8 @@ kill_timeout = "20s"
     soft_limit = 200
 
 [[http_service.checks]]
-  grace_period = "10s"
-  interval = "30s"
+  grace_period = "30s"
+  interval = "15s"
   method = "GET"
   path = "/api/v1/health"
   timeout = "5s"
