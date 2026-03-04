@@ -31,12 +31,12 @@
 	let tooltipYear = $state(0);
 	let tooltipItems = $state<Array<{ label: string; color: string; rawValue: string; unit: string; trend: string }>>([]);
 
-	const margin = { top: 32, right: 180, bottom: 32, left: 48 };
+	const margin = { top: 32, right: 200, bottom: 32, left: 48 };
 	let isBrushing = false;
 
-	// Eye icon SVG paths (12x12 viewBox)
-	const EYE_OPEN = 'M1,6 C3,2 9,2 11,6 C9,10 3,10 1,6 Z M6,4.5 a1.5,1.5 0 1,0 0.01,0';
-	const EYE_CLOSED = 'M1,6 C3,2 9,2 11,6 C9,10 3,10 1,6 Z M2,2 L10,10';
+	// Eye icon SVG paths (16x16 viewBox)
+	const EYE_OPEN = 'M1.3,8 C4,2.7 12,2.7 14.7,8 C12,13.3 4,13.3 1.3,8 Z M8,6 a2,2 0 1,0 0.01,0';
+	const EYE_CLOSED = 'M1.3,8 C4,2.7 12,2.7 14.7,8 C12,13.3 4,13.3 1.3,8 Z M2.7,2.7 L13.3,13.3';
 
 	// Store brush reference for keyboard clear
 	let activeBrushGroup: d3.Selection<SVGGElement, null, null, undefined> | null = null;
@@ -558,7 +558,7 @@
 			(enter) => {
 				const item = enter.append('g')
 					.attr('class', 'legend-item')
-					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
+					.attr('transform', (_, i) => `translate(0, ${i * 28})`)
 					.attr('cursor', 'pointer')
 					.attr('opacity', getLegendOpacity)
 					.on('click', handleItemClick);
@@ -572,7 +572,7 @@
 					.attr('d', getEyePath)
 					.attr('fill', 'none')
 					.attr('stroke', 'var(--text-secondary)')
-					.attr('stroke-width', 1);
+					.attr('stroke-width', 1.2);
 
 				eyeG.on('click', handleEyeClick);
 
@@ -581,28 +581,28 @@
 					const el = d3.select(this);
 					if (d.fieldPath === '__historical__') {
 						el.append('line')
-							.attr('x1', 18).attr('y1', 6)
-							.attr('x2', 30).attr('y2', 6)
+							.attr('x1', 22).attr('y1', 8)
+							.attr('x2', 38).attr('y2', 8)
 							.attr('stroke', d.color)
 							.attr('stroke-width', 2)
-							.attr('stroke-dasharray', '3,2');
+							.attr('stroke-dasharray', '4,2');
 					} else {
 						el.append('rect')
-							.attr('x', 18)
-							.attr('width', 12)
-							.attr('height', 3)
-							.attr('y', 5)
-							.attr('rx', 1.5)
+							.attr('x', 22)
+							.attr('width', 16)
+							.attr('height', 4)
+							.attr('y', 7)
+							.attr('rx', 2)
 							.attr('fill', d.color);
 					}
 				});
 
 				// Label text (at x=34)
 				item.append('text')
-					.attr('x', 34)
-					.attr('y', 10)
+					.attr('x', 42)
+					.attr('y', 12)
 					.attr('fill', 'var(--text-secondary)')
-					.attr('font-size', '11px')
+					.attr('font-size', '13px')
 					.text((d) => d.label);
 
 				return item;
@@ -611,7 +611,7 @@
 				update
 					.transition()
 					.duration(400)
-					.attr('transform', (_, i) => `translate(0, ${i * 22})`)
+					.attr('transform', (_, i) => `translate(0, ${i * 28})`)
 					.attr('opacity', getLegendOpacity);
 				update.select('text').text((d) => d.label);
 				update.select('rect').attr('fill', (d) => d.color);
