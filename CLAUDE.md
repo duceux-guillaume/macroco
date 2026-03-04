@@ -26,6 +26,17 @@ Design principles:
 - No backend changes needed for UX enhancements
 - Maintain dark theme, D3 direct rendering, existing component patterns
 
+## Requirements & Architecture Traceability
+
+- Product requirements with stable IDs: `docs/product-requirements.md`
+- System architecture and component design: `docs/architecture.md`
+
+**When to update these docs:**
+- Adding a new feature → create a new REQ-NNN in product-requirements.md first
+- Changing system design (new crate, new API endpoint, new store) → update architecture.md
+- Completing a REQ → mark it done and verify Components field is accurate
+- Writing a design doc in docs/plans/ → reference the REQ-NNN it addresses
+
 ## Repository Structure
 
 ```
@@ -41,14 +52,16 @@ data/
   historical/         # Bundled historical CSVs used as seed/fallback data.
   presets/            # Named scenario parameter sets (BAU, Technology, Stabilized, LtG 1972).
 docs/
-  quick-start.md       # Beginner-friendly setup guide
-  model-guide.md       # World 3 model explanation (beginner + expert tracks)
-  simulation-engine.md # World 3 model architecture, sectors, solver
-  cli.md               # CLI commands and flags reference
-  api-server.md        # REST + WebSocket API documentation
-  chart-output.md      # PNG chart rendering feature
-  deployment.md        # Fly.io deployment guide
-  examples/            # Generated example charts
+  product-requirements.md  # Feature requirements (REQ-NNN IDs)
+  architecture.md          # System design, components, data flow
+  quick-start.md           # Beginner-friendly setup guide
+  model-guide.md           # World 3 model explanation (beginner + expert tracks)
+  simulation-engine.md     # World 3 model architecture, sectors, solver
+  cli.md                   # CLI commands and flags reference
+  api-server.md            # REST + WebSocket API documentation
+  chart-output.md          # PNG chart rendering feature
+  deployment.md            # Fly.io deployment guide
+  examples/                # Generated example charts
 Dockerfile            # Multi-stage build (Rust + Node + slim runtime)
 fly.toml              # Fly.io app configuration
 .claude/commands/      # Project-local Claude Code slash commands (/audit-tables)
@@ -105,35 +118,20 @@ cd frontend && npm run check && npm test   # vitest unit tests
 cd frontend && npm run test:watch          # vitest in watch mode
 ```
 
-## Key Architecture Decisions
+## Developer Conventions
+
+> System architecture is in `docs/architecture.md`. Below are conventions and gotchas for working in this codebase.
 
 ### Simulation Engine (`world3-core`)
-- `WorldState` is a typed struct (not `Vec<f64>`) — fields mirror published World 3 equations directly.
-- `to_vec()` / `from_vec()` on `WorldState` are used only at solver boundaries (RK4 arithmetic).
-- `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
 - `WorldState::N` = 16 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`.
+- `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
-- All non-linear relationships encoded as `LookupTable` (piecewise-linear). Tables loaded from `/data/lookup_tables/*.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
 - Our model omits World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1), producing ~59% more food at identical parameters. Food-related tables (IFPC, FIOAA) are calibrated lower to compensate. BAU IOPC peaks at ~308.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
-
-### API Server (`world3-api`)
-- `AppState` holds: solver, lookup tables, scenario store (`RwLock<HashMap<Uuid, Scenario>>`), live data snapshot, ingestion broadcast sender, historical data.
-- `AppState.historical`: `HashMap<String, HistoricalVariable>` loaded at startup from `data/historical/*.csv`. Env var `HISTORICAL_DATA_DIR` overrides path.
-- Historical API: `GET /api/v1/historical` (all variables) and `GET /api/v1/historical/{variable_id}`. Both return `Cache-Control: public, max-age=86400`.
-- WebSocket sessions stream simulation steps via `mpsc` channel from blocking task to async handler.
-- Parameter updates from the frontend are debounced 50ms server-side; current task is aborted and replaced.
-- In production, serves static frontend via `tower-http::ServeDir` with SPA fallback (`STATIC_DIR` env var). API at `/api/v1/*`, frontend at all other paths.
-- Graceful shutdown handles SIGTERM + Ctrl-C with 15s drain timeout (fly.toml `kill_timeout = 20s`).
-
-### Data Ingestion (`world3-ingestion`)
-- `DataSource` trait: each source implements `fetch() → RawSourceData` and declares its `update_interval`.
-- Fallback chain: live API → SQLite disk cache → bundled historical CSV. Never fails silently.
-- `mapping.rs` is the single source of truth for translating real-world observations into `WorldState` initial conditions.
 
 ### Frontend
 - Historical CSV file stems in `data/historical/` MUST match IDs in `frontend/src/lib/charts/unified-config.ts`: `population`, `resources`, `food`, `industrial`, `pollution`, `life-expectancy`.
