@@ -1,6 +1,4 @@
-#[allow(dead_code)]
 pub mod analysis;
-#[allow(dead_code)]
 pub mod compare;
 pub mod format_json;
 pub mod format_text;
@@ -14,7 +12,6 @@ use world3_core::{
 };
 
 pub use analysis::SimDiagnostics;
-pub use compare::ComparativeDiagnostics;
 
 struct TrackedVar {
     name: &'static str,
