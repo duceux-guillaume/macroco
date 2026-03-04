@@ -5,12 +5,22 @@
 		title: string;
 		meta: string;
 		ariaLabel: string;
+		beginner: string;
+		expert: string;
 		onclose: () => void;
 		children: Snippet;
 	}
 
-	let { title, meta, ariaLabel, onclose, children }: Props = $props();
+	let { title, meta, ariaLabel, beginner, expert, onclose, children }: Props = $props();
+
+	let showExpert = $state(false);
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') onclose();
+	}
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -25,6 +35,19 @@
 	</div>
 
 	<div class="panel-body">
+		<section>
+			<p class="description">{beginner}</p>
+		</section>
+
+		<section>
+			<button class="toggle-btn" onclick={() => (showExpert = !showExpert)}>
+				{showExpert ? '▾' : '▸'} Technical Detail
+			</button>
+			{#if showExpert}
+				<p class="expert">{expert}</p>
+			{/if}
+		</section>
+
 		{@render children()}
 	</div>
 </div>
@@ -95,5 +118,37 @@
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
+	}
+	.panel-body :global(section h3) {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-secondary);
+		margin: 0 0 8px;
+	}
+	.description {
+		font-size: 13px;
+		color: var(--text);
+		line-height: 1.6;
+	}
+	.toggle-btn {
+		background: none;
+		border: none;
+		color: var(--accent);
+		cursor: pointer;
+		font-size: 13px;
+		padding: 0;
+		text-align: left;
+	}
+	.toggle-btn:hover {
+		text-decoration: underline;
+	}
+	.expert {
+		font-size: 12px;
+		color: var(--text-secondary);
+		line-height: 1.6;
+		margin-top: 8px;
+		font-family: 'SF Mono', 'Fira Code', monospace;
+		white-space: pre-wrap;
 	}
 </style>
