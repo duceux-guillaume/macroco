@@ -1,4 +1,4 @@
-use super::analysis::{PhaseKind, SimDiagnostics, VariableDiagnostics};
+use super::analysis::{PhaseKind, SimDiagnostics, StabilityReport, VariableDiagnostics};
 use super::compare::ComparativeDiagnostics;
 use std::fmt::Write;
 
@@ -180,6 +180,65 @@ pub fn format_text_comparative(comp: &ComparativeDiagnostics) -> String {
             writeln!(out, "  Trajectory: same pattern").unwrap();
         }
 
+        writeln!(out).unwrap();
+    }
+
+    out
+}
+
+/// Format a StabilityReport as human-readable text.
+pub fn format_text_stability(report: &StabilityReport) -> String {
+    let mut out = String::new();
+
+    let verdict = if report.stable { "STABLE" } else { "UNSTABLE" };
+    writeln!(
+        out,
+        "=== Stability Check: {} — {} ===",
+        report.preset_name, verdict
+    )
+    .unwrap();
+
+    let dt_strs: Vec<String> = report.dt_values.iter().map(|d| format!("{:.2}", d)).collect();
+    writeln!(out, "dt values tested: {}\n", dt_strs.join(", ")).unwrap();
+
+    for vs in &report.variables {
+        let status = if vs.converged { "OK" } else { "UNSTABLE" };
+        writeln!(out, "-- {} [{}] ----------------------------------------", vs.name, status).unwrap();
+
+        // Final values at each dt
+        let finals: Vec<String> = vs
+            .final_values
+            .iter()
+            .zip(&report.dt_values)
+            .map(|(v, d)| format!("dt={:.2}: {:.3e}", d, v))
+            .collect();
+        writeln!(out, "  Final:   {}", finals.join("  |  ")).unwrap();
+
+        // Peak values at each dt
+        let peaks: Vec<String> = vs
+            .peak_values
+            .iter()
+            .zip(&report.dt_values)
+            .map(|(v, d)| format!("dt={:.2}: {:.3e}", d, v))
+            .collect();
+        writeln!(out, "  Peak:    {}", peaks.join("  |  ")).unwrap();
+
+        // Phase counts at each dt
+        let phases: Vec<String> = vs
+            .phase_counts
+            .iter()
+            .zip(&report.dt_values)
+            .map(|(c, d)| format!("dt={:.2}: {}", d, c))
+            .collect();
+        writeln!(out, "  Phases:  {}", phases.join("  |  ")).unwrap();
+
+        writeln!(
+            out,
+            "  Max drift:  final {:.2}%, peak {:.2}%",
+            vs.max_final_value_drift * 100.0,
+            vs.max_peak_drift * 100.0
+        )
+        .unwrap();
         writeln!(out).unwrap();
     }
 

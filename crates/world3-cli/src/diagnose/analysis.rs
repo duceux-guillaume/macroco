@@ -29,6 +29,7 @@ pub enum AnomalyKind {
     NaN,
     Inf,
     Discontinuity,
+    Oscillation,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -62,6 +63,30 @@ pub struct SimDiagnostics {
     pub num_steps: usize,
     pub variables: Vec<VariableDiagnostics>,
     pub anomalies: Vec<Anomaly>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct StabilityReport {
+    pub preset_name: String,
+    pub dt_values: Vec<f64>,
+    pub variables: Vec<VariableStability>,
+    pub stable: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct VariableStability {
+    pub name: String,
+    /// Final value at each dt (same order as `dt_values`)
+    pub final_values: Vec<f64>,
+    /// Peak value at each dt
+    pub peak_values: Vec<f64>,
+    /// Phase count at each dt
+    pub phase_counts: Vec<usize>,
+    /// Max relative change in final value between consecutive dt halvings
+    pub max_final_value_drift: f64,
+    /// Max relative change in peak value between consecutive dt halvings
+    pub max_peak_drift: f64,
+    pub converged: bool,
 }
 
 /// Find the peak (maximum) value and its corresponding year.
@@ -231,6 +256,73 @@ pub fn detect_anomalies(name: &str, years: &[f64], values: &[f64]) -> Vec<Anomal
                 }
             }
         }
+    }
+    anomalies
+}
+
+/// Minimum number of consecutive phase reversals to flag as oscillation.
+const OSCILLATION_MIN_REVERSALS: usize = 3;
+
+/// Minimum absolute rate (fraction/yr) for a phase reversal to count as oscillatory.
+const OSCILLATION_RATE_THRESHOLD: f64 = 0.05; // 5%/yr
+
+/// Detect oscillations: rapid alternating phase reversals (Growing↔Declining).
+///
+/// An oscillation is reported when `OSCILLATION_MIN_REVERSALS` or more consecutive
+/// single-step phases alternate direction with rates exceeding `OSCILLATION_RATE_THRESHOLD`.
+/// Returns one `Anomaly` per oscillation window, reported at the start year.
+pub fn detect_oscillations(name: &str, phases: &[Phase]) -> Vec<Anomaly> {
+    let mut anomalies = Vec::new();
+    if phases.len() < OSCILLATION_MIN_REVERSALS {
+        return anomalies;
+    }
+
+    let mut run_start = 0;
+    let mut run_len = 1;
+
+    for i in 1..phases.len() {
+        let prev = &phases[i - 1];
+        let curr = &phases[i];
+        // Check alternation: Growing↔Declining (ignore Plateau)
+        let alternates = matches!(
+            (&prev.kind, &curr.kind),
+            (PhaseKind::Growing, PhaseKind::Declining) | (PhaseKind::Declining, PhaseKind::Growing)
+        );
+        // Check that both phases are short (≤ 2 years) with high rates
+        let high_rate = prev.avg_annual_rate.abs() >= OSCILLATION_RATE_THRESHOLD
+            && curr.avg_annual_rate.abs() >= OSCILLATION_RATE_THRESHOLD;
+        let short = (prev.end_year - prev.start_year) <= 2.0
+            && (curr.end_year - curr.start_year) <= 2.0;
+
+        if alternates && high_rate && short {
+            run_len += 1;
+        } else {
+            if run_len >= OSCILLATION_MIN_REVERSALS {
+                anomalies.push(Anomaly {
+                    year: phases[run_start].start_year,
+                    variable: name.to_string(),
+                    kind: AnomalyKind::Oscillation,
+                    value: phases[run_start..run_start + run_len]
+                        .iter()
+                        .map(|p| p.avg_annual_rate.abs())
+                        .fold(0.0_f64, f64::max),
+                });
+            }
+            run_start = i;
+            run_len = 1;
+        }
+    }
+    // Close final run
+    if run_len >= OSCILLATION_MIN_REVERSALS {
+        anomalies.push(Anomaly {
+            year: phases[run_start].start_year,
+            variable: name.to_string(),
+            kind: AnomalyKind::Oscillation,
+            value: phases[run_start..run_start + run_len]
+                .iter()
+                .map(|p| p.avg_annual_rate.abs())
+                .fold(0.0_f64, f64::max),
+        });
     }
     anomalies
 }
@@ -577,5 +669,56 @@ mod tests {
         assert!(diag.phases.len() >= 2);
         assert_eq!(diag.initial, values[0]);
         assert_eq!(diag.final_value, *values.last().unwrap());
+    }
+
+    // --- Oscillation detection tests ---
+
+    #[test]
+    fn oscillation_detected_in_alternating_phases() {
+        // 5 alternating high-rate single-step phases
+        let phases = vec![
+            Phase { kind: PhaseKind::Growing, start_year: 1940.0, end_year: 1941.0, start_value: 100.0, end_value: 110.0, avg_annual_rate: 0.10 },
+            Phase { kind: PhaseKind::Declining, start_year: 1941.0, end_year: 1942.0, start_value: 110.0, end_value: 100.0, avg_annual_rate: -0.09 },
+            Phase { kind: PhaseKind::Growing, start_year: 1942.0, end_year: 1943.0, start_value: 100.0, end_value: 112.0, avg_annual_rate: 0.12 },
+            Phase { kind: PhaseKind::Declining, start_year: 1943.0, end_year: 1944.0, start_value: 112.0, end_value: 98.0, avg_annual_rate: -0.13 },
+            Phase { kind: PhaseKind::Growing, start_year: 1944.0, end_year: 1945.0, start_value: 98.0, end_value: 115.0, avg_annual_rate: 0.17 },
+        ];
+        let anomalies = detect_oscillations("test", &phases);
+        assert_eq!(anomalies.len(), 1);
+        assert_eq!(anomalies[0].kind, AnomalyKind::Oscillation);
+        assert_eq!(anomalies[0].year, 1940.0);
+    }
+
+    #[test]
+    fn no_oscillation_in_smooth_phases() {
+        let phases = vec![
+            Phase { kind: PhaseKind::Growing, start_year: 1900.0, end_year: 1950.0, start_value: 100.0, end_value: 500.0, avg_annual_rate: 0.03 },
+            Phase { kind: PhaseKind::Declining, start_year: 1950.0, end_year: 2000.0, start_value: 500.0, end_value: 200.0, avg_annual_rate: -0.02 },
+        ];
+        let anomalies = detect_oscillations("test", &phases);
+        assert!(anomalies.is_empty());
+    }
+
+    #[test]
+    fn no_oscillation_with_low_rate_alternation() {
+        // Alternating but below rate threshold
+        let phases = vec![
+            Phase { kind: PhaseKind::Growing, start_year: 1940.0, end_year: 1941.0, start_value: 100.0, end_value: 101.0, avg_annual_rate: 0.01 },
+            Phase { kind: PhaseKind::Declining, start_year: 1941.0, end_year: 1942.0, start_value: 101.0, end_value: 100.0, avg_annual_rate: -0.01 },
+            Phase { kind: PhaseKind::Growing, start_year: 1942.0, end_year: 1943.0, start_value: 100.0, end_value: 101.0, avg_annual_rate: 0.01 },
+            Phase { kind: PhaseKind::Declining, start_year: 1943.0, end_year: 1944.0, start_value: 101.0, end_value: 100.0, avg_annual_rate: -0.01 },
+        ];
+        let anomalies = detect_oscillations("test", &phases);
+        assert!(anomalies.is_empty(), "low-rate alternation should not be flagged");
+    }
+
+    #[test]
+    fn anomaly_detects_discontinuity() {
+        // >1000% jump in one step
+        let years = vec![1900.0, 1901.0, 1902.0];
+        let values = vec![1.0, 20.0, 1.0];
+        let anomalies = detect_anomalies("test", &years, &values);
+        assert!(anomalies.iter().any(|a| a.kind == AnomalyKind::Discontinuity),
+            "expected Discontinuity anomaly, got: {:?}", anomalies);
     }
 }

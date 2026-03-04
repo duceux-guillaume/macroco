@@ -80,6 +80,77 @@ pub fn run_analysis(preset_name: &str, start: f64, end: f64, dt: f64) -> Result<
     Ok(analyze_sim(&sim, preset_name))
 }
 
+/// Convergence threshold: max allowed relative drift between dt halvings.
+const STABILITY_THRESHOLD: f64 = 0.01; // 1%
+
+/// Run the simulation at multiple dt values and report convergence.
+///
+/// Uses dt, dt/2, and dt/4. A variable is considered converged when the
+/// relative change in both final value and peak value between consecutive
+/// halvings stays below `STABILITY_THRESHOLD`.
+pub fn run_stability_check(
+    preset_name: &str,
+    start: f64,
+    end: f64,
+    dt: f64,
+) -> Result<analysis::StabilityReport> {
+    let dt_values = vec![dt, dt / 2.0, dt / 4.0];
+    let diags: Vec<SimDiagnostics> = dt_values
+        .iter()
+        .map(|&d| run_analysis(preset_name, start, end, d))
+        .collect::<Result<Vec<_>>>()?;
+
+    let var_count = diags[0].variables.len();
+    let mut all_converged = true;
+    let mut variables = Vec::with_capacity(var_count);
+
+    for vi in 0..var_count {
+        let final_values: Vec<f64> = diags.iter().map(|d| d.variables[vi].final_value).collect();
+        let peak_values: Vec<f64> = diags.iter().map(|d| d.variables[vi].peak.value).collect();
+        let phase_counts: Vec<usize> = diags.iter().map(|d| d.variables[vi].phases.len()).collect();
+
+        let max_final_drift = consecutive_max_relative_change(&final_values);
+        let max_peak_drift = consecutive_max_relative_change(&peak_values);
+
+        let converged =
+            max_final_drift < STABILITY_THRESHOLD && max_peak_drift < STABILITY_THRESHOLD;
+        if !converged {
+            all_converged = false;
+        }
+
+        variables.push(analysis::VariableStability {
+            name: diags[0].variables[vi].name.clone(),
+            final_values,
+            peak_values,
+            phase_counts,
+            max_final_value_drift: max_final_drift,
+            max_peak_drift,
+            converged,
+        });
+    }
+
+    Ok(analysis::StabilityReport {
+        preset_name: preset_name.to_string(),
+        dt_values,
+        variables,
+        stable: all_converged,
+    })
+}
+
+/// Max relative change between consecutive elements in a slice.
+fn consecutive_max_relative_change(vals: &[f64]) -> f64 {
+    vals.windows(2)
+        .map(|w| {
+            let base = w[0].abs().max(w[1].abs());
+            if base < 1e-12 {
+                0.0
+            } else {
+                (w[1] - w[0]).abs() / base
+            }
+        })
+        .fold(0.0_f64, f64::max)
+}
+
 pub fn analyze_sim(sim: &SimulationOutput, preset_name: &str) -> SimDiagnostics {
     let years: Vec<f64> = sim.states.iter().map(|s| s.time).collect();
     let vars = tracked_variables();
@@ -90,7 +161,10 @@ pub fn analyze_sim(sim: &SimulationOutput, preset_name: &str) -> SimDiagnostics 
         let values: Vec<f64> = sim.states.iter().map(|s| (tv.extract)(s)).collect();
         let anomalies = analysis::detect_anomalies(tv.name, &years, &values);
         all_anomalies.extend(anomalies);
-        variables.push(analysis::analyze_variable(tv.name, tv.unit, &years, &values));
+        let var_diag = analysis::analyze_variable(tv.name, tv.unit, &years, &values);
+        let oscillations = analysis::detect_oscillations(tv.name, &var_diag.phases);
+        all_anomalies.extend(oscillations);
+        variables.push(var_diag);
     }
 
     SimDiagnostics {
@@ -165,5 +239,36 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(&json).expect("Invalid JSON");
         assert_eq!(parsed["variables"].as_array().unwrap().len(), 6);
         assert!(parsed["anomalies"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn technology_has_oscillation_anomaly() {
+        let diag = run_analysis("technology", 1900.0, 2100.0, 1.0).expect("Tech sim failed");
+        let oscillations: Vec<_> = diag.anomalies.iter()
+            .filter(|a| a.kind == analysis::AnomalyKind::Oscillation)
+            .collect();
+        assert!(!oscillations.is_empty(),
+            "Technology preset should have oscillation anomalies at dt=1.0");
+        assert!(oscillations.iter().any(|a| a.variable == "Food / capita"),
+            "Food/capita should oscillate in technology preset");
+    }
+
+    #[test]
+    fn bau_stability_check_passes() {
+        let report = run_stability_check("bau", 1900.0, 2100.0, 1.0).expect("BAU stability failed");
+        assert!(report.stable, "BAU should be stable at dt=1.0");
+        assert_eq!(report.dt_values.len(), 3);
+        for vs in &report.variables {
+            assert!(vs.converged, "{} should converge in BAU", vs.name);
+        }
+    }
+
+    #[test]
+    fn stability_json_roundtrips() {
+        let report = run_stability_check("bau", 1900.0, 2100.0, 1.0).expect("BAU stability failed");
+        let json = format_json::format_json_stability(&report);
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("Invalid JSON");
+        assert_eq!(parsed["stable"], true);
+        assert_eq!(parsed["variables"].as_array().unwrap().len(), 6);
     }
 }
