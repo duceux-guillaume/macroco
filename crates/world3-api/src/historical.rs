@@ -270,7 +270,10 @@ bad_year,100
 
     #[test]
     fn load_reads_multiple_csv_files() {
-        let dir = std::env::temp_dir().join("historical_test_multi");
+        let dir = std::env::temp_dir().join(format!(
+            "historical_test_multi_{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
 

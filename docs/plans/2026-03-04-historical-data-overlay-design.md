@@ -47,11 +47,11 @@ year,value
 
 Files:
 - `population.csv`
-- `resources_remaining.csv`
-- `food_per_capita.csv`
-- `industrial_output_per_capita.csv`
-- `pollution_index.csv`
-- `life_expectancy.csv`
+- `resources.csv`
+- `food.csv`
+- `industrial.csv`
+- `pollution.csv`
+- `life-expectancy.csv`
 
 ## Transformations
 

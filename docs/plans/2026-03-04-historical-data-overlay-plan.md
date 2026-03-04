@@ -83,7 +83,7 @@ No arithmetic transformation — FAOSTAT units (kg/capita/yr) match World 3.
 # source: FAOSTAT Food Balance Sheets - Grand Total food supply quantity
 # url: https://www.fao.org/faostat/en/#data/FBS
 # units: kg/person/year
-# transformation: none (FAOSTAT food supply quantity matches World 3 units)
+# transformation: kcal_per_capita_per_day * 365 / 1200 (weighted average food energy density kcal/kg)
 # retrieved: 2026-03-04
 ```
 
@@ -1041,7 +1041,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Source:** FAOSTAT Food Balance Sheets — Grand Total food supply quantity
 - **URL:** https://www.fao.org/faostat/en/#data/FBS
 - **Units:** kg/person/year
-- **Transformation:** none (FAOSTAT units match World 3)
+- **Transformation:** `kcal_per_capita_per_day * 365 / 1200` (1200 kcal/kg weighted average food energy density)
 - **Range:** 1961–2022
 - **Caveat:** The World 3 1900 starting value (400 kg/capita/yr) is lower than modern FAO values (~900), reflecting genuine improvement in food supply.
 
