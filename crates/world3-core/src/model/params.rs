@@ -63,11 +63,11 @@ impl Default for ScenarioParams {
             industrial_depreciation_rate: 1.0 / 14.0,
             // World3-03: alsc1 = 20 yr → depreciation = 1/20
             service_depreciation_rate: 0.05,
-            // Calibrated 0.012 to match historical IOPC trajectory (World Bank
+            // Calibrated 0.014 to match historical IOPC trajectory (World Bank
             // 1960-2023). Higher than original 0.002 because ISOPC dynamic lookup
             // now captures service-capital feedback; tech rate handles remaining
-            // industrial productivity growth not in World3-03 structure.
-            technology_growth_rate: 0.012,
+            // industrial productivity growth not in World3-03 structure (~1.4%/yr TFP).
+            technology_growth_rate: 0.014,
             agricultural_technology: 1.0,
             land_protection_fraction: 0.0,
             subsistence_food_per_capita: 230.0,

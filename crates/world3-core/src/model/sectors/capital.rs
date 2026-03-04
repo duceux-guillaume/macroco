@@ -189,7 +189,7 @@ mod tests {
         capital_derivatives(&mut s2, &params, &tables);
         let io_1900 = s2.capital.industrial_output;
 
-        // tech_multiplier at 2000 = (1 + 0.002)^30
+        // tech_multiplier at 2000 = (1 + tech_rate)^30
         let expected_ratio = (1.0 + params.technology_growth_rate).powf(30.0);
         assert_relative_eq!(io_2000 / io_1900, expected_ratio, max_relative = 1e-10);
     }

@@ -299,13 +299,13 @@ impl WorldLookupTables {
 
             // Fraction of industrial output allocated to consumption (FIOAC)
             // Based on World3-03 FIOAC1 table (x = IOPC/IOPCD, IOPCD ≈ $400).
-            // Based on World3-03 FIOAC1 (raised ~0.10 for missing IOPCD/ISOPC refs).
-            // Smoothed above IOPC=400 to avoid IOPC stagnation trap.
-            // Calibrated for historical IOPC RMSE <30% (REQ-026).
+            // Smoothed above IOPC=400 to avoid IOPC stagnation trap, capped at
+            // 0.70 (real-world household consumption is ~55-60% of GDP, not 83%).
+            // Calibrated for historical IOPC RMSE <23% (REQ-026).
             consumption_fraction: LookupTable::new(
                 "consumption_fraction",
                 vec![0.0, 80.0, 160.0, 240.0, 320.0, 400.0, 480.0, 560.0, 640.0, 720.0, 800.0],
-                vec![0.3, 0.32, 0.34, 0.36, 0.38, 0.43, 0.50, 0.58, 0.66, 0.74, 0.83],
+                vec![0.3, 0.32, 0.34, 0.36, 0.38, 0.40, 0.44, 0.49, 0.55, 0.62, 0.70],
             ),
 
             // Fraction of industrial output to agriculture (FIOAA)
