@@ -88,6 +88,12 @@ pub struct WorldLookupTables {
     /// y: fraction [0..1]
     pub industrial_fraction_to_services: LookupTable,
 
+    /// Indicated service output per capita (ISOPC) — World3-03 table
+    /// x: industrial output per capita [$/person/yr]
+    /// y: indicated service output per capita [$/person/yr]
+    /// As income rises, societies demand more services (health, education).
+    pub indicated_service_per_capita: LookupTable,
+
     /// Jobs per industrial capital unit (JPICU)
     /// x: industrial output per capita [$/person/yr]
     /// y: jobs per unit capital
@@ -338,6 +344,16 @@ impl WorldLookupTables {
                 "industrial_fraction_to_services",
                 vec![0.0, 0.5, 1.0, 1.5, 2.0],
                 vec![0.30, 0.20, 0.10, 0.05, 0.0],
+            ),
+
+            // Indicated service output per capita (ISOPC1)
+            // pyworld3: x = IOPC [$/person/yr], y = ISOPC [$/person/yr]
+            // As income rises, desired service levels rise, keeping SOPC/ISOPC
+            // ratio moderate and preventing premature service disinvestment.
+            indicated_service_per_capita: LookupTable::new(
+                "indicated_service_per_capita",
+                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0],
+                vec![40.0, 300.0, 640.0, 1000.0, 1220.0, 1450.0, 1650.0, 1800.0, 2000.0],
             ),
 
             // Jobs per unit of industrial capital (JPICU)
