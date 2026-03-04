@@ -206,7 +206,7 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 ### Historical Calibration (REQ-HIST-001)
 - BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023.
 - Variables: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
-- Test: `cargo test -p world3-cli --test historical_calibration`
+- Test: `cargo test -p world3-cli --test historical_calibration` (summary only; `-- --ignored` to run threshold checks)
 - Design: `docs/plans/2026-03-04-bau-historical-calibration-design.md`
 - Currently FAILING — thresholds are aspirational calibration targets.
 
