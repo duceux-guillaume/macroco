@@ -9,6 +9,7 @@ import {
 	scenarioColors
 } from './scenarios';
 import { paramsSchema, schemaBySector } from './schema';
+import { selectedVariableId, selectedParameterId, highlightedVariables } from './info';
 import { makeWorldState } from '../test-helpers';
 import type { ScenarioSummary, ParameterDescriptor } from '../types';
 
@@ -18,6 +19,8 @@ beforeEach(() => {
 	scenarios.set([]);
 	focusedScenarioId.set(null);
 	paramsSchema.set([]);
+	selectedVariableId.set(null);
+	selectedParameterId.set(null);
 });
 
 describe('activeSimData', () => {
@@ -182,5 +185,45 @@ describe('schemaBySector', () => {
 	it('returns empty map for empty schema', () => {
 		paramsSchema.set([]);
 		expect(get(schemaBySector).size).toBe(0);
+	});
+});
+
+describe('selectedParameterId', () => {
+	it('defaults to null', () => {
+		expect(get(selectedParameterId)).toBeNull();
+	});
+
+	it('clears selectedVariableId when set', () => {
+		selectedVariableId.set('population.population');
+		selectedParameterId.set('resource_efficiency');
+		expect(get(selectedVariableId)).toBeNull();
+		expect(get(selectedParameterId)).toBe('resource_efficiency');
+	});
+
+	it('is cleared when selectedVariableId is set', () => {
+		selectedParameterId.set('resource_efficiency');
+		selectedVariableId.set('population.population');
+		expect(get(selectedParameterId)).toBeNull();
+		expect(get(selectedVariableId)).toBe('population.population');
+	});
+});
+
+describe('highlightedVariables', () => {
+	it('returns empty set when no parameter selected', () => {
+		selectedParameterId.set(null);
+		expect(get(highlightedVariables).size).toBe(0);
+	});
+
+	it('returns related variables for selected parameter', () => {
+		selectedParameterId.set('resource_efficiency');
+		const highlighted = get(highlightedVariables);
+		expect(highlighted.has('resources.nonrenewable_resources')).toBe(true);
+		expect(highlighted.has('resources.fraction_remaining')).toBe(true);
+		expect(highlighted.has('capital.industrial_output')).toBe(true);
+	});
+
+	it('returns empty set for unknown parameter', () => {
+		selectedParameterId.set('nonexistent_param');
+		expect(get(highlightedVariables).size).toBe(0);
 	});
 });
