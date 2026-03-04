@@ -226,3 +226,53 @@ fn spawn_sim_task(
         }
     })
 }
+
+// REQ: REQ-008
+#[cfg(test)]
+mod tests {
+    use crate::models::{WsClientMsg, WsServerMsg};
+
+    #[test]
+    fn test_message_serialization_roundtrip() {
+        // WsClientMsg variants serialize with correct tags
+        let start = WsClientMsg::StartSimulation {
+            scenario_id: "bau".into(),
+            params: None,
+        };
+        let json = serde_json::to_string(&start).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["type"], "start_simulation");
+        assert_eq!(v["scenario_id"], "bau");
+        assert!(v.get("params").is_some());
+
+        let stop = WsClientMsg::StopSimulation;
+        let json = serde_json::to_string(&stop).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["type"], "stop_simulation");
+
+        // WsServerMsg variants
+        let err = WsServerMsg::SimError {
+            message: "boom".into(),
+        };
+        let json = serde_json::to_string(&err).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["type"], "sim_error");
+        assert_eq!(v["message"], "boom");
+
+        let ack = WsServerMsg::ParamsAck {
+            scenario_id: "bau".into(),
+        };
+        let json = serde_json::to_string(&ack).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["type"], "params_ack");
+
+        let complete = WsServerMsg::SimComplete {
+            scenario_id: "bau".into(),
+            total_steps: 42,
+        };
+        let json = serde_json::to_string(&complete).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["type"], "sim_complete");
+        assert_eq!(v["total_steps"], 42);
+    }
+}
