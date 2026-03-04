@@ -166,3 +166,8 @@
 - [ ] **REQ-015: Performance benchmarks and sensitivity analysis**
   - *Context:* Milestone 4 requires benchmarks for solver performance and sensitivity analysis to quantify how parameter changes affect model outputs.
   - *Priority:* medium
+
+- [ ] **REQ-028: User feedback mechanism**
+  - *Context:* Users need a way to report bugs and request features from within the app. A sidebar footer with GitHub Issues links provides a lightweight, zero-backend feedback channel.
+  - *Priority:* medium
+  - *Components:* `frontend/src/components/Sidebar.svelte`, `frontend/src/lib/utils/feedback-url.ts`, `.github/ISSUE_TEMPLATE/`
