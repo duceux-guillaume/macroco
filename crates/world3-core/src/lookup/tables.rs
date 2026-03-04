@@ -309,11 +309,11 @@ impl WorldLookupTables {
             // moderate and preventing the zero-allocation trap.
             // Table shape recalibrated for LFH/PL factors (×0.63 food reduction).
             // Higher allocation at moderate food_ratio compensates for reduced food output.
-            // Floor of 0.0 at high food_ratio (pyworld3-aligned).
+            // Floor of 0.005 at high food_ratio (prevents oscillation in Stabilized preset).
             industrial_fraction_to_agriculture: LookupTable::new(
                 "industrial_fraction_to_agriculture",
-                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5],
-                vec![0.4, 0.22, 0.12, 0.04, 0.01, 0.0],
+                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 4.0],
+                vec![0.4, 0.22, 0.12, 0.04, 0.01, 0.005, 0.005],
             ),
 
             // Indicated food per capita (IFPC) — calibrated for our model.
