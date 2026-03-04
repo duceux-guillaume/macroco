@@ -20,7 +20,7 @@ This follows the project's existing pattern: stores in `.ts` files, tests in `.t
 |------|--------|
 | `frontend/src/lib/stores/simulation-controls.ts` | **New** — extracted `updateSimField()`, debounce timer, `getSimParams()` |
 | `frontend/src/components/SimulationControls.svelte` | **Edit** — import from new module, remove inline logic |
-| `frontend/src/lib/stores/simulation-controls.test.ts` | **New** — 6 unit tests |
+| `frontend/src/lib/stores/simulation-controls.test.ts` | **New** — 9 unit tests |
 
 ## Extracted API
 
@@ -70,12 +70,15 @@ export function updateSimField(field: string, value: number): void {
 
 | # | Test | Assert |
 |---|------|--------|
-| 1 | `updateSimField` updates cache immediately | `get(scenarioParamsCache).get(id).start_year` equals new value synchronously |
-| 2 | `updateSimField` sends WS after 200ms | After `vi.advanceTimersByTime(200)`, `send` called once with correct payload |
-| 3 | Rapid updates debounce to single send | 3 calls in 50ms → advance 200ms → `send` called once with last value |
-| 4 | No-op without focused scenario | `focusedScenarioId` is null → cache unchanged, `send` not called |
-| 5 | No-op if params missing from cache | Focused ID set but cache empty → `send` not called |
-| 6 | Each field updates independently | `start_year`, `end_year`, `time_step` each produce correct merged params |
+| 1 | `getSimParams` returns null when no focused scenario | `getSimParams()` is null |
+| 2 | `getSimParams` returns null when ID has no cached params | `getSimParams()` is null |
+| 3 | `getSimParams` returns params for focused scenario | `getSimParams()` equals cached params |
+| 4 | `updateSimField` updates cache immediately | `get(scenarioParamsCache).get(id).start_year` equals new value synchronously |
+| 5 | `updateSimField` sends WS after 200ms | After `vi.advanceTimersByTime(200)`, `send` called once with correct payload |
+| 6 | Rapid updates debounce to single send | 3 calls in 50ms → advance 200ms → `send` called once with last value |
+| 7 | No-op without focused scenario | `focusedScenarioId` is null → cache unchanged, `send` not called |
+| 8 | No-op if params missing from cache | Focused ID set but cache empty → `send` not called |
+| 9 | Each field updates independently | `start_year`, `end_year`, `time_step` each produce correct merged params |
 
 **Mocking:**
 - `vi.mock('$lib/ws')` — mock `send` function
