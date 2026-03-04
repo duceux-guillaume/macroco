@@ -6,64 +6,75 @@
 
 | REQ | Title | Status | Test Files |
 |-----|-------|--------|------------|
-| REQ-001 | Core simulation engine | Done | — |
-| REQ-002 | Lookup table infrastructure | Done | — |
-| REQ-003 | CLI batch simulation | Done | — |
-| REQ-004 | Scenario presets | Done | — |
-| REQ-005 | Validation against Meadows 1972 | Done | — |
+| REQ-001 | Core simulation engine | Done | `crates/world3-core/src/model/derivatives.rs`, `crates/world3-core/src/model/sectors/agriculture.rs`, `crates/world3-core/src/model/sectors/capital.rs`, `crates/world3-core/src/model/sectors/pollution.rs`, `crates/world3-core/src/model/sectors/population.rs`, `crates/world3-core/src/model/sectors/resources.rs`, `crates/world3-core/src/model/state.rs`, `crates/world3-core/src/solver/rk4.rs` |
+| REQ-002 | Lookup table infrastructure | Done | `crates/world3-core/src/lookup/table.rs` |
+| REQ-003 | CLI batch simulation | Done | `crates/world3-cli/src/diagnose/analysis.rs`, `crates/world3-cli/src/diagnose/compare.rs`, `crates/world3-cli/src/diagnose/format_json.rs`, `crates/world3-cli/src/diagnose/format_text.rs`, `crates/world3-cli/src/diagnose/mod.rs`, `crates/world3-core/src/output.rs` |
+| REQ-004 | Scenario presets | Done | `crates/world3-core/src/model/params.rs` |
+| REQ-005 | Validation against Meadows 1972 | Done | `crates/world3-core/src/solver/rk4.rs` |
 | REQ-006 | PNG chart output | Done | — |
-| REQ-007 | REST API server | Done | — |
+| REQ-007 | REST API server | Done | `frontend/src/lib/api.test.ts` |
 | REQ-008 | WebSocket streaming simulation | Done | — |
-| REQ-009 | SvelteKit frontend | Done | — |
-| REQ-010 | CI pipeline | Done | — |
+| REQ-009 | SvelteKit frontend | Done | `frontend/src/lib/api.test.ts`, `frontend/src/lib/charts/chart-config.test.ts`, `frontend/src/lib/charts/unified-config.test.ts`, `frontend/src/lib/stores/stores.test.ts`, `frontend/src/lib/utils/extract.test.ts`, `frontend/src/lib/utils/format.test.ts` |
+| REQ-010 | CI pipeline | Done (exempt: CI infrastructure, validated by pipeline execution) | — |
 | REQ-011 | Extension sectors — climate, energy, biodiversity, inequality | Planned | — |
-| REQ-012 | Historical data calibration | Done | — |
+| REQ-012 | Historical data calibration | Done | `crates/world3-api/src/historical.rs`, `frontend/src/lib/stores/historical.test.ts` |
 | REQ-013 | Live data ingestion pipeline | Planned | — |
 | REQ-014 | Data mapping layer | Planned | — |
 | REQ-015 | Performance benchmarks and sensitivity analysis | Planned | — |
-| REQ-016 | Containerized deployment | Done | — |
-| REQ-017 | Frontend test suite | Done | — |
-| REQ-018 | Quick start guide and run script | Done | — |
-| REQ-019 | Model guide documentation | Done | — |
-| REQ-020 | Variable descriptions content module | Done | — |
-| REQ-021 | Rich chart tooltips | Done | — |
+| REQ-016 | Containerized deployment | Done (exempt: Deployment infrastructure, validated by deploy job) | — |
+| REQ-017 | Frontend test suite | Done (exempt: Meta-requirement; test suite existence is the implementation) | — |
+| REQ-018 | Quick start guide and run script | Done (exempt: Documentation only) | — |
+| REQ-019 | Model guide documentation | Done (exempt: Documentation only) | — |
+| REQ-020 | Variable descriptions content module | Done | `frontend/src/lib/content/variable-descriptions.test.ts` |
+| REQ-021 | Rich chart tooltips | Done | `frontend/src/lib/utils/format.test.ts` |
 | REQ-022 | Variable info panels | Done | — |
 | REQ-023 | Simulation controls | Done | — |
-| REQ-024 | Chart annotations | Done | — |
-| REQ-025 | Preset comparison UX | Done | — |
+| REQ-024 | Chart annotations | Done | `frontend/src/lib/content/chart-annotations.test.ts` |
+| REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
+| REQ-026 | BAU historical calibration regression tests | In Progress | `crates/world3-cli/tests/historical_calibration.rs` |
 
 ## Reverse: Test -> REQs
 
 | Test File | REQs Covered |
 |-----------|-------------|
+| `crates/world3-api/src/historical.rs` | REQ-012 |
+| `crates/world3-cli/src/diagnose/analysis.rs` | REQ-003 |
+| `crates/world3-cli/src/diagnose/compare.rs` | REQ-003 |
+| `crates/world3-cli/src/diagnose/format_json.rs` | REQ-003 |
+| `crates/world3-cli/src/diagnose/format_text.rs` | REQ-003 |
+| `crates/world3-cli/src/diagnose/mod.rs` | REQ-003 |
+| `crates/world3-cli/tests/historical_calibration.rs` | REQ-026 |
+| `crates/world3-core/src/lookup/table.rs` | REQ-002 |
+| `crates/world3-core/src/model/derivatives.rs` | REQ-001 |
+| `crates/world3-core/src/model/params.rs` | REQ-004 |
+| `crates/world3-core/src/model/sectors/agriculture.rs` | REQ-001 |
+| `crates/world3-core/src/model/sectors/capital.rs` | REQ-001 |
+| `crates/world3-core/src/model/sectors/pollution.rs` | REQ-001 |
+| `crates/world3-core/src/model/sectors/population.rs` | REQ-001 |
+| `crates/world3-core/src/model/sectors/resources.rs` | REQ-001 |
+| `crates/world3-core/src/model/state.rs` | REQ-001 |
+| `crates/world3-core/src/output.rs` | REQ-003 |
+| `crates/world3-core/src/solver/rk4.rs` | REQ-001, REQ-005 |
+| `frontend/src/lib/api.test.ts` | REQ-007, REQ-009 |
+| `frontend/src/lib/charts/chart-config.test.ts` | REQ-009 |
+| `frontend/src/lib/charts/unified-config.test.ts` | REQ-009 |
+| `frontend/src/lib/content/chart-annotations.test.ts` | REQ-024 |
+| `frontend/src/lib/content/variable-descriptions.test.ts` | REQ-020 |
+| `frontend/src/lib/stores/historical.test.ts` | REQ-012 |
+| `frontend/src/lib/stores/stores.test.ts` | REQ-009, REQ-025 |
+| `frontend/src/lib/utils/extract.test.ts` | REQ-009 |
+| `frontend/src/lib/utils/format.test.ts` | REQ-009, REQ-021 |
 
 ## Summary
 
 - **Done requirements:** 21
-- **Covered by tests:** 0
-- **Exempt:** 0
-- **Uncovered:** 21
+- **Covered by tests:** 12
+- **Exempt:** 5
+- **Uncovered:** 4
 
 ### Uncovered Done Requirements
 
-- REQ-001: Core simulation engine
-- REQ-002: Lookup table infrastructure
-- REQ-003: CLI batch simulation
-- REQ-004: Scenario presets
-- REQ-005: Validation against Meadows 1972
 - REQ-006: PNG chart output
-- REQ-007: REST API server
 - REQ-008: WebSocket streaming simulation
-- REQ-009: SvelteKit frontend
-- REQ-010: CI pipeline
-- REQ-012: Historical data calibration
-- REQ-016: Containerized deployment
-- REQ-017: Frontend test suite
-- REQ-018: Quick start guide and run script
-- REQ-019: Model guide documentation
-- REQ-020: Variable descriptions content module
-- REQ-021: Rich chart tooltips
 - REQ-022: Variable info panels
 - REQ-023: Simulation controls
-- REQ-024: Chart annotations
-- REQ-025: Preset comparison UX
