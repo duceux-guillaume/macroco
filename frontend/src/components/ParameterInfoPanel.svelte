@@ -15,7 +15,10 @@
 	let showExpert = $state(false);
 	let parameterId = $state<string | null>(null);
 
-	const unsub = selectedParameterId.subscribe((p) => (parameterId = p));
+	const unsub = selectedParameterId.subscribe((p) => {
+		parameterId = p;
+		showExpert = false;
+	});
 
 	let info = $derived<ParameterInfo | null>(
 		parameterId ? parameterDescriptions[parameterId] ?? null : null

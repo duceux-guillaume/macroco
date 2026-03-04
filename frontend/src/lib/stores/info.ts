@@ -7,7 +7,10 @@ export const selectedVariableId = writable<string | null>(null);
 /** The field name of the currently selected parameter for the info panel (null = closed). */
 export const selectedParameterId = writable<string | null>(null);
 
-// Mutual exclusion: setting one clears the other
+// Mutual exclusion: setting one clears the other.
+// The null guards prevent infinite loops: A sets B→null, which triggers B's
+// subscriber, but since null is set it stops (guard fails). Without these
+// guards, the cascade would loop indefinitely.
 selectedVariableId.subscribe((v) => {
 	if (v !== null) selectedParameterId.set(null);
 });
