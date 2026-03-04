@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { selectedVariableId } from '$lib/stores/info';
+	import { selectedVariableId, selectedParameterId } from '$lib/stores/info';
 	import {
 		variableDescriptions,
 		feedbackLoops,
+		getRelatedParameters,
 		type VariableInfo,
 		type FeedbackLoopInfo
 	} from '$lib/content/variable-descriptions';
@@ -43,8 +44,14 @@
 		selectedVariableId.set(null);
 	}
 
+	let relatedParams = $derived(variableId ? getRelatedParameters(variableId) : []);
+
 	function selectVariable(path: string) {
 		selectedVariableId.set(path);
+	}
+
+	function selectParameter(key: string) {
+		selectedParameterId.set(key);
 	}
 </script>
 
@@ -59,5 +66,11 @@
 	>
 		<FeedbackLoops loops={relatedLoops} />
 		<RelatedVars vars={relatedVars} onselect={selectVariable} />
+		{#if relatedParams.length > 0}
+			<section>
+				<h3>Related Parameters</h3>
+				<RelatedVars vars={relatedParams} onselect={selectParameter} />
+			</section>
+		{/if}
 	</InfoPanelShell>
 {/if}

@@ -634,3 +634,20 @@ export const feedbackLoops: Record<string, FeedbackLoopInfo> = {
 		]
 	}
 };
+
+/** Reverse index: for a given variable path, find all parameters that list it in relatedVariables. */
+const relatedParamsCache = new Map<string, Array<{ path: string; name: string }>>();
+
+export function getRelatedParameters(variablePath: string): Array<{ path: string; name: string }> {
+	const cached = relatedParamsCache.get(variablePath);
+	if (cached) return cached;
+
+	const result: Array<{ path: string; name: string }> = [];
+	for (const [key, param] of Object.entries(parameterDescriptions)) {
+		if (param.relatedVariables.includes(variablePath)) {
+			result.push({ path: key, name: param.name });
+		}
+	}
+	relatedParamsCache.set(variablePath, result);
+	return result;
+}
