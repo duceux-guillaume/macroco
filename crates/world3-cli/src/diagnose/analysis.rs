@@ -208,6 +208,174 @@ pub fn is_monotonic(values: &[f64]) -> bool {
     non_decreasing || non_increasing
 }
 
+/// Detect anomalies (NaN, Inf, negative values) in a time series.
+///
+/// Returns a list of `Anomaly` entries for each problematic data point.
+pub fn detect_anomalies(name: &str, years: &[f64], values: &[f64]) -> Vec<Anomaly> {
+    assert_eq!(years.len(), values.len(), "years and values must have same length");
+
+    let mut anomalies = Vec::new();
+    for (i, (&y, &v)) in years.iter().zip(values.iter()).enumerate() {
+        if v.is_nan() {
+            anomalies.push(Anomaly {
+                year: y,
+                variable: name.to_string(),
+                kind: AnomalyKind::NaN,
+                value: v,
+            });
+        } else if v.is_infinite() {
+            anomalies.push(Anomaly {
+                year: y,
+                variable: name.to_string(),
+                kind: AnomalyKind::Inf,
+                value: v,
+            });
+        } else if v < 0.0 {
+            anomalies.push(Anomaly {
+                year: y,
+                variable: name.to_string(),
+                kind: AnomalyKind::Negative,
+                value: v,
+            });
+        }
+        // Discontinuity: large jump relative to previous value
+        if i > 0 && !v.is_nan() && !values[i - 1].is_nan()
+            && !v.is_infinite() && !values[i - 1].is_infinite()
+        {
+            let prev = values[i - 1];
+            if prev.abs() > 1e-12 {
+                let jump = ((v - prev) / prev).abs();
+                if jump > 10.0 {
+                    // >1000% change in one step
+                    anomalies.push(Anomaly {
+                        year: y,
+                        variable: name.to_string(),
+                        kind: AnomalyKind::Discontinuity,
+                        value: v,
+                    });
+                }
+            }
+        }
+    }
+    anomalies
+}
+
+/// Find the year-over-year step with the highest positive relative rate of change.
+///
+/// Returns the rate (as a fraction, e.g. 0.05 = 5%/yr) and the year at which it occurs.
+/// If the series is non-increasing, returns a rate of 0 at the first year.
+pub fn max_growth_rate(years: &[f64], values: &[f64]) -> ValueAtYear {
+    assert_eq!(years.len(), values.len(), "years and values must have same length");
+    assert!(years.len() >= 2, "need at least 2 data points");
+
+    let mut best_rate = 0.0_f64;
+    let mut best_year = years[0];
+
+    for i in 0..years.len() - 1 {
+        let dt = years[i + 1] - years[i];
+        if dt <= 0.0 || values[i].abs() < 1e-12 {
+            continue;
+        }
+        let rate = (values[i + 1] - values[i]) / (values[i] * dt);
+        if rate > best_rate {
+            best_rate = rate;
+            best_year = years[i];
+        }
+    }
+    ValueAtYear { value: best_rate, year: best_year }
+}
+
+/// Find the year-over-year step with the most negative relative rate of change.
+///
+/// Returns the rate (as a negative fraction) and the year at which it occurs.
+/// If the series is non-decreasing, returns a rate of 0 at the first year.
+pub fn max_decline_rate(years: &[f64], values: &[f64]) -> ValueAtYear {
+    assert_eq!(years.len(), values.len(), "years and values must have same length");
+    assert!(years.len() >= 2, "need at least 2 data points");
+
+    let mut best_rate = 0.0_f64;
+    let mut best_year = years[0];
+
+    for i in 0..years.len() - 1 {
+        let dt = years[i + 1] - years[i];
+        if dt <= 0.0 || values[i].abs() < 1e-12 {
+            continue;
+        }
+        let rate = (values[i + 1] - values[i]) / (values[i] * dt);
+        if rate < best_rate {
+            best_rate = rate;
+            best_year = years[i];
+        }
+    }
+    ValueAtYear { value: best_rate, year: best_year }
+}
+
+/// Detect inflection points where the second derivative changes sign.
+///
+/// Uses second differences of the value series. Returns the year and value
+/// at each detected sign change.
+pub fn find_inflection_points(years: &[f64], values: &[f64]) -> Vec<ValueAtYear> {
+    assert_eq!(years.len(), values.len(), "years and values must have same length");
+
+    if values.len() < 3 {
+        return Vec::new();
+    }
+
+    // Compute second differences and detect sign changes
+    let mut inflections = Vec::new();
+    let n = values.len();
+
+    // second_diff[i] = values[i+2] - 2*values[i+1] + values[i]
+    let second_diffs: Vec<f64> = (0..n - 2)
+        .map(|i| values[i + 2] - 2.0 * values[i + 1] + values[i])
+        .collect();
+
+    // Track the last non-zero second difference sign to detect changes
+    // that pass through zero (e.g. symmetric sigmoid).
+    let mut prev_sign: Option<bool> = None; // true = positive
+    let mut prev_nonzero_idx: usize = 0;
+
+    for (i, &sd) in second_diffs.iter().enumerate() {
+        if sd == 0.0 {
+            // Exact zero — potential inflection point itself.
+            // Check if there's a sign change around it.
+            if let Some(positive) = prev_sign {
+                // Look ahead for the next non-zero second diff
+                if let Some(next) = second_diffs[i + 1..].iter().find(|&&s| s != 0.0) {
+                    let next_positive = *next > 0.0;
+                    if positive != next_positive {
+                        // Sign change through zero — inflection at i+1
+                        let idx = i + 1;
+                        inflections.push(ValueAtYear {
+                            value: values[idx],
+                            year: years[idx],
+                        });
+                        prev_sign = Some(next_positive);
+                    }
+                }
+            }
+            continue;
+        }
+
+        let current_positive = sd > 0.0;
+        if let Some(positive) = prev_sign {
+            if positive != current_positive {
+                // Sign change — inflection between prev_nonzero_idx and i
+                // Attribute to the midpoint index
+                let idx = (prev_nonzero_idx + i) / 2 + 1;
+                inflections.push(ValueAtYear {
+                    value: values[idx],
+                    year: years[idx],
+                });
+            }
+        }
+        prev_sign = Some(current_positive);
+        prev_nonzero_idx = i;
+    }
+
+    inflections
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -314,5 +482,83 @@ mod tests {
         assert_eq!(phases.len(), 1);
         // avg_annual_rate for a Growing phase should be positive
         assert!(phases[0].avg_annual_rate > 0.0, "expected positive rate");
+    }
+
+    // --- Task 4: Anomaly detection and rate computation tests ---
+
+    #[test]
+    fn anomaly_detects_nan() {
+        let years = vec![1900.0, 1901.0, 1902.0];
+        let values = vec![1.0, f64::NAN, 3.0];
+        let anomalies = detect_anomalies("test", &years, &values);
+        assert_eq!(anomalies.len(), 1);
+        assert_eq!(anomalies[0].kind, AnomalyKind::NaN);
+        assert_eq!(anomalies[0].year, 1901.0);
+    }
+
+    #[test]
+    fn anomaly_detects_negative() {
+        let years = vec![1900.0, 1901.0, 1902.0];
+        let values = vec![1.0, -0.5, 3.0];
+        let anomalies = detect_anomalies("test", &years, &values);
+        assert_eq!(anomalies.len(), 1);
+        assert_eq!(anomalies[0].kind, AnomalyKind::Negative);
+        assert_eq!(anomalies[0].year, 1901.0);
+    }
+
+    #[test]
+    fn anomaly_detects_inf() {
+        let years = vec![1900.0, 1901.0, 1902.0];
+        let values = vec![1.0, f64::INFINITY, 3.0];
+        let anomalies = detect_anomalies("test", &years, &values);
+        assert_eq!(anomalies.len(), 1);
+        assert_eq!(anomalies[0].kind, AnomalyKind::Inf);
+        assert_eq!(anomalies[0].year, 1901.0);
+    }
+
+    #[test]
+    fn no_anomalies_in_clean_series() {
+        let years: Vec<f64> = (1900..=2000).map(|y| y as f64).collect();
+        let values: Vec<f64> = (0..=100).map(|i| i as f64).collect();
+        let anomalies = detect_anomalies("test", &years, &values);
+        assert!(anomalies.is_empty());
+    }
+
+    #[test]
+    fn max_growth_rate_of_exponential() {
+        // Exponential growth: 100 * e^(0.03 * (year - 1900))
+        let years: Vec<f64> = (1900..=2000).map(|y| y as f64).collect();
+        let values: Vec<f64> = years.iter().map(|&y| 100.0 * (0.03 * (y - 1900.0)).exp()).collect();
+
+        let rate = max_growth_rate(&years, &values);
+        assert!(rate.value > 0.0, "growth rate should be positive, got {}", rate.value);
+    }
+
+    #[test]
+    fn max_decline_rate_of_declining() {
+        // Exponential decay: 100 * e^(-0.03 * (year - 1900))
+        let years: Vec<f64> = (1900..=2000).map(|y| y as f64).collect();
+        let values: Vec<f64> = years.iter().map(|&y| 100.0 * (-0.03 * (y - 1900.0)).exp()).collect();
+
+        let rate = max_decline_rate(&years, &values);
+        assert!(rate.value < 0.0, "decline rate should be negative, got {}", rate.value);
+    }
+
+    #[test]
+    fn inflection_point_of_sigmoid() {
+        // Sigmoid centered at 2000: 1 / (1 + e^(-0.1 * (year - 2000)))
+        // Inflection point should be near year 2000
+        let years: Vec<f64> = (1900..=2100).map(|y| y as f64).collect();
+        let values: Vec<f64> = years
+            .iter()
+            .map(|&y| 1.0 / (1.0 + (-0.1 * (y - 2000.0)).exp()))
+            .collect();
+
+        let inflections = find_inflection_points(&years, &values);
+        assert!(!inflections.is_empty(), "expected at least one inflection point");
+        // The inflection point should be near year 2000
+        let near_2000 = inflections.iter().any(|ip| (ip.year - 2000.0).abs() < 5.0);
+        assert!(near_2000, "expected inflection near 2000, got: {:?}",
+            inflections.iter().map(|ip| ip.year).collect::<Vec<_>>());
     }
 }
