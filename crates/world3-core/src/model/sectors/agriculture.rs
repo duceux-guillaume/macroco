@@ -21,7 +21,7 @@ const LAND_EROSION_RATE: f64 = 0.001;
 const UIL_DEVELOPMENT_TIME: f64 = 10.0;
 
 /// Food shortage perception delay [years] — World3-03: FSPD = 2 yr.
-/// Smoothed food per capita breaks agriculture-capital allocation oscillation.
+/// Smoothed FPC (perceived food ratio) is used for FALM land maintenance allocation.
 const FOOD_SHORTAGE_PERCEPTION_DELAY: f64 = 2.0;
 
 pub struct AgricultureDerivatives {
@@ -42,13 +42,15 @@ pub fn agriculture_derivatives(
 
     // ---- Agricultural inputs per hectare ----
     // Fraction of industrial output allocated to agriculture (food-pressure driven).
-    // Uses smoothed food per capita (FSPD=2yr ODE stock) for allocation stability.
-    let food_ratio = if params.subsistence_food_per_capita > 0.0 {
-        state.agriculture.food_per_capita_smooth / params.subsistence_food_per_capita
-    } else {
-        1.0
-    };
-    let frac_to_agri = tables.industrial_fraction_to_agriculture.eval(food_ratio);
+    // Uses smoothed FPC / IFPC(IOPC) to determine allocation. The smooth FPC is an
+    // ODE stock (preserved by from_vec across RK4 stages), while IFPC scales with
+    // industrialization to prevent zero-allocation traps at high food levels.
+    // At low IOPC (BAU), IFPC ≈ SFPC so this matches the original allocation.
+    // At high IOPC (Tech/Stabilized), IFPC rises, keeping food_ratio moderate.
+    let iopc = state.capital.industrial_output_per_capita;
+    let ifpc = tables.indicated_food_per_capita.eval(iopc).max(1.0);
+    let fioaa_food_ratio = state.agriculture.food_per_capita_smooth / ifpc;
+    let frac_to_agri = tables.industrial_fraction_to_agriculture.eval(fioaa_food_ratio);
     let agri_output_total = state.capital.industrial_output * frac_to_agri;
 
     let arable = state.agriculture.arable_land.max(1.0);
@@ -130,7 +132,14 @@ pub fn agriculture_derivatives(
     let lfdr = tables.land_fertility_degradation.eval(state.pollution.pollution_index);
     let lfd = land_fertility * lfdr;
 
-    let falm = tables.fraction_land_maintenance.eval(food_ratio);
+    // FALM uses PFR (perceived food ratio) = smoothed FPC / subsistence.
+    // World3-03: PFR = SMOOTH(FR, FSPD), where FR = FPC / SFPC.
+    let falm_food_ratio = if params.subsistence_food_per_capita > 0.0 {
+        state.agriculture.food_per_capita_smooth / params.subsistence_food_per_capita
+    } else {
+        1.0
+    };
+    let falm = tables.fraction_land_maintenance.eval(falm_food_ratio);
     let lfrt = tables.land_fertility_regeneration_time.eval(falm);
     let lfr = if lfrt > 0.0 {
         (INHERENT_LAND_FERTILITY - land_fertility) / lfrt

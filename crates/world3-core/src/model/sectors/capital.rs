@@ -67,13 +67,13 @@ pub fn capital_derivatives(
     // ----- Allocation fractions -----
     // World3-03: investment is the residual after consumption, services, and agriculture.
     // fioai = 1 - fioac - fioas - fioaa
-    // Uses smoothed food per capita (FSPD=2yr delay) to prevent oscillation
-    // in the agriculture-capital allocation feedback loop.
-    let food_ratio = if params.subsistence_food_per_capita > 0.0 {
-        state.agriculture.food_per_capita_smooth / params.subsistence_food_per_capita
-    } else {
-        1.0
-    };
+    // FIOAA uses smoothed FPC / IFPC(IOPC). The smooth FPC is an ODE stock
+    // (preserved by from_vec across RK4 stages), while IFPC scales with
+    // industrialization to prevent zero-allocation traps at high food levels.
+    // At low IOPC (BAU), IFPC ≈ SFPC so this matches the original allocation.
+    // At high IOPC (Tech/Stabilized), IFPC rises, keeping food_ratio moderate.
+    let ifpc = tables.indicated_food_per_capita.eval(iopc).max(1.0);
+    let food_ratio = state.agriculture.food_per_capita_smooth / ifpc;
 
     let frac_to_agriculture = tables
         .industrial_fraction_to_agriculture
@@ -136,6 +136,7 @@ mod tests {
         let mut s = WorldState::initial_1900();
         let params = ScenarioParams::bau();
         let tables = WorldLookupTables::load();
+        s.agriculture.food_per_capita = 400.0;
         s.agriculture.food_per_capita_smooth = 400.0;
         s.resources.fraction_remaining = 1.0;
         (s, params, tables)
@@ -225,7 +226,8 @@ mod tests {
         // Extreme low food → high frac_to_agriculture
         // Low service output → high frac_to_services
         // Together with consumption, sum > 1 → investment = 0
-        s.agriculture.food_per_capita_smooth = 50.0; // far below subsistence
+        s.agriculture.food_per_capita = 50.0; // far below indicated FPC → high FIOAA
+        s.agriculture.food_per_capita_smooth = 50.0; // consistent with raw FPC
         s.capital.service_capital = 1.0; // minimal services
         let d = capital_derivatives(&mut s, &params, &tables);
         // Investment squeezed → d_industrial ≈ -depreciation ≤ 0
