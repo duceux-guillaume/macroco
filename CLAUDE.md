@@ -73,6 +73,15 @@ cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 # Validate against Meadows 1972 reference trajectories
 cargo run --bin world3-cli -- validate
 
+# Diagnose simulation output (structured text report)
+cargo run --bin world3-cli -- diagnose --preset bau
+
+# Compare two presets
+cargo run --bin world3-cli -- diagnose --preset bau --compare technology
+
+# JSON output for programmatic use
+cargo run --bin world3-cli -- diagnose --preset bau --format json
+
 # Run API server (serving static frontend)
 STATIC_DIR=frontend/build RUST_LOG=debug cargo run --bin world3-api
 
@@ -146,6 +155,14 @@ cd frontend && npm run test:watch          # vitest in watch mode
 - Import `approx::assert_relative_eq` at module level in `#[cfg(test)] mod tests`, not inside individual test functions.
 - `f64::parse()` accepts "NaN", "inf", "-inf" as valid. Always add `.is_finite()` guard when parsing external data destined for JSON serialization.
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
+
+### Debugging Workflow
+- For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.
+- `diagnose --preset <name>` outputs a structured text report: peaks, troughs, phases, growth rates, anomalies.
+- `diagnose --preset <name> --compare <other>` shows side-by-side deltas between two scenarios.
+- `diagnose --format json` produces machine-readable output for programmatic assertions.
+- Prefer `diagnose` over `simulate --chart` when debugging model behavior — the text output contains all the information needed to reason about trajectory shape without reading a PNG.
+- When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
 
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
