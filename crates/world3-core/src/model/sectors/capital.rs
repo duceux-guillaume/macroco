@@ -79,10 +79,11 @@ pub fn capital_derivatives(
         .industrial_fraction_to_agriculture
         .eval(food_ratio);
 
-    // World3-03: FIOAS = table(SOPC / ISOPC). ISOPC (indicated SOPC) scales with
-    // industrialization. Simplified: normalize SOPC by a reference value (~$200,
-    // the 1970 equilibrium SOPC level). Below 1.0 = services inadequate → invest more.
-    let sopc_normalized = state.capital.service_output_per_capita / 200.0;
+    // World3-03: FIOAS = table(SOPC / ISOPC). ISOPC scales with IOPC via lookup,
+    // so desired service levels rise with income. This keeps SOPC/ISOPC moderate
+    // as the economy grows, preventing premature service disinvestment.
+    let isopc = tables.indicated_service_per_capita.eval(iopc).max(1.0);
+    let sopc_normalized = state.capital.service_output_per_capita / isopc;
     let frac_to_services = tables
         .industrial_fraction_to_services
         .eval(sopc_normalized);
