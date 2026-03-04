@@ -703,59 +703,76 @@
 			.attr('y2', innerH)
 			.style('display', 'none');
 
-		overlay
-			.on('mousemove', (event: MouseEvent) => {
-				if (isBrushing) return;
+		function handlePointerMove(event: MouseEvent | TouchEvent) {
+			if (isBrushing) return;
 
-				const [mx] = d3.pointer(event);
-				const year = Math.round(xScale.invert(mx));
+			const [mx] = d3.pointer(event, overlay.node()!);
+			const year = Math.round(xScale.invert(mx));
 
-				tooltipLine
-					.style('display', null)
-					.attr('x1', xScale(year))
-					.attr('x2', xScale(year));
+			tooltipLine
+				.style('display', null)
+				.attr('x1', xScale(year))
+				.attr('x2', xScale(year));
 
-				const items: typeof tooltipItems = [];
-				for (const ld of linesData) {
-					const fmt = getFormatter(ld.format);
-					const idx = ld.rawPoints.findIndex((p) => Math.round(p.year) === year);
-					if (idx >= 0) {
-						const pt = ld.rawPoints[idx];
-						let trend = '';
-						if (idx > 0) {
-							const prev = ld.rawPoints[idx - 1].value;
-							const diff = pt.value - prev;
-							const pct = prev !== 0 ? Math.abs(diff / prev) : 0;
-							if (pct < 0.001) trend = '\u2192';
-							else if (diff > 0) trend = '\u2191';
-							else trend = '\u2193';
-						}
-						items.push({
-							label: ld.label,
-							color: ld.color,
-							rawValue: fmt(pt.value),
-							unit: '',
-							trend
-						});
+			const items: typeof tooltipItems = [];
+			for (const ld of linesData) {
+				const fmt = getFormatter(ld.format);
+				const idx = ld.rawPoints.findIndex((p) => Math.round(p.year) === year);
+				if (idx >= 0) {
+					const pt = ld.rawPoints[idx];
+					let trend = '';
+					if (idx > 0) {
+						const prev = ld.rawPoints[idx - 1].value;
+						const diff = pt.value - prev;
+						const pct = prev !== 0 ? Math.abs(diff / prev) : 0;
+						if (pct < 0.001) trend = '\u2192';
+						else if (diff > 0) trend = '\u2191';
+						else trend = '\u2193';
 					}
+					items.push({
+						label: ld.label,
+						color: ld.color,
+						rawValue: fmt(pt.value),
+						unit: '',
+						trend
+					});
 				}
+			}
 
-				tooltipYear = year;
-				tooltipItems = items;
-				hoveredYear.set(year);
+			tooltipYear = year;
+			tooltipItems = items;
+			hoveredYear.set(year);
 
-				const px = margin.left + xScale(year);
-				tooltipX = px + 12;
-				if (tooltipX + 200 > width) {
-					tooltipX = px - 210;
-				}
-				tooltipY = margin.top + 8;
-				tooltipVisible = true;
-			})
+			const px = margin.left + xScale(year);
+			tooltipX = px + 12;
+			if (tooltipX + 200 > width) {
+				tooltipX = px - 210;
+			}
+			tooltipY = margin.top + 8;
+			tooltipVisible = true;
+		}
+
+		overlay
+			.on('mousemove', handlePointerMove)
 			.on('mouseleave', () => {
 				tooltipLine.style('display', 'none');
 				tooltipVisible = false;
 				hoveredYear.set(null);
+			})
+			.on('touchstart', (event: TouchEvent) => {
+				event.preventDefault();
+				handlePointerMove(event);
+			}, { passive: false } as any)
+			.on('touchmove', (event: TouchEvent) => {
+				event.preventDefault();
+				handlePointerMove(event);
+			}, { passive: false } as any)
+			.on('touchend', () => {
+				setTimeout(() => {
+					tooltipLine.style('display', 'none');
+					tooltipVisible = false;
+					hoveredYear.set(null);
+				}, 300);
 			});
 	});
 </script>
