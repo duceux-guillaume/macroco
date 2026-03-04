@@ -1,5 +1,8 @@
 <script lang="ts">
+	import * as d3 from 'd3';
 	import { selectedParameterId, selectedVariableId } from '$lib/stores/info';
+	import { simulationResults } from '$lib/stores/simulation';
+	import { scenarios, activeScenarioIds } from '$lib/stores/scenarios';
 	import {
 		parameterDescriptions,
 		feedbackLoops,
@@ -7,6 +10,7 @@
 		type ParameterInfo,
 		type FeedbackLoopInfo
 	} from '$lib/content/variable-descriptions';
+	import type { WorldState } from '$lib/types';
 
 	let showExpert = $state(false);
 	let parameterId = $state<string | null>(null);
@@ -35,6 +39,121 @@
 					.filter((v): v is { path: string; name: string } => v != null)
 			: []
 	);
+
+	let sparklineEl = $state<HTMLDivElement | null>(null);
+
+	// Find the BAU scenario ID
+	let bauScenarioId = $derived.by(() => {
+		const allScenarios = $scenarios;
+		const bau = allScenarios.find(
+			(s) => s.name.toLowerCase().includes('business as usual') || s.name === 'BAU'
+		);
+		return bau?.id ?? null;
+	});
+
+	// Get a focused scenario ID (any active non-BAU scenario, or BAU itself)
+	let comparisonScenarioId = $derived.by(() => {
+		const active = $activeScenarioIds;
+		const bau = bauScenarioId;
+		for (const id of active) {
+			if (id !== bau) return id;
+		}
+		return bau;
+	});
+
+	$effect(() => {
+		if (!sparklineEl || !info) return;
+		const fieldPath = info.impact.sparklineVariable;
+		const results = $simulationResults;
+
+		const bauData = bauScenarioId ? results.get(bauScenarioId) : null;
+		const compData = comparisonScenarioId ? results.get(comparisonScenarioId) : null;
+
+		drawSparkline(sparklineEl, fieldPath, bauData ?? null, compData ?? null);
+	});
+
+	function drawSparkline(
+		el: HTMLDivElement,
+		fieldPath: string,
+		bauStates: WorldState[] | null,
+		compStates: WorldState[] | null
+	) {
+		const W = 280,
+			H = 70;
+		const m = { top: 4, right: 4, bottom: 4, left: 4 };
+		const innerW = W - m.left - m.right;
+		const innerH = H - m.top - m.bottom;
+
+		function extractValues(states: WorldState[]): Array<{ year: number; value: number }> {
+			return states.map((s) => {
+				const [sector, field] = fieldPath.split('.');
+				const val = (s as any)[sector]?.[field] ?? 0;
+				return { year: s.time, value: val };
+			});
+		}
+
+		const svg = d3
+			.select(el)
+			.selectAll<SVGSVGElement, null>('svg')
+			.data([null])
+			.join('svg')
+			.attr('width', W)
+			.attr('height', H);
+
+		const g = svg
+			.selectAll<SVGGElement, null>('g.spark')
+			.data([null])
+			.join('g')
+			.attr('class', 'spark')
+			.attr('transform', `translate(${m.left},${m.top})`);
+
+		const allPoints: Array<{ year: number; value: number }> = [];
+		const bauPoints = bauStates ? extractValues(bauStates) : [];
+		const compPoints = compStates ? extractValues(compStates) : [];
+		allPoints.push(...bauPoints, ...compPoints);
+
+		if (allPoints.length === 0) {
+			g.selectAll('*').remove();
+			return;
+		}
+
+		const xScale = d3
+			.scaleLinear()
+			.domain(d3.extent(allPoints, (d) => d.year) as [number, number])
+			.range([0, innerW]);
+
+		const yScale = d3
+			.scaleLinear()
+			.domain(d3.extent(allPoints, (d) => d.value) as [number, number])
+			.nice()
+			.range([innerH, 0]);
+
+		const line = d3
+			.line<{ year: number; value: number }>()
+			.x((d) => xScale(d.year))
+			.y((d) => yScale(d.value));
+
+		// BAU line (dimmed)
+		g.selectAll<SVGPathElement, null>('path.bau-line')
+			.data(bauPoints.length > 0 ? [bauPoints] : [])
+			.join('path')
+			.attr('class', 'bau-line')
+			.attr('fill', 'none')
+			.attr('stroke', 'var(--text-secondary)')
+			.attr('stroke-width', 1)
+			.attr('opacity', 0.4)
+			.attr('d', (d) => line(d));
+
+		// Current scenario line
+		g.selectAll<SVGPathElement, null>('path.comp-line')
+			.data(compPoints.length > 0 ? [compPoints] : [])
+			.join('path')
+			.attr('class', 'comp-line')
+			.attr('fill', 'none')
+			.attr('stroke', 'var(--accent)')
+			.attr('stroke-width', 1.5)
+			.attr('d', (d) => line(d));
+	}
 
 	function close() {
 		selectedParameterId.set(null);
@@ -88,6 +207,7 @@
 					<span class="impact-arrow">&#x2193;</span>
 					<p>{info.impact.decrease}</p>
 				</div>
+				<div class="sparkline" bind:this={sparklineEl}></div>
 			</section>
 
 			{#if relatedLoops.length > 0}
@@ -304,5 +424,13 @@
 	}
 	.related-btn:hover {
 		background: var(--surface-active);
+	}
+	.sparkline {
+		margin-top: 4px;
+		border-radius: 4px;
+		background: var(--surface-hover);
+		padding: 4px;
+		display: flex;
+		justify-content: center;
 	}
 </style>
