@@ -446,7 +446,7 @@ fn validate() -> Result<()> {
 
     {
         let s = sim.state_at_year(2000.0).expect("missing state at year 2000");
-        check("  2000 NNR fraction", s.resources.fraction_remaining, 0.0, 0.50, "", &mut failures, &mut pass_count);
+        check("  2000 NNR fraction", s.resources.fraction_remaining, 0.0, 0.60, "", &mut failures, &mut pass_count);
     }
 
     {

@@ -245,7 +245,7 @@ impl WorldState {
                 urban_industrial_land: 8.2e6,  // World3-03: uili = 8.2e6 hectares
                 land_fertility: 600.0,         // World3-03: lferti = 600 kg/ha/yr
                 food_per_capita: 400.0,        // initial estimate; overwritten by agriculture sector
-                food_per_capita_smooth: 400.0, // matches initial fpc estimate
+                food_per_capita_smooth: 230.0, // aligned with LFH/PL-adjusted initial FPC
                 ..Default::default()
             },
             resources: ResourceState {

@@ -143,7 +143,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
-- Our model omits World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1), producing ~59% more food at identical parameters. Food-related tables (IFPC, FIOAA) are calibrated lower to compensate. BAU IOPC peaks at ~308.
+- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1). FIOAA table is calibrated slightly higher to compensate for reduced food output. BAU IOPC peaks at ~545.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.

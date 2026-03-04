@@ -256,17 +256,15 @@ impl WorldLookupTables {
             // World3-03: DCFS = dcfsn × SFSN(DIOPC), where dcfsn=3.8, SFSN 0.5-1.25.
             // Simplified to direct lookup from perceived IOPC capturing dcfsn × sfsn.
             // CMPLE (compensatory fertility from perceived LE) is now applied separately.
-            // Values at low income are reduced (CMPLE provides ~1.25× compensation there),
-            // but mid-to-high income values stay near previous calibration because
-            // CMPLE ≈ 1.0 at higher LE (perceived_LE lags 20yr behind actual LE).
+            // Calibrated to match historical population RMSE <15% (REQ-026).
             // Key calibration (before CMPLE):
-            //   IOPC=$44 (1900): 3.60 × CMPLE(33)≈1.22 → effective ~4.39
-            //   IOPC=$200 (1960): 3.75 × CMPLE(40)≈1.10 → effective ~4.13
-            //   IOPC=$800: 2.10 × CMPLE(60)≈0.95 → effective ~2.00
+            //   IOPC=$44 (1900): 3.40 × CMPLE(33)≈1.37 → effective ~4.66
+            //   IOPC=$450 (1970s): 2.81 × CMPLE(55)≈1.15 → effective ~3.23
+            //   IOPC=$800: 1.88 × CMPLE(60)≈1.10 → effective ~2.07
             desired_family_size: LookupTable::new(
                 "desired_family_size",
                 vec![0.0, 200.0, 400.0, 600.0, 800.0],
-                vec![4.75, 3.80, 2.70, 2.10, 1.80],
+                vec![3.40, 3.39, 2.87, 2.29, 1.88],
             ),
 
             // Family planning multiplier on fertility
@@ -295,13 +293,13 @@ impl WorldLookupTables {
 
             // Fraction of industrial output allocated to consumption (FIOAC)
             // Based on World3-03 FIOAC1 table (x = IOPC/IOPCD, IOPCD ≈ $400).
-            // Raised ~0.10 to compensate for our model's missing dynamic references
-            // (IOPCD, ISOPC, IFPC) which in World3-03 absorb more output as income rises.
-            // This produces the correct aggregate investment rate (~32% in 1900).
+            // Based on World3-03 FIOAC1 (raised ~0.10 for missing IOPCD/ISOPC refs).
+            // Smoothed above IOPC=400 to avoid IOPC stagnation trap.
+            // Calibrated for historical IOPC RMSE <30% (REQ-026).
             consumption_fraction: LookupTable::new(
                 "consumption_fraction",
                 vec![0.0, 80.0, 160.0, 240.0, 320.0, 400.0, 480.0, 560.0, 640.0, 720.0, 800.0],
-                vec![0.3, 0.32, 0.34, 0.36, 0.38, 0.43, 0.73, 0.77, 0.81, 0.82, 0.83],
+                vec![0.3, 0.32, 0.34, 0.36, 0.38, 0.43, 0.50, 0.58, 0.66, 0.74, 0.83],
             ),
 
             // Fraction of industrial output to agriculture (FIOAA)
@@ -309,13 +307,13 @@ impl WorldLookupTables {
             // At low IOPC, IFPC ≈ SFPC (230), so this behaves like the original
             // FPC/SFPC allocation. At high IOPC, IFPC rises, keeping food_ratio
             // moderate and preventing the zero-allocation trap.
-            // Table shape calibrated for our model (no LFH/PL factors).
-            // Floor of 0.04 at high food_ratio ensures minimum agricultural
-            // maintenance even in wealthy societies (prevents yield collapse).
+            // Table shape recalibrated for LFH/PL factors (×0.63 food reduction).
+            // Higher allocation at moderate food_ratio compensates for reduced food output.
+            // Floor of 0.0 at high food_ratio (pyworld3-aligned).
             industrial_fraction_to_agriculture: LookupTable::new(
                 "industrial_fraction_to_agriculture",
                 vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5],
-                vec![0.4, 0.2, 0.1, 0.025, 0.0, 0.0],
+                vec![0.4, 0.22, 0.12, 0.04, 0.01, 0.0],
             ),
 
             // Indicated food per capita (IFPC) — calibrated for our model.
