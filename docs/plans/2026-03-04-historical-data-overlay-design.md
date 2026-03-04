@@ -61,8 +61,8 @@ Raw data: OWID Energy Data — `oil_production`, `coal_production`, `gas_product
 
 ```
 cumulative_extraction(year) = SUM(oil + coal + gas production) from 1900 to year
-URR_ESTIMATE = ~3,900,000 TWh  (≈14,000 EJ total conventional fossil fuel)
-fraction_remaining(year) = 1.0 - cumulative_extraction(year) / URR_ESTIMATE
+URR_ESTIMATE = ~10,000,000 TWh  (≈36,000 EJ total recoverable fossil fuel)
+fraction_remaining(year) = max(0, 1.0 - cumulative_extraction(year) / URR_ESTIMATE)
 ```
 
 **Caveat:** World 3 "resources" includes metals/minerals, not just fossil fuels. This is a proxy. The URR estimate is debatable — proved reserves have grown over time.

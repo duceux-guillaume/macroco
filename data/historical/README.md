@@ -12,7 +12,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Transformation:** none
 - **Range:** 1960-2023
 
-### resources_remaining.csv
+### resources.csv
 - **Source:** Our World in Data Energy Dataset (Energy Institute / BP Statistical Review)
 - **URL:** https://github.com/owid/energy-data
 - **Units:** fraction remaining (0-1, 1900=1.0)
@@ -23,7 +23,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1900-2023
 - **Caveat:** World 3 "resources" is broader than fossil fuels (includes metals/minerals). This is a proxy using the best available aggregate indicator. The URR estimate is debatable.
 
-### food_per_capita.csv
+### food.csv
 - **Source:** FAOSTAT Food Balance Sheets — Global average dietary energy supply
 - **URL:** https://www.fao.org/faostat/en/#data/FBS
 - **Units:** kg/person/year (vegetable-equivalent)
@@ -31,7 +31,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1961-2022
 - **Caveat:** The World 3 1900 starting value (400 kg/capita/yr) is lower than modern values (~900), reflecting genuine improvement in food supply. The kcal-to-kg conversion uses a global diet average energy density.
 
-### industrial_output_per_capita.csv
+### industrial.csv
 - **Source:** World Bank `NV.IND.TOTL.KD` (industry value added, constant 2015 USD) / `SP.POP.TOTL`
 - **URL:** https://data.worldbank.org/indicator/NV.IND.TOTL.KD
 - **Units:** 1975 USD/person/year
@@ -42,7 +42,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1960-2023
 - **Caveat:** `NV.IND.TOTL.KD` covers industry + construction, the closest match to World 3's "industrial output". The deflator ratio is approximate. Pre-1994 values are estimated from GDP.
 
-### pollution_index.csv
+### pollution.csv
 - **Source:** NOAA Global Monitoring Laboratory, Mauna Loa CO2 annual mean
 - **URL:** https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.txt
 - **Units:** index (1970=1.0)
@@ -52,7 +52,7 @@ Served by the backend via `GET /api/v1/historical`.
 - **Range:** 1959-2025
 - **Caveat:** World 3 "persistent pollution" is a composite of all long-lived pollutants, not just CO2. CO2 is the best single proxy due to measurement quality and growth trajectory match.
 
-### life_expectancy.csv
+### life-expectancy.csv
 - **Source:** World Bank, indicator `SP.DYN.LE00.IN` (life expectancy at birth, World aggregate)
 - **URL:** https://data.worldbank.org/indicator/SP.DYN.LE00.IN?locations=1W
 - **Units:** years

@@ -1,5 +1,5 @@
 mod error;
-pub mod historical;
+pub(crate) mod historical;
 mod models;
 mod routes;
 mod state;
