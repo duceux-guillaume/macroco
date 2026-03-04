@@ -1,42 +1,16 @@
 <script lang="ts">
-	import { focusedScenarioId, scenarioParamsCache } from '$lib/stores/scenarios';
-	import { send } from '$lib/ws';
-	import type { ScenarioParams } from '$lib/types';
-
-	const startYearOptions = [1900, 1950, 1970, 2000];
-	const endYearOptions = [2050, 2100, 2150, 2200];
-	const timeStepOptions = [0.25, 0.5, 1.0, 2.0];
-
-	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-	function getParams(): ScenarioParams | null {
-		const id = $focusedScenarioId;
-		if (!id) return null;
-		return $scenarioParamsCache.get(id) ?? null;
-	}
-
-	function updateField(field: string, value: number) {
-		const id = $focusedScenarioId;
-		if (!id) return;
-		const params = getParams();
-		if (!params) return;
-
-		const updated = { ...params, [field]: value };
-		scenarioParamsCache.update((cache) => {
-			const next = new Map(cache);
-			next.set(id, updated);
-			return next;
-		});
-
-		if (debounceTimer) clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => {
-			send({ type: 'update_params', scenario_id: id, params: updated });
-		}, 200);
-	}
+	import { focusedScenarioId } from '$lib/stores/scenarios';
+	import {
+		startYearOptions,
+		endYearOptions,
+		timeStepOptions,
+		getSimParams,
+		updateSimField
+	} from '$lib/stores/simulation-controls';
 </script>
 
-{#if $focusedScenarioId && getParams()}
-	{@const params = getParams()!}
+{#if $focusedScenarioId && getSimParams()}
+	{@const params = getSimParams()!}
 	<div class="sim-controls">
 		<h3>Simulation</h3>
 		<div class="controls-row">
@@ -44,7 +18,7 @@
 				<span class="control-label">Start</span>
 				<select
 					value={params.start_year}
-					onchange={(e) => updateField('start_year', Number(e.currentTarget.value))}
+					onchange={(e) => updateSimField('start_year', Number(e.currentTarget.value))}
 				>
 					{#each startYearOptions as yr}
 						<option value={yr}>{yr}</option>
@@ -56,7 +30,7 @@
 				<span class="control-label">End</span>
 				<select
 					value={params.end_year}
-					onchange={(e) => updateField('end_year', Number(e.currentTarget.value))}
+					onchange={(e) => updateSimField('end_year', Number(e.currentTarget.value))}
 				>
 					{#each endYearOptions as yr}
 						<option value={yr}>{yr}</option>
@@ -68,7 +42,7 @@
 				<span class="control-label">Step</span>
 				<select
 					value={params.time_step}
-					onchange={(e) => updateField('time_step', Number(e.currentTarget.value))}
+					onchange={(e) => updateSimField('time_step', Number(e.currentTarget.value))}
 				>
 					{#each timeStepOptions as dt}
 						<option value={dt}>{dt}yr</option>
