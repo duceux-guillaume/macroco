@@ -231,6 +231,8 @@ fn spawn_sim_task(
 #[cfg(test)]
 mod tests {
     use crate::models::{WsClientMsg, WsServerMsg};
+    use tokio::net::TcpListener;
+    use tokio_tungstenite::{connect_async, tungstenite};
 
     #[test]
     fn test_message_serialization_roundtrip() {
@@ -274,5 +276,178 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(v["type"], "sim_complete");
         assert_eq!(v["total_steps"], 42);
+    }
+
+    /// Spawn the full Axum app on a random port, return the WS URL.
+    async fn spawn_test_server() -> String {
+        let state = crate::state::init_app_state();
+        let app = crate::routes::build_router(state);
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        format!("ws://{}/api/v1/ws", addr)
+    }
+
+    /// Read the next text message from the WS stream, parse as JSON Value.
+    async fn recv_json(
+        ws: &mut tokio_tungstenite::WebSocketStream<
+            tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
+        >,
+    ) -> serde_json::Value {
+        use futures_util::StreamExt;
+        loop {
+            let msg = ws.next().await.unwrap().unwrap();
+            if let tungstenite::Message::Text(text) = msg {
+                return serde_json::from_str(&text).unwrap();
+            }
+        }
+    }
+
+    /// Send a JSON text message.
+    async fn send_json(
+        ws: &mut tokio_tungstenite::WebSocketStream<
+            tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
+        >,
+        value: &impl serde::Serialize,
+    ) {
+        use futures_util::SinkExt;
+        let text = serde_json::to_string(value).unwrap();
+        ws.send(tungstenite::Message::Text(text)).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_start_simulation_completes() {
+        let url = spawn_test_server().await;
+        let (mut ws, _) = connect_async(&url).await.unwrap();
+
+        let mut params = world3_core::ScenarioParams::bau();
+        params.end_year = 1910.0;
+        let msg = WsClientMsg::StartSimulation {
+            scenario_id: "bau".into(),
+            params: Some(params),
+        };
+        send_json(&mut ws, &msg).await;
+
+        let mut step_count = 0usize;
+        loop {
+            let v = recv_json(&mut ws).await;
+            match v["type"].as_str().unwrap() {
+                "sim_step" => {
+                    step_count += 1;
+                    assert!(v["year"].as_f64().is_some());
+                    assert!(v["state"].is_object());
+                }
+                "sim_complete" => {
+                    assert_eq!(v["scenario_id"], "bau");
+                    assert!(v["total_steps"].as_u64().unwrap() > 0);
+                    break;
+                }
+                "sim_error" => panic!("Unexpected error: {}", v["message"]),
+                other => panic!("Unexpected message type: {other}"),
+            }
+        }
+        assert!(step_count > 0, "Should have received sim_step frames");
+    }
+
+    #[tokio::test]
+    async fn test_start_simulation_with_inline_params() {
+        let url = spawn_test_server().await;
+        let (mut ws, _) = connect_async(&url).await.unwrap();
+
+        let mut params = world3_core::ScenarioParams::bau();
+        params.end_year = 1910.0;
+        let msg = WsClientMsg::StartSimulation {
+            scenario_id: "custom".into(),
+            params: Some(params),
+        };
+        send_json(&mut ws, &msg).await;
+
+        let mut step_count = 0usize;
+        loop {
+            let v = recv_json(&mut ws).await;
+            match v["type"].as_str().unwrap() {
+                "sim_step" => step_count += 1,
+                "sim_complete" => {
+                    assert_eq!(v["scenario_id"], "custom");
+                    assert_eq!(v["total_steps"].as_u64().unwrap(), step_count as u64);
+                    break;
+                }
+                other => panic!("Unexpected: {other}"),
+            }
+        }
+        assert!(step_count > 0);
+        assert!(step_count <= 12, "Expected ~10 steps, got {step_count}");
+    }
+
+    #[tokio::test]
+    async fn test_unknown_scenario_returns_error() {
+        let url = spawn_test_server().await;
+        let (mut ws, _) = connect_async(&url).await.unwrap();
+
+        let msg = WsClientMsg::StartSimulation {
+            scenario_id: "nonexistent".into(),
+            params: None,
+        };
+        send_json(&mut ws, &msg).await;
+
+        let v = recv_json(&mut ws).await;
+        assert_eq!(v["type"], "sim_error");
+        let message = v["message"].as_str().unwrap();
+        assert!(
+            message.contains("not found"),
+            "Expected 'not found' in error, got: {message}"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_invalid_json_returns_error() {
+        let url = spawn_test_server().await;
+        let (mut ws, _) = connect_async(&url).await.unwrap();
+
+        use futures_util::SinkExt;
+        ws.send(tungstenite::Message::Text("not valid json {{{".into()))
+            .await
+            .unwrap();
+
+        let v = recv_json(&mut ws).await;
+        assert_eq!(v["type"], "sim_error");
+        let message = v["message"].as_str().unwrap();
+        assert!(
+            message.contains("Invalid message"),
+            "Expected 'Invalid message' in error, got: {message}"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_update_params_sends_ack() {
+        let url = spawn_test_server().await;
+        let (mut ws, _) = connect_async(&url).await.unwrap();
+
+        let mut short_params = world3_core::ScenarioParams::bau();
+        short_params.end_year = 1910.0;
+
+        let msg = WsClientMsg::UpdateParams {
+            scenario_id: "bau".into(),
+            params: short_params,
+        };
+        send_json(&mut ws, &msg).await;
+
+        let v = recv_json(&mut ws).await;
+        assert_eq!(v["type"], "params_ack");
+        assert_eq!(v["scenario_id"], "bau");
+
+        loop {
+            let v = recv_json(&mut ws).await;
+            match v["type"].as_str().unwrap() {
+                "sim_step" => continue,
+                "sim_complete" => {
+                    assert_eq!(v["scenario_id"], "bau");
+                    break;
+                }
+                other => panic!("Unexpected: {other}"),
+            }
+        }
     }
 }
