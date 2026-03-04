@@ -127,6 +127,7 @@ pub fn capital_derivatives(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
     use crate::lookup::tables::WorldLookupTables;
     use crate::model::params::ScenarioParams;
     use crate::model::state::WorldState;
@@ -170,7 +171,6 @@ mod tests {
         // IO should equal IC * (1 - FCAOR(1.0)) / ICOR at 1900 with tech=1.0
         let fcaor = tables.capital_fraction_resource_extraction.eval(1.0);
         let expected_io = s.capital.industrial_capital * (1.0 - fcaor.clamp(0.0, 0.95)) / ICOR_1970;
-        use approx::assert_relative_eq;
         assert_relative_eq!(s.capital.industrial_output, expected_io, max_relative = 1e-10);
     }
 
@@ -188,7 +188,6 @@ mod tests {
 
         // tech_multiplier at 2000 = (1 + 0.002)^30
         let expected_ratio = (1.0 + params.technology_growth_rate).powf(30.0);
-        use approx::assert_relative_eq;
         assert_relative_eq!(io_2000 / io_1900, expected_ratio, max_relative = 1e-10);
     }
 

@@ -156,6 +156,7 @@ pub fn agriculture_derivatives(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
     use crate::lookup::tables::WorldLookupTables;
     use crate::model::params::ScenarioParams;
     use crate::model::state::WorldState;
@@ -230,7 +231,6 @@ mod tests {
         agriculture_derivatives(&mut s2, &params2, &tables);
         let yield2 = s2.agriculture.land_yield;
 
-        use approx::assert_relative_eq;
         assert_relative_eq!(yield2, yield1 * 2.0, max_relative = 1e-10);
     }
 
@@ -271,7 +271,6 @@ mod tests {
         let d = agriculture_derivatives(&mut s, &params, &tables);
         // No PAL → land_development_rate = 0
         // d_potentially_arable should be 0 (can't develop what doesn't exist)
-        use approx::assert_relative_eq;
         assert_relative_eq!(d.d_potentially_arable_land, 0.0, epsilon = 1e-15);
     }
 
@@ -309,7 +308,6 @@ mod tests {
         let lymc = tables.land_yield_multiplier_capital.eval(s.agriculture.agricultural_inputs_per_hectare);
         let lymap = tables.land_yield_multiplier_pollution.eval(s.pollution.pollution_index);
         let expected = fertility * lymc * lymap * params.agricultural_technology;
-        use approx::assert_relative_eq;
         assert_relative_eq!(s.agriculture.land_yield, expected, max_relative = 1e-10);
     }
 

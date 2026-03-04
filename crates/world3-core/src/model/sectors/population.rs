@@ -302,10 +302,13 @@ mod tests {
         assert!(aging_0 > 0.0);
         assert!(aging_15 > 0.0);
         assert!(aging_45 > 0.0);
-        // Cohort 15-44 receives from 0-14 and loses to 45-64
-        // d_cohort_15_44 = aging_0 - aging_15 - deaths_15_44
-        // All terms should be finite
-        assert!(d.d_cohort_15_44.is_finite());
+        // Verify cohort 15-44 balance: d = aging_in - aging_out - deaths
+        // deaths_15_44 = cohort_15_44 × M2(LE)
+        let m2 = tables.mortality_15_44.eval(s.population.life_expectancy);
+        let deaths_15_44 = s.population.cohort_15_44 * m2;
+        let expected = aging_0 - aging_15 - deaths_15_44;
+        use approx::assert_relative_eq;
+        assert_relative_eq!(d.d_cohort_15_44, expected, max_relative = 1e-10);
     }
 
     #[test]
@@ -315,8 +318,9 @@ mod tests {
         let births1 = s1.population.birth_rate * s1.population.population;
 
         let (mut s2, _, _) = setup();
-        s2.population.cohort_15_44 = s2.population.cohort_15_44 * 2.0;
-        s2.population.population += s2.population.cohort_15_44 / 2.0; // update total
+        let original_cohort = s2.population.cohort_15_44;
+        s2.population.cohort_15_44 = original_cohort * 2.0;
+        s2.population.population += original_cohort; // total grows by original cohort size
         population_derivatives(&mut s2, &params, &tables);
         let births2 = s2.population.birth_rate * s2.population.population;
 
@@ -339,12 +343,19 @@ mod tests {
 
     #[test]
     fn test_compensatory_fertility_at_low_perceived_le() {
-        let (mut s, params, tables) = setup();
-        // Low perceived LE → CMPLE > 1 (compensatory births)
-        s.population.perceived_le = 20.0;
-        population_derivatives(&mut s, &params, &tables);
-        let cmple_low = tables.compensatory_fertility.eval(20.0);
-        assert!(cmple_low > 1.0,
-            "CMPLE at perceived_le=20 should be > 1.0, got {cmple_low}");
+        let (mut s_low, params, tables) = setup();
+        // Low perceived LE → CMPLE > 1 → higher fertility
+        s_low.population.perceived_le = 20.0;
+        population_derivatives(&mut s_low, &params, &tables);
+        let fert_low_ple = s_low.population.fertility_rate;
+
+        let (mut s_high, _, _) = setup();
+        // High perceived LE → CMPLE ≈ 1 → baseline fertility
+        s_high.population.perceived_le = 60.0;
+        population_derivatives(&mut s_high, &params, &tables);
+        let fert_high_ple = s_high.population.fertility_rate;
+
+        assert!(fert_low_ple > fert_high_ple,
+            "fertility at low perceived LE ({fert_low_ple}) should exceed high perceived LE ({fert_high_ple})");
     }
 }
