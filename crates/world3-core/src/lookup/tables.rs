@@ -221,8 +221,8 @@ impl WorldLookupTables {
             // World3-03 table, extended to higher pollution levels
             life_exp_multiplier_pollution: LookupTable::new(
                 "life_exp_multiplier_pollution",
-                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 80.0, 100.0],
-                vec![1.0, 0.99, 0.97, 0.95, 0.90, 0.85, 0.75, 0.55, 0.40],
+                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0],
+                vec![1.0, 0.99, 0.97, 0.95, 0.9, 0.85, 0.75, 0.65, 0.55, 0.4, 0.2],
             ),
 
             // Mortality tables M1-M4 from World3-03
@@ -365,8 +365,8 @@ impl WorldLookupTables {
             // then with diminishing returns.
             land_yield_multiplier_capital: LookupTable::new(
                 "land_yield_multiplier_capital",
-                vec![0.0, 40.0, 80.0, 120.0, 160.0, 200.0, 240.0, 280.0, 320.0, 360.0, 400.0],
-                vec![1.0, 3.0, 4.5, 5.0, 5.3, 5.6, 5.9, 6.1, 6.35, 6.6, 6.9],
+                vec![0.0, 40.0, 80.0, 120.0, 160.0, 200.0, 240.0, 280.0, 320.0, 360.0, 400.0, 440.0, 480.0, 520.0, 560.0, 600.0, 640.0, 680.0, 720.0, 760.0, 800.0, 840.0, 880.0, 920.0, 960.0, 1000.0],
+                vec![1.0, 3.0, 3.8, 4.4, 4.9, 5.4, 5.7, 6.0, 6.3, 6.6, 6.9, 7.2, 7.4, 7.6, 7.8, 8.0, 8.2, 8.4, 8.6, 8.8, 9.0, 9.2, 9.4, 9.6, 9.8, 10.0],
             ),
 
             // Land yield multiplier from pollution (LYMAP)
@@ -375,8 +375,8 @@ impl WorldLookupTables {
             // yield degrades due to acid rain, soil contamination, etc.
             land_yield_multiplier_pollution: LookupTable::new(
                 "land_yield_multiplier_pollution",
-                vec![0.0, 1.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0],
-                vec![1.0, 1.0, 0.95, 0.90, 0.80, 0.70, 0.60, 0.50, 0.40],
+                vec![0.0, 10.0, 20.0, 30.0],
+                vec![1.0, 1.0, 0.7, 0.4],
             ),
 
             // Land erosion multiplier from over-farming
@@ -403,8 +403,8 @@ impl WorldLookupTables {
             // At perceived_LE=60+ (modern health): CMPLE<1.0 (confidence in survival)
             compensatory_fertility: LookupTable::new(
                 "compensatory_fertility",
-                vec![20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
-                vec![1.40, 1.25, 1.10, 1.0, 0.95, 0.92, 0.90],
+                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
+                vec![3.0, 2.1, 1.6, 1.4, 1.3, 1.2, 1.1, 1.05, 1.0],
             ),
 
             // Urban-industrial land per capita (UILPC)
@@ -423,8 +423,8 @@ impl WorldLookupTables {
             // At low pollution: no degradation. At high pollution: rapid degradation.
             land_fertility_degradation: LookupTable::new(
                 "land_fertility_degradation",
-                vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0],
-                vec![0.0, 0.04, 0.10, 0.20, 0.30, 0.40],
+                vec![0.0, 10.0, 20.0, 30.0],
+                vec![0.0, 0.1, 0.3, 0.5],
             ),
 
             // Land fertility regeneration time (LFRT)
