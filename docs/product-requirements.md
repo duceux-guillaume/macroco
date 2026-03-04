@@ -127,7 +127,6 @@
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Variables:* Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%)
   - *Done:* All 4 thresholds pass after pyworld3 alignment — Population 14.1%, Food/capita 24.8%, IOPC 28.2%, NNR fraction 4.3%. Tests run in CI without `#[ignore]`.
-  - *Design:* `docs/plans/2026-03-04-bau-historical-calibration-design.md`
 
 ---
 
