@@ -1,8 +1,7 @@
 <script lang="ts">
 	import UnifiedChart from '$lib/charts/UnifiedChart.svelte';
-	import SparklineChart from '$lib/charts/SparklineChart.svelte';
 	import { unifiedVariables } from '$lib/charts/unified-config';
-	import { activeSimData, brushedXDomain } from '$lib/stores/simulation';
+	import { activeSimData } from '$lib/stores/simulation';
 	import { scenarioColors, focusedScenarioId } from '$lib/stores/scenarios';
 	import { compareMode, compareVariable } from '$lib/stores/chart-ui';
 
@@ -33,15 +32,8 @@
 			</select>
 		{/if}
 	</div>
-	<div class="overview-section">
+	<div class="chart-section">
 		<UnifiedChart data={$activeSimData} colors={$scenarioColors} focusedScenarioId={$focusedScenarioId} />
-	</div>
-	<div class="sparklines-section">
-		{#each unifiedVariables as varConfig (varConfig.id)}
-			<div class="sparkline-cell">
-				<SparklineChart config={varConfig} data={$activeSimData} focusedScenarioId={$focusedScenarioId} xDomain={$brushedXDomain} />
-			</div>
-		{/each}
 	</div>
 </div>
 
@@ -92,36 +84,12 @@
 		outline: 1px solid var(--accent);
 		border-color: var(--accent);
 	}
-	.overview-section {
-		flex: 3;
-		min-height: 200px;
+	.chart-section {
+		flex: 1;
+		min-height: 300px;
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: 8px;
 		padding: 8px;
-	}
-	.sparklines-section {
-		flex: 2;
-		display: grid;
-		grid-template-columns: repeat(6, 1fr);
-		gap: 4px;
-		min-height: 120px;
-	}
-	.sparkline-cell {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 4px 4px 4px 0;
-		min-height: 80px;
-	}
-	@media (max-width: 1200px) {
-		.sparklines-section {
-			grid-template-columns: repeat(3, 1fr);
-		}
-	}
-	@media (max-width: 900px) {
-		.sparklines-section {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>
