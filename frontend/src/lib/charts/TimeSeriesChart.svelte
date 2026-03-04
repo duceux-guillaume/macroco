@@ -7,6 +7,9 @@
 	import { variableDescriptions } from '../content/variable-descriptions';
 	import { getAnnotations } from '../content/chart-annotations';
 	import type { ChartConfig } from './chart-config';
+	import { showHistorical } from '../stores/chart-ui';
+	import { historicalData } from '../stores/historical';
+	import { unifiedVariables } from './unified-config';
 	import type { WorldState } from '../types';
 
 	interface Props {
@@ -60,6 +63,8 @@
 		const _data = data;
 		const _colors = colors;
 		const _focusedId = focusedScenarioId;
+		const _showHistorical = $showHistorical;
+		const _historicalData = $historicalData;
 
 		const innerW = width - margin.left - margin.right;
 		const innerH = height - margin.top - margin.bottom;
@@ -73,6 +78,21 @@
 			const points = extractSeries(states, _config.fieldPath);
 			if (points.length > 0) {
 				allSeries.push({ id, points, color: _colors.get(id) ?? '#888' });
+			}
+		}
+
+		// Add historical overlay
+		if (_showHistorical) {
+			const varConfig = unifiedVariables.find((v) => v.fieldPath === _config.fieldPath);
+			if (varConfig) {
+				const histVar = _historicalData.get(varConfig.id);
+				if (histVar && histVar.data.length > 0) {
+					allSeries.push({
+						id: '__historical__',
+						points: histVar.data.map((d) => ({ year: d.year, value: d.value })),
+						color: '#9ca3af'
+					});
+				}
 			}
 		}
 
@@ -163,13 +183,18 @@
 					.append('path')
 					.attr('class', 'line')
 					.attr('fill', 'none')
-					.attr('stroke-width', 2)
+					.attr('stroke-width', (d) => d.id === '__historical__' ? 1.5 : 2)
+					.attr('stroke-dasharray', (d) => d.id === '__historical__' ? '6,3' : null)
+					.attr('opacity', (d) => d.id === '__historical__' ? 0.6 : 1)
 					.attr('stroke', (d) => d.color)
 					.attr('d', (d) => line(d.points)),
 			(update) =>
 				update
 					.transition()
 					.duration(300)
+					.attr('stroke-width', (d) => d.id === '__historical__' ? 1.5 : 2)
+					.attr('stroke-dasharray', (d) => d.id === '__historical__' ? '6,3' : null)
+					.attr('opacity', (d) => d.id === '__historical__' ? 0.6 : 1)
 					.attr('stroke', (d) => d.color)
 					.attr('d', (d) => line(d.points)),
 			(exit) => exit.remove()
@@ -267,7 +292,11 @@
 							else if (diff > 0) trend = '↑';
 							else trend = '↓';
 						}
-						items.push({ color: series.color, value: fmt(pt.value), trend });
+						items.push({
+							color: series.color,
+							value: fmt(pt.value),
+							trend: series.id === '__historical__' ? '(hist.)' : trend
+						});
 					}
 				}
 
