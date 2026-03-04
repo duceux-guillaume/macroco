@@ -283,7 +283,7 @@ impl WorldLookupTables {
             fecundity_multiplier: LookupTable::new(
                 "fecundity_multiplier",
                 vec![0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
-                vec![0.0, 0.2, 0.4, 0.6, 0.7, 0.75, 0.8, 0.85, 0.87],
+                vec![0.0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0, 1.05, 1.1],
             ),
 
             // Fraction of services for health
@@ -301,7 +301,7 @@ impl WorldLookupTables {
             consumption_fraction: LookupTable::new(
                 "consumption_fraction",
                 vec![0.0, 80.0, 160.0, 240.0, 320.0, 400.0, 480.0, 560.0, 640.0, 720.0, 800.0],
-                vec![0.40, 0.42, 0.44, 0.46, 0.48, 0.53, 0.78, 0.80, 0.82, 0.83, 0.83],
+                vec![0.3, 0.32, 0.34, 0.36, 0.38, 0.43, 0.73, 0.77, 0.81, 0.82, 0.83],
             ),
 
             // Fraction of industrial output to agriculture (FIOAA)
@@ -314,8 +314,8 @@ impl WorldLookupTables {
             // maintenance even in wealthy societies (prevents yield collapse).
             industrial_fraction_to_agriculture: LookupTable::new(
                 "industrial_fraction_to_agriculture",
-                vec![0.0, 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0],
-                vec![0.40, 0.30, 0.20, 0.16, 0.12, 0.08, 0.05, 0.04, 0.04],
+                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5],
+                vec![0.4, 0.2, 0.1, 0.025, 0.0, 0.0],
             ),
 
             // Indicated food per capita (IFPC) — calibrated for our model.
@@ -329,8 +329,8 @@ impl WorldLookupTables {
             // Extended to IOPC=2500 for Stabilized scenario (IOPC peaks ~2000).
             indicated_food_per_capita: LookupTable::new(
                 "indicated_food_per_capita",
-                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0, 2000.0, 2500.0],
-                vec![230.0, 230.0, 350.0, 500.0, 650.0, 800.0, 950.0, 1100.0, 1200.0, 1400.0, 1600.0],
+                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0],
+                vec![230.0, 480.0, 690.0, 850.0, 970.0, 1070.0, 1150.0, 1210.0, 1250.0],
             ),
 
             // Fraction of industrial output to services (FIOAS1)
@@ -414,8 +414,8 @@ impl WorldLookupTables {
             // At high income (IOPC≈$1600): 0.16 ha/person (sprawl, infrastructure)
             urban_industrial_land_per_capita: LookupTable::new(
                 "urban_industrial_land_per_capita",
-                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1600.0],
-                vec![0.005, 0.05, 0.09, 0.11, 0.13, 0.15, 0.16],
+                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0],
+                vec![0.005, 0.008, 0.015, 0.025, 0.04, 0.055, 0.07, 0.08, 0.09],
             ),
 
             // Land fertility degradation rate (LFDR)
@@ -459,7 +459,7 @@ impl WorldLookupTables {
             capital_fraction_resource_extraction: LookupTable::new(
                 "capital_fraction_resource_extraction",
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                vec![1.0, 0.9, 0.70, 0.50, 0.40, 0.30, 0.20, 0.14, 0.08, 0.04, 0.0],
+                vec![1.0, 0.9, 0.7, 0.5, 0.2, 0.1, 0.05, 0.05, 0.05, 0.05, 0.05],
             ),
 
             // Pollution generation from industrial output
