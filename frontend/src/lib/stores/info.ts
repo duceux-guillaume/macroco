@@ -18,9 +18,13 @@ selectedParameterId.subscribe((p) => {
 	if (p !== null) selectedVariableId.set(null);
 });
 
-/** Set of variable field paths to highlight on the chart when a parameter is selected. */
-export const highlightedVariables = derived(selectedParameterId, ($paramId) => {
-	if (!$paramId) return new Set<string>();
-	const info = parameterDescriptions[$paramId];
-	return new Set(info?.relatedVariables ?? []);
-});
+/** Set of variable field paths to highlight on the chart. */
+export const highlightedVariables = derived(
+	[selectedParameterId, selectedVariableId],
+	([$paramId, $varId]) => {
+		if ($varId) return new Set<string>([$varId]);
+		if (!$paramId) return new Set<string>();
+		const info = parameterDescriptions[$paramId];
+		return new Set(info?.relatedVariables ?? []);
+	}
+);
