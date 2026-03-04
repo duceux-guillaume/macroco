@@ -33,6 +33,8 @@
 | REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
 | REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-cli/tests/historical_calibration.rs` |
 | REQ-027 | Bi-directional traceability | Done (exempt: Infrastructure tooling; the traceability script itself is the implementation) | — |
+| REQ-028 | Multi-scenario historical calibration | In Progress | — |
+| REQ-029 | Scenario trajectory validation | In Progress | — |
 
 ## Reverse: Test -> REQs
 
