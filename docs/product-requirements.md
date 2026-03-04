@@ -55,6 +55,7 @@
   - *Context:* Automated quality checks prevent regressions in the Rust workspace.
   - *Components:* `.github/workflows/`: clippy + test jobs
   - *Done:* GitHub Actions workflow running `cargo clippy` and `cargo test` on PRs and pushes to main.
+  - *Exempt:* CI infrastructure, validated by pipeline execution
 
 - [x] **REQ-012: Historical data calibration**
   - *Context:* Milestone 2 requires calibrating model parameters against real historical data (World Bank, NOAA, FAO, UN, BP) to improve predictive accuracy.
@@ -65,6 +66,7 @@
   - *Context:* Single-container deployment on Fly.io. The `world3-api` binary serves both API and static frontend.
   - *Components:* Dockerfile, fly.toml, CI/CD deploy job, `world3-api` static serving
   - *Done:* Multi-stage Dockerfile, `fly.toml` config (cdg region, auto-stop), CI/CD deploy job in GitHub Actions, graceful shutdown, `STATIC_DIR` env var for static file serving.
+  - *Exempt:* Deployment infrastructure, validated by deploy job
 
 - [x] **REQ-017: Frontend test suite**
   - *Context:* Vitest unit test suite: 8 test files, ~150 tests covering format/extract utils, chart configs, variable descriptions, annotations, stores, and API client. CI pipeline runs tests on every PR.
@@ -75,11 +77,13 @@
   - *Context:* New users need a beginner-friendly way to launch the full stack without reading the full README.
   - *Components:* `docs/quick-start.md`, `run.sh`
   - *Done:* `docs/quick-start.md` with platform-specific install steps and troubleshooting; `run.sh` launches backend + frontend in parallel with signal handling.
+  - *Exempt:* Documentation only
 
 - [x] **REQ-019: Model guide documentation**
   - *Context:* Users need to understand World 3 sectors, feedback loops, and how to interpret charts before exploring scenarios.
   - *Components:* `docs/model-guide.md`
   - *Done:* `docs/model-guide.md` with beginner + technical tracks covering all 5 sectors, 6 feedback loops, solver explanation, and preset comparison.
+  - *Exempt:* Documentation only
 
 - [x] **REQ-020: Variable descriptions content module**
   - *Context:* All UI text describing variables, parameters, and feedback loops must come from a single source of truth.
