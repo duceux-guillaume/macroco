@@ -143,7 +143,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
-- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1). FIOAA table is calibrated slightly higher to compensate for reduced food output. BAU IOPC peaks at ~545.
+- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
@@ -228,9 +228,9 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 ### Historical Calibration (REQ-026)
 - BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023.
 - Variables: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
-- Test: `cargo test -p world3-cli --test historical_calibration` (summary only; `-- --ignored` to run threshold checks)
+- Test: `cargo test -p world3-cli --test historical_calibration`
 - Design: `docs/plans/2026-03-04-bau-historical-calibration-design.md`
-- Currently FAILING — thresholds are aspirational calibration targets.
+- All 4 thresholds PASS after pyworld3 alignment (Population 14.1%, Food 24.8%, IOPC 28.2%, NNR 4.3%).
 
 ## CI/CD
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
