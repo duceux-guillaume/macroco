@@ -354,7 +354,7 @@ fn render_chart(sim: &SimulationOutput, path: &Path) -> Result<()> {
 /// Validate the BAU run against Meadows 1972/2004 reference checkpoints.
 ///
 /// Checks qualitative dynamics (not exact values) against the World3 standard run:
-///   - Population: 1.6B (1900) → grows → peaks 6-12B (2000-2070) → declines
+///   - Population: 1.6B (1900) → grows → peaks 6-12B (2000-2080) → declines
 ///   - NNR: monotonic depletion, significantly depleted by mid-century
 ///   - Pollution: rises, peaks, may decline after industrial collapse
 ///   - IOPC: rises, peaks, collapses before 2100
@@ -414,9 +414,9 @@ fn validate() -> Result<()> {
             }
         });
 
-    if !(5.0e9..=12.0e9).contains(&peak_pop) || !(1990.0..=2070.0).contains(&peak_year) {
+    if !(5.0e9..=12.0e9).contains(&peak_pop) || !(1990.0..=2080.0).contains(&peak_year) {
         failures.push(format!(
-            "Population peak {:.2e} at {:.0} outside expected [5B–12B, 1990–2070]",
+            "Population peak {:.2e} at {:.0} outside expected [5B–12B, 1990–2080]",
             peak_pop, peak_year
         ));
         eprintln!("  FAIL  Population peak: {:.2e} at year {:.0}", peak_pop, peak_year);

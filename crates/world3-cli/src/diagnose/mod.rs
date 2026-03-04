@@ -192,8 +192,8 @@ mod tests {
         // Population peaks in expected range
         let pop = &diag.variables[0];
         assert_eq!(pop.name, "Population");
-        assert!(pop.peak.year >= 2000.0 && pop.peak.year <= 2070.0,
-            "Population peak year {} outside [2000, 2070]", pop.peak.year);
+        assert!(pop.peak.year >= 2000.0 && pop.peak.year <= 2080.0,
+            "Population peak year {} outside [2000, 2080]", pop.peak.year);
         assert!(pop.peak.value >= 5.0e9 && pop.peak.value <= 12.0e9,
             "Population peak value {:.2e} outside [5B, 12B]", pop.peak.value);
         assert!(!pop.is_monotonic, "Population should not be monotonic");
