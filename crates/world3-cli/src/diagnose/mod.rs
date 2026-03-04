@@ -242,15 +242,15 @@ mod tests {
     }
 
     #[test]
-    fn technology_has_oscillation_anomaly() {
+    fn technology_no_oscillation_after_ifpc_fix() {
+        // After the IFPC food allocation rework, Technology preset no longer oscillates at dt=1.0
         let diag = run_analysis("technology", 1900.0, 2100.0, 1.0).expect("Tech sim failed");
         let oscillations: Vec<_> = diag.anomalies.iter()
             .filter(|a| a.kind == analysis::AnomalyKind::Oscillation)
             .collect();
-        assert!(!oscillations.is_empty(),
-            "Technology preset should have oscillation anomalies at dt=1.0");
-        assert!(oscillations.iter().any(|a| a.variable == "Food / capita"),
-            "Food/capita should oscillate in technology preset");
+        assert!(oscillations.is_empty(),
+            "Technology preset should not have oscillation anomalies after IFPC fix, found: {:?}",
+            oscillations.iter().map(|a| &a.variable).collect::<Vec<_>>());
     }
 
     #[test]
