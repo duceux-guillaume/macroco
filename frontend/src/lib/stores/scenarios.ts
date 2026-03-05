@@ -22,30 +22,23 @@ export const focusedScenario = derived(
 	}
 );
 
-/** Color map for active scenarios (derived). */
-export const scenarioColors = derived(
-	[scenarios, activeScenarioIds],
-	([$scenarios, $activeIds]) => {
-		const colors = new Map<string, string>();
-		for (const s of $scenarios) {
-			if ($activeIds.has(s.id)) {
-				colors.set(s.id, s.color_hex);
+function deriveActiveScenarioMap<T>(selector: (s: ScenarioSummary) => T) {
+	return derived(
+		[scenarios, activeScenarioIds],
+		([$scenarios, $activeIds]) => {
+			const map = new Map<string, T>();
+			for (const s of $scenarios) {
+				if ($activeIds.has(s.id)) {
+					map.set(s.id, selector(s));
+				}
 			}
+			return map;
 		}
-		return colors;
-	}
-);
+	);
+}
+
+/** Color map for active scenarios (derived). */
+export const scenarioColors = deriveActiveScenarioMap((s) => s.color_hex);
 
 /** Display-name map for active scenarios (derived). */
-export const scenarioNames = derived(
-	[scenarios, activeScenarioIds],
-	([$scenarios, $activeIds]) => {
-		const names = new Map<string, string>();
-		for (const s of $scenarios) {
-			if ($activeIds.has(s.id)) {
-				names.set(s.id, s.name);
-			}
-		}
-		return names;
-	}
-);
+export const scenarioNames = deriveActiveScenarioMap((s) => s.name);

@@ -595,48 +595,37 @@
 				(enter) => {
 					const hg = enter.append('g')
 						.attr('class', 'scenario-header')
-						.attr('cursor', _activeIds.length > 1 ? 'pointer' : 'default')
 						.attr('transform', 'translate(0, -4)');
 
 					hg.append('circle')
 						.attr('cx', 5)
 						.attr('cy', -4)
-						.attr('r', 4)
-						.attr('fill', (d) => d.color);
+						.attr('r', 4);
 
 					hg.append('text')
 						.attr('x', 14)
 						.attr('y', 0)
 						.attr('fill', 'var(--text)')
-						.attr('font-size', isNarrow ? '11px' : '13px')
-						.attr('font-weight', '500')
-						.text((d) => d.name);
-
-					hg.on('click', () => {
-						if (_activeIds.length < 2) return;
-						const currentIdx = _activeIds.indexOf(_focusedId ?? '');
-						const nextIdx = (currentIdx + 1) % _activeIds.length;
-						focusedScenarioIdStore.set(_activeIds[nextIdx]);
-					});
+						.attr('font-weight', '500');
 
 					return hg;
 				},
-				(update) => {
-					update.attr('cursor', _activeIds.length > 1 ? 'pointer' : 'default');
-					update.select('circle').attr('fill', (d) => d.color);
-					update.select('text')
-						.attr('font-size', isNarrow ? '11px' : '13px')
-						.text((d) => d.name);
-					update.on('click', () => {
-						if (_activeIds.length < 2) return;
-						const currentIdx = _activeIds.indexOf(_focusedId ?? '');
-						const nextIdx = (currentIdx + 1) % _activeIds.length;
-						focusedScenarioIdStore.set(_activeIds[nextIdx]);
-					});
-					return update;
-				},
+				(update) => update,
 				(exit) => exit.remove()
-			);
+			)
+			.attr('cursor', _activeIds.length > 1 ? 'pointer' : 'default')
+			.on('click', () => {
+				if (_activeIds.length < 2) return;
+				const currentIdx = _activeIds.indexOf(_focusedId ?? '');
+				const nextIdx = (currentIdx + 1) % _activeIds.length;
+				focusedScenarioIdStore.set(_activeIds[nextIdx]);
+			})
+			.call((sel) => {
+				sel.select('circle').attr('fill', (d) => d.color);
+				sel.select('text')
+					.attr('font-size', isNarrow ? '11px' : '13px')
+					.text((d) => d.name);
+			});
 
 		const legendYOffset = headerData.length > 0 ? 16 : 0;
 
