@@ -142,8 +142,8 @@ fn collapse_food_per_capita_tracks_historical() {
     );
 }
 
-/// REQ-026: Collapse IOPC must track World Bank industrial VA data within 19% RMSE.
-/// Tightened from 21% after LE alignment improvements (actual ~16.2%).
+/// REQ-026: Collapse IOPC must track World Bank industrial VA data within 16% RMSE.
+/// Tightened from 19% after resource_efficiency_growth_rate extension (actual ~14.9%).
 #[test]
 fn collapse_iopc_tracks_historical() {
     let sim = common::collapse_sim();
@@ -152,8 +152,8 @@ fn collapse_iopc_tracks_historical() {
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 19.0,
-        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 19.0%",
+        pct < 16.0,
+        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 16.0%",
         pct
     );
 }
@@ -274,7 +274,7 @@ fn calibration_summary_report() {
     let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64, f64)> = vec![
         ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 11.0, 15.0),
         ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 15.0, 20.0),
-        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 19.0, 38.0),
+        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 16.0, 38.0),
         ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 4.0, 7.0),
         ("Life expect.", "life-expectancy.csv", (|s: &WorldState| s.population.life_expectancy) as fn(&WorldState) -> f64, 12.0, 19.0),
     ];

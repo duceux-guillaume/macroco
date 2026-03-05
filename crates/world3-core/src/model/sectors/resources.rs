@@ -22,7 +22,8 @@ const RESOURCE_DEPLETION_COEFF: f64 = 0.3e-14;
 ///
 /// Mechanism:
 /// - Per-capita resource use scales with industrial output per capita (IOPC).
-/// - Total extraction = POP × per_capita_use / resource_efficiency.
+/// - Effective efficiency = resource_efficiency × (1 + growth_rate)^max(year-1970, 0).
+/// - Total extraction = POP × per_capita_use / effective_efficiency.
 /// - The FCAOR table (capital fraction for resource extraction) is used ONLY by
 ///   the capital sector to reduce productive output — it does NOT appear here.
 pub fn resource_derivative(
@@ -38,9 +39,16 @@ pub fn resource_derivative(
     // Per-capita resource demand scales with industrial output per capita
     let iopc = state.capital.industrial_output_per_capita.max(0.0);
 
+    // Effective resource efficiency grows over time from 1970 onward,
+    // representing improving extraction technology (EOR, horizontal drilling,
+    // heap leaching, etc.). Structure mirrors agricultural_technology_growth_rate.
+    let eff_years = (state.time - 1970.0).max(0.0);
+    let effective_efficiency = params.resource_efficiency
+        * (1.0 + params.resource_efficiency_growth_rate).powf(eff_years);
+
     // Extraction rate = POP × IOPC × coefficient / efficiency
     // Decreases naturally as resources deplete (via feedback through capital output)
-    let extraction_rate = pop * iopc * RESOURCE_DEPLETION_COEFF / params.resource_efficiency;
+    let extraction_rate = pop * iopc * RESOURCE_DEPLETION_COEFF / effective_efficiency;
 
     -extraction_rate
 }
@@ -74,9 +82,10 @@ mod tests {
         let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         let d = resource_derivative(&s, &params, &tables);
-        // pop=1.6e9, iopc=43.75, coeff=0.3e-14, efficiency=1.05 (Collapse)
-        // extraction = 1.6e9 × 43.75 × 0.3e-14 / 1.05
-        let expected = -(1.6e9 * 43.75 * RESOURCE_DEPLETION_COEFF / params.resource_efficiency);
+        // pop=1.6e9, iopc=43.75, coeff=0.3e-14
+        // At 1900 (before 1970): growth_rate has no effect, effective_efficiency = resource_efficiency = 1.0
+        let effective_eff = params.resource_efficiency;
+        let expected = -(1.6e9 * 43.75 * RESOURCE_DEPLETION_COEFF / effective_eff);
         assert_relative_eq!(d, expected, epsilon = 1e-10);
     }
 
@@ -134,6 +143,39 @@ mod tests {
                 assert!(d <= 0.0, "derivative should be <= 0 for pop={pop}, iopc={iopc}, got {d}");
             }
         }
+    }
+
+    #[test]
+    fn test_resource_efficiency_growth_rate() {
+        let mut s = WorldState::initial_1900();
+        s.capital.industrial_output_per_capita = 200.0;
+        let tables = WorldLookupTables::load();
+
+        // At 1960 (before 1970): growth rate has no effect
+        s.time = 1960.0;
+        let mut params = ScenarioParams::collapse();
+        let d_pre = resource_derivative(&s, &params, &tables);
+
+        // Verify: same as if growth_rate were 0
+        params.resource_efficiency_growth_rate = 0.0;
+        let d_no_growth = resource_derivative(&s, &params, &tables);
+        assert_relative_eq!(d_pre, d_no_growth, epsilon = 1e-15);
+
+        // At 2020 (50 years after 1970): growth rate reduces depletion
+        s.time = 2020.0;
+        let mut params_with = ScenarioParams::collapse();
+        let d_2020_with = resource_derivative(&s, &params_with, &tables);
+
+        params_with.resource_efficiency_growth_rate = 0.0;
+        let d_2020_without = resource_derivative(&s, &params_with, &tables);
+
+        // With growth rate, depletion should be slower (less negative)
+        assert!(d_2020_with > d_2020_without,
+            "growth rate should reduce depletion: with={d_2020_with}, without={d_2020_without}");
+
+        // Check magnitude: at 0.0035/yr for 50 years, efficiency grows by (1.0035)^50 = 1.191
+        let expected_ratio = (1.0 + 0.0035_f64).powf(50.0);
+        assert_relative_eq!(d_2020_without / d_2020_with, expected_ratio, max_relative = 1e-10);
     }
 
     #[test]

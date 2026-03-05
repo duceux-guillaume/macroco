@@ -154,7 +154,8 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Perceived life expectancy uses a Delay3 (3-stage cascaded delay), matching World3-03 specification. Pollution appearance also uses Delay3. Both add 2 intermediate pipeline stages each to WorldState (4 extra ODE stocks total).
 - ISOPC lookup table provides dynamic service demand reference based on IOPC (replaces hardcoded 200.0). This allows service allocation to scale with industrial development.
 - Collapse `technology_growth_rate` = 0.014, `resource_efficiency` = 1.05 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
-- Collapse `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technology/Ecotopia presets use 0.0 (static `agricultural_technology=2.0` instead).
+- Collapse `resource_efficiency_growth_rate` = 0.0035 (0.35%/yr from 1970; real-world extraction tech improvement). Technotopia/Ecotopia presets use 0.0 (static `resource_efficiency=4.0` instead).
+- Collapse `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technotopia/Ecotopia presets use 0.0 (static `agricultural_technology=2.0` instead).
 - Collapse model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). Each table has a doc file in `docs/model/tables/`. Run `/audit-model-doc` to re-audit after changes. Modes: default (full audit + fix), `--check` (CI, read-only), `--diff` (pre-PR, changed files only).
 - When modifying sector code, lookup tables, or parameters, update the corresponding file in `docs/model/`. The `/audit-model-doc --diff` gate in `/refine-pr` will catch missed updates.
@@ -257,10 +258,10 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check Collapse ove
 
 ### Historical Calibration (REQ-026)
 - Collapse simulation must track real-world historical data within RMSE% and max-year-error thresholds over ~1960-2023.
-- RMSE% thresholds: Population (<11%), Food/capita (<15%), IOPC (<19%), NNR fraction (<4%), Life expectancy (<12%).
+- RMSE% thresholds: Population (<11%), Food/capita (<15%), IOPC (<16%), NNR fraction (<4%), Life expectancy (<12%).
 - Max-year-error thresholds: Population (<15%), Food/capita (<20%), IOPC (<38%), NNR fraction (<7%), Life expectancy (<19%).
 - Test: `cargo test -p world3-core --test historical_calibration` (11 tests: 5 RMSE + 5 max-year-error + 1 summary)
-- All 10 thresholds PASS (Pop RMSE=7.9%, Food=8.0%, IOPC=16.5%, NNR=1.3%, LE=11.1%; Max-year: Pop 11.4%, Food 12.1%, IOPC 35.4%, NNR 6.7%, LE=15.6%).
+- All 10 thresholds PASS (Pop RMSE=7.9%, Food=7.7%, IOPC=14.9%, NNR=1.1%, LE=11.1%; Max-year: Pop 11.5%, Food 12.1%, IOPC 35.4%, NNR 6.0%, LE=15.6%).
 
 ## CI/CD
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
