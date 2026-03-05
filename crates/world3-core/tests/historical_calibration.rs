@@ -18,7 +18,6 @@ use common::bau_sim;
 
 use std::path::Path;
 use world3_core::model::state::WorldState;
-use world3_core::output::SimulationOutput;
 
 // ---------------------------------------------------------------------------
 // CSV loader (minimal — handles comment-header format from data/historical/)
@@ -50,7 +49,7 @@ fn load_historical_csv(path: &Path) -> Vec<(f64, f64)> {
 /// Extract simulation values at years matching historical data.
 /// Returns (matched_sim_values, matched_hist_values).
 fn match_years(
-    sim: &SimulationOutput,
+    sim: &world3_core::output::SimulationOutput,
     extract: fn(&WorldState) -> f64,
     historical: &[(f64, f64)],
 ) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
@@ -118,7 +117,7 @@ fn historical_dir() -> std::path::PathBuf {
 /// Tightened from 14% after LE alignment improvements (actual ~8.1%).
 #[test]
 fn bau_population_tracks_historical() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("population.csv"));
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.population.population, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
@@ -133,7 +132,7 @@ fn bau_population_tracks_historical() {
 /// Kept loose — actual ~18.6% is near structural limit.
 #[test]
 fn bau_food_per_capita_tracks_historical() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("food.csv"));
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
@@ -148,7 +147,7 @@ fn bau_food_per_capita_tracks_historical() {
 /// Tightened from 21% after LE alignment improvements (actual ~16.2%).
 #[test]
 fn bau_iopc_tracks_historical() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("industrial.csv"));
     let (sim_vals, hist_vals, _years) =
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
@@ -164,7 +163,7 @@ fn bau_iopc_tracks_historical() {
 /// Tightened from 10% after LE alignment improvements (actual ~0.9%).
 #[test]
 fn bau_nnr_fraction_tracks_historical() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("resources.csv"));
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
@@ -179,7 +178,7 @@ fn bau_nnr_fraction_tracks_historical() {
 /// Tightened from 35% after LE alignment improvements (actual ~11.3%).
 #[test]
 fn bau_population_max_year_error() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("population.csv"));
     let (sim_vals, hist_vals, years) = match_years(sim, |s| s.population.population, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
@@ -194,7 +193,7 @@ fn bau_population_max_year_error() {
 /// Kept loose — actual ~25.5% is near structural limit.
 #[test]
 fn bau_food_per_capita_max_year_error() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("food.csv"));
     let (sim_vals, hist_vals, years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
@@ -209,7 +208,7 @@ fn bau_food_per_capita_max_year_error() {
 /// Kept loose — actual ~35.4% at 1960 is sensitive to initial conditions.
 #[test]
 fn bau_iopc_max_year_error() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("industrial.csv"));
     let (sim_vals, hist_vals, years) =
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
@@ -225,7 +224,7 @@ fn bau_iopc_max_year_error() {
 /// Tightened from 20% after LE alignment improvements (actual ~2.6%).
 #[test]
 fn bau_nnr_fraction_max_year_error() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("resources.csv"));
     let (sim_vals, hist_vals, years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
@@ -272,7 +271,7 @@ fn bau_life_expectancy_max_year_error() {
 /// REQ-026 traceability — shows current calibration gap.
 #[test]
 fn calibration_summary_report() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64, f64)> = vec![
         ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 11.0, 15.0),
         ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 21.0, 28.0),
