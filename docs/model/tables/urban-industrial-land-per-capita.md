@@ -15,7 +15,7 @@ UILPC maps industrial output per capita to the hectares of land per person requi
 
 Maps industrial output per capita (IOPC) to the hectares of land per person required for urban and industrial use (cities, factories, roads, infrastructure). As societies industrialize, per-capita land demand rises from 0.005 ha/person at subsistence to 0.09 ha/person at high income.
 
-Urban-industrial land is taken from the arable land stock, creating a direct competition between food production and urbanization. In the BAU scenario, UIL expansion is modest in the early period but accelerates with industrialization.
+Urban-industrial land is taken from the arable land stock, creating a direct competition between food production and urbanization. In the Collapse scenario, UIL expansion is modest in the early period but accelerates with industrialization.
 
 $$UIL_{\text{desired}} = \mathrm{UILPC}(\mathrm{IOPC}) \times \text{population}$$
 

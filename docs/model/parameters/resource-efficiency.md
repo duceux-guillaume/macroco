@@ -16,17 +16,17 @@ A value of 2.0 halves the depletion rate at any given population and IOPC level.
 
 ## Calibration
 
-BAU uses $$r_e = 1.05$$ (a 5% uplift over the World3-03 default of 1.0). The original World3-03 BAU uses $$r_e = 1.0$$, reflecting the 1972 assumption that extraction efficiency would not improve. Our deviation compensates for:
+Collapse uses $$r_e = 1.05$$ (a 5% uplift over the World3-03 default of 1.0). The original World3-03 standard run uses $$r_e = 1.0$$, reflecting the 1972 assumption that extraction efficiency would not improve. Our deviation compensates for:
 
 1. **Historical calibration.** Real-world TFP growth (~1.5%/yr in mining and energy sectors since 1970). The 5% uplift brings NNR depletion into alignment with observed data (RMSE = 0.9%).
 
 2. **IOPC trajectory.** Without the adjustment, NNR depletion constrains industrial output too early, causing IOPC to diverge from World Bank data in 1990–2010.
 
-The deviation is intentionally small. At $$r_e = 1.05$$, the qualitative BAU overshoot-and-collapse trajectory is preserved — resources still deplete to roughly 11% by 2100. Larger values (e.g., Technology preset's 4.0) fundamentally alter the trajectory.
+The deviation is intentionally small. At $$r_e = 1.05$$, the qualitative Collapse overshoot-and-collapse trajectory is preserved — resources still deplete to roughly 11% by 2100. Larger values (e.g., Technology preset's 4.0) fundamentally alter the trajectory.
 
 ## Sensitivity
 
-Resource efficiency interacts with the FCAOR table to determine when capital diversion becomes significant. Under BAU:
+Resource efficiency interacts with the FCAOR table to determine when capital diversion becomes significant. Under Collapse:
 
 - At $$r_e = 1.0$$: NNR falls below 50% around 2040, triggering rapid capital diversion.
 - At $$r_e = 1.05$$: The 50% threshold is reached a few years later, modestly delaying the onset of collapse.

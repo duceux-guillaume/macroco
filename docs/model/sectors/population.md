@@ -178,7 +178,7 @@ The Delay3 pipeline produces more uniform transit time behavior than a single fi
 
 **Single LMHS table.** World3-03 has two health services multiplier tables: LMHS1 (pre-1940, lower ceiling of 1.8) and LMHS2 (post-1940, ceiling of 2.0). We use only [LMHS2](../tables/life-exp-multiplier-health.md), which reflects the post-1940 medical technology regime applicable to the model's calibration period.
 
-**Family planning multiplier axis.** The [FRSN](../tables/family-planning-multiplier.md) table uses a 0--1 effectiveness scale (where 0 = no family planning, 1 = maximum effectiveness) rather than World3-03's family income expectation difference axis (-0.2 to 0.2). The mechanism differs but produces comparable net effects on fertility at BAU settings.
+**Family planning multiplier axis.** The [FRSN](../tables/family-planning-multiplier.md) table uses a 0--1 effectiveness scale (where 0 = no family planning, 1 = maximum effectiveness) rather than World3-03's family income expectation difference axis (-0.2 to 0.2). The mechanism differs but produces comparable net effects on fertility at Collapse settings.
 
 ## Lookup Tables
 

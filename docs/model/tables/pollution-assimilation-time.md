@@ -28,9 +28,9 @@ $$
 
 ## Functional Form
 
-The table is monotonically increasing and approximately log-linear: doubling the pollution index roughly doubles the assimilation time across most of the range. At low pollution (index < 1, pre-industrial conditions), the environment assimilates pollution in 1.5--2.5 years. At the 1970 reference level (index $\approx$ 1), assimilation takes about 2.5 years. In BAU collapse scenarios where the pollution index reaches 25--50, assimilation times of 40--80 years effectively render the pollution permanent on human timescales.
+The table is monotonically increasing and approximately log-linear: doubling the pollution index roughly doubles the assimilation time across most of the range. At low pollution (index < 1, pre-industrial conditions), the environment assimilates pollution in 1.5--2.5 years. At the 1970 reference level (index $\approx$ 1), assimilation takes about 2.5 years. In Collapse scenarios where the pollution index reaches 25--50, assimilation times of 40--80 years effectively render the pollution permanent on human timescales.
 
-This steep nonlinearity creates the pollution tipping point: once the pollution index exceeds roughly 10, the assimilation time grows faster than the pollution stock, leading to runaway accumulation. The table is calibrated so that BAU produces visible pollution buildup (index > 5) by 2000 and peaks above 10 by 2030--2040.
+This steep nonlinearity creates the pollution tipping point: once the pollution index exceeds roughly 10, the assimilation time grows faster than the pollution stock, leading to runaway accumulation. The table is calibrated so that Collapse produces visible pollution buildup (index > 5) by 2000 and peaks above 10 by 2030--2040.
 
 Beyond x = 100, the table clamps to 160 years.
 

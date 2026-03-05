@@ -28,11 +28,11 @@ See [Population sector](../sectors/population.md).
 
 ## Calibration
 
-In BAU, efficacy is 0.0. This matches the World3-03 standard run, which assumes no deliberate family planning intervention --- population dynamics are driven entirely by economic development (the demographic transition through DCFS) and compensatory fertility (CMPLE).
+In the Collapse scenario, efficacy is 0.0. This matches the World3-03 standard run, which assumes no deliberate family planning intervention --- population dynamics are driven entirely by economic development (the demographic transition through DCFS) and compensatory fertility (CMPLE).
 
 In the Stabilized World scenario, efficacy is 0.95, representing aggressive global family planning programs. Combined with `family_planning_year` = 1975.0, this produces FRSN approximately 0.42 by 1975, reducing desired fertility by about 58%.
 
-The parameter is sensitive in scenarios where it is nonzero: changing efficacy from 0.5 to 1.0 can shift equilibrium population by 1--2 billion. It has zero effect in BAU.
+The parameter is sensitive in scenarios where it is nonzero: changing efficacy from 0.5 to 1.0 can shift equilibrium population by 1--2 billion. It has zero effect in Collapse.
 
 The parameter range in the UI is 0.0--1.0 with a step size of 0.05.
 

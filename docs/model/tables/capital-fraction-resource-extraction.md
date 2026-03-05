@@ -14,7 +14,7 @@ FCAOR maps the fraction of non-renewable resources remaining ($$f_r$$) to the fr
 
 ## Purpose
 
-This table governs the key feedback loop that drives BAU collapse. As non-renewable resources deplete, an increasing fraction of industrial capital must be diverted from productive output to resource extraction — mining deeper deposits, processing lower-grade ores, exploring more remote sites. The table maps the fraction of resources remaining ($$f_r$$) to the fraction of total industrial capital consumed by extraction activities.
+This table governs the key feedback loop that drives Collapse-scenario collapse. As non-renewable resources deplete, an increasing fraction of industrial capital must be diverted from productive output to resource extraction — mining deeper deposits, processing lower-grade ores, exploring more remote sites. The table maps the fraction of resources remaining ($$f_r$$) to the fraction of total industrial capital consumed by extraction activities.
 
 When resources are abundant ($$f_r > 0.6$$), only 5% of capital is needed for extraction. As resources fall below 50%, the extraction fraction rises sharply, and below 10% remaining it approaches 90%. This nonlinear relationship is what makes resource depletion catastrophic rather than gradual: the economy must spend ever more just to maintain access to a shrinking resource base.
 
@@ -42,7 +42,7 @@ The table has three distinct regimes:
 
 1. **Abundance** ($$f_r \geq 0.6$$): FCAOR = 0.05. Resources are cheap to extract; only 5% of industrial capital is needed. The economy operates at near-full productive capacity.
 
-2. **Transition** ($$0.2 \leq f_r < 0.6$$): FCAOR rises from 0.05 to 0.70. Resource costs escalate rapidly. Each percentage point of depletion diverts noticeably more capital. This is the zone where BAU enters its crisis phase — industrial output peaks and begins to fall.
+2. **Transition** ($$0.2 \leq f_r < 0.6$$): FCAOR rises from 0.05 to 0.70. Resource costs escalate rapidly. Each percentage point of depletion diverts noticeably more capital. This is the zone where the Collapse scenario enters its crisis phase — industrial output peaks and begins to fall.
 
 3. **Exhaustion** ($$f_r < 0.2$$): FCAOR exceeds 0.70. The economy is trapped in an extraction spiral — most capital goes to maintaining resource flows, leaving little for productive output, investment, or services. Collapse becomes self-reinforcing.
 

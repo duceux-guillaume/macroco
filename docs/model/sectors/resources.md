@@ -6,7 +6,7 @@
 
 The resources sector is the simplest of the five World3 sectors. It models a single, finite stock of non-renewable resources — an aggregate representing fossil fuels, metals, and minerals — that is drawn down monotonically by industrial activity. There is no replenishment: once extracted, resources are gone.
 
-The sector's importance lies not in its own dynamics but in the feedback it imposes on the capital sector. As the resource stock depletes, an increasing fraction of industrial capital must be diverted to extraction (mining deeper deposits, processing lower-grade ores). This diversion reduces productive output, which in turn reduces investment, initiating the self-reinforcing collapse loop that defines the BAU trajectory.
+The sector's importance lies not in its own dynamics but in the feedback it imposes on the capital sector. As the resource stock depletes, an increasing fraction of industrial capital must be diverted to extraction (mining deeper deposits, processing lower-grade ores). This diversion reduces productive output, which in turn reduces investment, initiating the self-reinforcing collapse loop that defines the Collapse trajectory.
 
 ## State Variables
 
@@ -37,7 +37,7 @@ where:
 - $$k = 3.0 \times 10^{-15}$$ is the resource depletion coefficient (NNR fraction per person per USD per year),
 - $$r_e$$ is the `resource_efficiency` parameter (dimensionless multiplier, $$\geq 1$$).
 
-The depletion coefficient $$k$$ is calibrated so that at 1970 conditions ($$P = 3.6 \times 10^9$$, $$IOPC \approx 500$$ USD/yr), the extraction rate is approximately $$5.4 \times 10^{-3}$$ of total NNR per year. Cumulatively, this depletes roughly 50% of NNR by 2050 under BAU.
+The depletion coefficient $$k$$ is calibrated so that at 1970 conditions ($$P = 3.6 \times 10^9$$, $$IOPC \approx 500$$ USD/yr), the extraction rate is approximately $$5.4 \times 10^{-3}$$ of total NNR per year. Cumulatively, this depletes roughly 50% of NNR by 2050 under Collapse.
 
 The derivative is always non-positive. If population is zero or negative, extraction is zero.
 
@@ -54,13 +54,13 @@ The resources sector participates in one critical feedback loop — the **resour
 5. Lower IOPC slows extraction (a weak negative feedback), but also reduces investment in new capital.
 6. The net effect is self-reinforcing: less productive capital means less output, less investment, and eventual economic contraction — even though extraction itself slows.
 
-This is the primary mechanism of BAU collapse. When resources fall below roughly 50% of initial stock, the capital diversion begins to dominate, and industrial output peaks and then declines irreversibly.
+This is the primary mechanism of Collapse-scenario collapse. When resources fall below roughly 50% of initial stock, the capital diversion begins to dominate, and industrial output peaks and then declines irreversibly.
 
 Note that resource scarcity feeds back *only* through the FCAOR fraction in the capital sector. It does not directly affect the incremental capital-output ratio (ICOR), which remains constant. This is faithful to the World3-03 specification.
 
 ## Deviations from World3-03
 
-**`resource_efficiency` > 1.0 in BAU.** The original World3-03 model uses $$r_e = 1.0$$ for BAU (no efficiency improvement). Our BAU preset uses $$r_e = 1.05$$ to compensate for real-world extraction efficiency gains over the 20th and early 21st centuries that the 1972 model did not anticipate. This slight increase delays NNR depletion just enough to improve historical calibration against World Bank data (NNR RMSE = 0.9%) without altering the qualitative overshoot-and-collapse trajectory.
+**`resource_efficiency` > 1.0 in Collapse.** The original World3-03 model uses $$r_e = 1.0$$ for the standard run (no efficiency improvement). Our Collapse preset uses $$r_e = 1.05$$ to compensate for real-world extraction efficiency gains over the 20th and early 21st centuries that the 1972 model did not anticipate. This slight increase delays NNR depletion just enough to improve historical calibration against World Bank data (NNR RMSE = 0.9%) without altering the qualitative overshoot-and-collapse trajectory.
 
 The Technology and Stabilized presets use $$r_e = 4.0$$, representing aggressive efficiency gains that substantially delay resource depletion.
 

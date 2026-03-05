@@ -22,7 +22,7 @@ EHSPC then feeds into the [life expectancy multiplier from health services](../t
 
 ## Calibration
 
-The BAU value of 1.0 represents the standard World3-03 health services allocation. No World3-03 scenario modifies this parameter --- it is a Macroco extension that provides an additional policy lever for exploring health investment scenarios.
+The Collapse value of 1.0 represents the standard World3-03 health services allocation. No World3-03 scenario modifies this parameter --- it is a Macroco extension that provides an additional policy lever for exploring health investment scenarios.
 
 Sensitivity: increasing the multiplier from 1.0 to 2.0 roughly doubles HSAPC, which shifts EHSPC from approximately 50 to approximately 100 at peak (depending on SOPC trajectory). This moves the LMHS multiplier from approximately 1.8 to approximately 2.0, increasing life expectancy by roughly 3--5 years. The effect is modulated by the 20-year EHSPC smoothing delay.
 
