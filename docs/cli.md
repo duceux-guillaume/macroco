@@ -6,10 +6,10 @@ The `world3-cli` binary is the command-line interface for batch simulation, vali
 
 The CLI complements the interactive web frontend for use cases that don't need a browser:
 
-- **CI/CD validation** — headless qualitative checks in automated pipelines (REQ-033)
-- **Batch export** — CSV output for external analysis tools like R, Python, or Excel (REQ-034)
-- **Simulation debugging** — structured text/JSON analysis of trajectories, faster than visual inspection (REQ-035)
-- **Reproducibility** — deterministic runs from a single command with named presets (REQ-036)
+- **CI/CD validation** — headless qualitative checks in automated pipelines (REQ-037)
+- **Batch export** — CSV output for external analysis tools like R, Python, or Excel (REQ-038)
+- **Simulation debugging** — structured text/JSON analysis of trajectories, faster than visual inspection (REQ-039)
+- **Reproducibility** — deterministic runs from a single command with named presets (REQ-040)
 
 ## Build & Install
 
