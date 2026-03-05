@@ -124,7 +124,6 @@
 		label: string;
 		format: string;
 		historical?: boolean;
-		fieldPath?: string;
 	}
 
 	// Lightweight zoom render function — updated by main effect, called by zoom handler.
@@ -165,8 +164,7 @@
 					points: rawPoints.map((p) => ({ year: p.year, y: p.value })),
 					rawPoints,
 					label: scenarioId.slice(0, 8),
-					format: varConfig.format,
-					fieldPath: varConfig.fieldPath
+					format: varConfig.format
 				});
 			}
 
@@ -181,8 +179,7 @@
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: 'Historical',
 						format: varConfig.format,
-						historical: true,
-						fieldPath: varConfig.fieldPath
+						historical: true
 					});
 				}
 			}
@@ -243,8 +240,7 @@
 					points: rawPoints.map((p) => ({ year: p.year, y: normalize(p.value) })),
 					rawPoints,
 					label: varConfig.shortLabel,
-					format: varConfig.format,
-					fieldPath: varConfig.fieldPath
+					format: varConfig.format
 				});
 
 				// Add historical overlay line
@@ -256,8 +252,7 @@
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: `${varConfig.shortLabel} hist.`,
 						format: varConfig.format,
-						historical: true,
-						fieldPath: varConfig.fieldPath
+						historical: true
 					});
 				}
 			}
@@ -595,21 +590,26 @@
 			}
 		}
 
-		function handleItemClick(_: MouseEvent, d: typeof legendData[number]) {
-			if (d.fieldPath === '__historical__') {
+		function toggleSelection(fieldPath: string, isHistorical: boolean) {
+			if (isHistorical) {
 				selectedHistoricalId.set(get(selectedHistoricalId) ? null : 'historical');
 			} else if (!_compareMode) {
-				handleLegendSelect(d.fieldPath);
+				handleLegendSelect(fieldPath);
 			}
+		}
+
+		function handleItemClick(_: MouseEvent, d: typeof legendData[number]) {
+			toggleSelection(d.fieldPath, d.fieldPath === '__historical__');
 		}
 
 		function handleLineClick(event: MouseEvent, d: LineDatum) {
 			event.stopPropagation();
 			dismissTooltip();
 			if (d.historical) {
-				selectedHistoricalId.set(get(selectedHistoricalId) ? null : 'historical');
-			} else if (!_compareMode && d.fieldPath) {
-				handleLegendSelect(d.fieldPath);
+				toggleSelection('', true);
+			} else {
+				const varConfig = unifiedVariables.find((v) => v.id === d.id);
+				if (varConfig) toggleSelection(varConfig.fieldPath, false);
 			}
 		}
 
@@ -850,9 +850,10 @@
 						.filter((ld) => ld.id === d.id)
 						.attr('stroke-width', (ld) => getLineWidth(ld) + 1.5);
 				})
-				.on('mouseleave', function (_event: MouseEvent, _d: LineDatum) {
+				.on('mouseleave', function (_event: MouseEvent, d: LineDatum) {
 					if (isTouchDevice) return;
 					clipped.selectAll<SVGPathElement, LineDatum>('path.var-line')
+						.filter((ld) => ld.id === d.id)
 						.attr('stroke-width', (ld) => getLineWidth(ld));
 				});
 		};
