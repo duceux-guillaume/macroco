@@ -4,7 +4,7 @@ Annual improvement rate in resource extraction technology, applied from 1970 onw
 
 **Sector:** [Resources](../sectors/resources.md)
 **Source code:** `crates/world3-core/src/model/params.rs`, field `resource_efficiency_growth_rate`
-**BAU value:** `0.0035` (0.35%/yr; Technotopia/Ecotopia use 0.0)
+**BAU value:** `0.0035` (0.35%/yr from 1970)
 
 ## Equation Context
 
@@ -17,6 +17,14 @@ This effective efficiency divides the extraction rate in the resources sector OD
 $$\frac{d(NNR)}{dt} = -\frac{P \times IOPC \times k}{r_{e,\text{eff}}}$$
 
 Before 1970, the growth rate has no effect (the exponent is clamped to zero). This mirrors the `agricultural_technology_growth_rate` pattern (which uses 1960 as its start year).
+
+## Preset Values
+
+| Preset | Value | Rationale |
+|--------|-------|-----------|
+| Collapse | 0.0035 | Conservative net improvement (real-world ~0.5-0.6%/yr minus declining ore grade offset) |
+| Technotopia | 0.007 | Optimistic extraction tech improvement (closer to real-world gross improvement) |
+| Ecotopia | 0.0 | Static — the 4.0 base multiplier IS the intervention |
 
 ## Calibration
 
@@ -44,12 +52,14 @@ Declining ore grades offset roughly half these gains. Our 0.35%/yr is conservati
 
 Adding the growth rate improved IOPC RMSE from 16.5% to 14.9% and NNR RMSE from 1.3% to 1.1%. The 2023 IOPC error improved from -28.9% to -20.2%. All other variables were unaffected.
 
+For Technotopia, `resource_efficiency_growth_rate = 0.007` (2× Collapse) provides enough extraction improvement to prevent deep industrial collapse while keeping NNR historical fit within 14.2% max-year error.
+
 ## Sensitivity
 
 - At 0.0%/yr: baseline (no improvement). IOPC collapses earlier, NNR depletes faster.
 - At 0.35%/yr (Collapse default): modest delay to resource-driven collapse. Qualitative trajectory preserved.
 - At 0.4%/yr: NNR max-year error exceeds 7% threshold. Too aggressive.
-- The parameter interacts with `resource_efficiency` multiplicatively. Technotopia/Ecotopia presets use 0.0 because their static `resource_efficiency=4.0` already represents the policy intervention.
+- The parameter interacts with `resource_efficiency` multiplicatively. Ecotopia uses 0.0 because its static `resource_efficiency=4.0` already represents the policy intervention.
 
 ## Info Panel
 
@@ -72,5 +82,8 @@ Adding the growth rate improved IOPC RMSE from 16.5% to 14.9% and NNR RMSE from 
 ## References
 
 - Meadows et al. (2004), *Limits to Growth: The 30-Year Update*. Technology scenario parameters.
+- Oil & Gas Journal: US oil recovery factor 22% (1979) → 39% (2020)
+- UNEP Decoupling: material productivity ~0.9%/yr improvement (1945-2002)
 - Historical calibration: `cargo test -p world3-core --test historical_calibration` (IOPC RMSE = 14.9%, NNR RMSE = 1.1%).
+- Technotopia calibration: `cargo test -p world3-core --test technotopia_historical_calibration`
 - Unit test: `test_resource_efficiency_growth_rate` in `resources.rs`.

@@ -38,7 +38,7 @@
 | REQ-031 | Scenario trajectory validation | In Progress | — |
 | REQ-033 | Climate and energy extension sectors | Planned | — |
 | REQ-034 | Biodiversity and inequality extension sectors | Planned | — |
-| REQ-035 | Technology scenario historical calibration | Planned | — |
+| REQ-035 | Technology scenario historical calibration | Done | `crates/world3-core/tests/technotopia_historical_calibration.rs` |
 | REQ-036 | Ecotopia scenario historical calibration | Planned | — |
 | REQ-037 | CLI — CI/CD validation | Done (exempt: Organizational requirement; CLI validate tested by REQ-005 tests) | `frontend/src/lib/charts/zoom-helpers.test.ts` |
 | REQ-038 | CLI — Batch export | Done (exempt: Organizational requirement; CSV output tested by REQ-003 tests) | — |
@@ -71,6 +71,7 @@
 | `crates/world3-core/src/solver/rk4.rs` | REQ-001, REQ-005 |
 | `crates/world3-core/tests/historical_calibration.rs` | REQ-026 |
 | `crates/world3-core/tests/qualitative_dynamics.rs` | REQ-001 |
+| `crates/world3-core/tests/technotopia_historical_calibration.rs` | REQ-035 |
 | `frontend/src/lib/api.test.ts` | REQ-007, REQ-009 |
 | `frontend/src/lib/charts/chart-config.test.ts` | REQ-009 |
 | `frontend/src/lib/charts/unified-config.test.ts` | REQ-009 |
@@ -88,7 +89,7 @@
 
 ## Summary
 
-- **Done requirements:** 29
-- **Covered by tests:** 16
+- **Done requirements:** 30
+- **Covered by tests:** 17
 - **Exempt:** 13
 - **Uncovered:** 0
