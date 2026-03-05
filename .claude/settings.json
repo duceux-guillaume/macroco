@@ -9,12 +9,15 @@
   "permissions": {
     "allow": [
       "Bash(*)",
+      "Read(*)",
       "Edit(*)",
       "Write(*)",
       "Agent(*)",
       "WebFetch(*)"
     ],
     "deny": [
+      "Edit(.github/workflows/*)",
+      "Write(.github/workflows/*)",
       "Bash(rm *)",
       "Bash(npm install*)",
       "Bash(npm add*)",
