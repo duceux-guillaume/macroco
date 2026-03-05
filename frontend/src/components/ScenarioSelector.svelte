@@ -3,6 +3,8 @@
 	import { simulationResults } from '$lib/stores/simulation';
 	import { createScenario, getScenario, runScenario } from '$lib/api';
 	import type { ScenarioParams } from '$lib/types';
+	import { compareMode, compareVariable } from '$lib/stores/chart-ui';
+	import { unifiedVariables } from '$lib/charts/unified-config';
 
 	let presets = $derived($scenarios.filter((s) => s.is_preset));
 	let custom = $derived($scenarios.filter((s) => !s.is_preset));
@@ -39,6 +41,15 @@
 			}
 			return next;
 		});
+	}
+
+	function toggleCompare() {
+		compareMode.update((v) => !v);
+	}
+
+	function handleVariableChange(e: Event) {
+		const target = e.target as HTMLSelectElement;
+		compareVariable.set(target.value);
 	}
 
 	async function handleNewScenario() {
@@ -103,7 +114,16 @@
 </script>
 
 <div class="scenario-selector">
-	<h3>Presets</h3>
+	<div class="section-header">
+		<h3>Presets</h3>
+		<button
+			class="compare-toggle"
+			class:active={$compareMode}
+			onclick={toggleCompare}
+		>
+			{$compareMode ? 'All vars' : 'Compare'}
+		</button>
+	</div>
 	<div class="scenario-list">
 		{#each presets as s}
 			<button
@@ -122,6 +142,14 @@
 			</button>
 		{/each}
 	</div>
+
+	{#if $compareMode}
+		<select class="variable-select" value={$compareVariable} onchange={handleVariableChange}>
+			{#each unifiedVariables as v (v.id)}
+				<option value={v.fieldPath}>{v.label}</option>
+			{/each}
+		</select>
+	{/if}
 
 	{#if presets.length > 1}
 		<button
@@ -255,5 +283,43 @@
 	.new-btn:hover {
 		border-color: var(--accent);
 		color: var(--accent);
+	}
+	.section-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.compare-toggle {
+		padding: 2px 8px;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		background: none;
+		cursor: pointer;
+		font-size: 11px;
+		color: var(--text-secondary);
+		transition: all 0.1s;
+	}
+	.compare-toggle:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.compare-toggle.active {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--bg);
+	}
+	.variable-select {
+		width: 100%;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		color: var(--text);
+		font-size: 12px;
+		padding: 4px 8px;
+		cursor: pointer;
+	}
+	.variable-select:focus {
+		outline: 1px solid var(--accent);
+		border-color: var(--accent);
 	}
 </style>
