@@ -1713,22 +1713,1109 @@ RUST DEPENDENCIES
   Authors: David Tolnay <dtolnay@gmail.com>
 
 ==================================================
+NODE DEPENDENCIES
+==================================================
+
+  @acemir/cssom 0.9.31
+  License: MIT
+  Repository: acemir/CSSOM
+  Authors: Nikita Vasilyev <me@elv1s.ru>
+
+  @adobe/css-tools 4.4.4
+  License: MIT
+  Repository: https://github.com/adobe/css-tools.git
+  Authors: TJ Holowaychuk <tj@vision-media.ca>
+
+  @asamuzakjp/css-color 5.0.1
+  License: MIT
+  Repository: git+https://github.com/asamuzaK/cssColor.git
+  Authors: asamuzaK
+
+  @asamuzakjp/dom-selector 6.8.1
+  License: MIT
+  Repository: git+https://github.com/asamuzaK/domSelector.git
+  Authors: asamuzaK
+
+  @asamuzakjp/nwsapi 2.3.9
+  License: MIT
+  Repository: git://github.com/dperini/nwsapi.git
+  Authors: Diego Perini
+
+  @babel/code-frame 7.29.0
+  License: MIT
+  Repository: https://github.com/babel/babel.git
+  Authors: The Babel Team (https://babel.dev/team)
+
+  @babel/helper-validator-identifier 7.28.5
+  License: MIT
+  Repository: https://github.com/babel/babel.git
+  Authors: The Babel Team (https://babel.dev/team)
+
+  @babel/runtime 7.28.6
+  License: MIT
+  Repository: https://github.com/babel/babel.git
+  Authors: The Babel Team (https://babel.dev/team)
+
+  @bramus/specificity 2.4.2
+  License: MIT
+  Repository: git+https://github.com/bramus/specificity.git
+  Authors: Bramus Van Damme
+
+  @csstools/color-helpers 6.0.2
+  License: MIT-0
+  Repository: git+https://github.com/csstools/postcss-plugins.git
+  Authors: see package repository
+
+  @csstools/css-calc 3.1.1
+  License: MIT
+  Repository: git+https://github.com/csstools/postcss-plugins.git
+  Authors: see package repository
+
+  @csstools/css-color-parser 4.0.2
+  License: MIT
+  Repository: git+https://github.com/csstools/postcss-plugins.git
+  Authors: see package repository
+
+  @csstools/css-parser-algorithms 4.0.0
+  License: MIT
+  Repository: git+https://github.com/csstools/postcss-plugins.git
+  Authors: see package repository
+
+  @csstools/css-syntax-patches-for-csstree 1.0.29
+  License: MIT-0
+  Repository: git+https://github.com/csstools/postcss-plugins.git
+  Authors: see package repository
+
+  @csstools/css-tokenizer 4.0.0
+  License: MIT
+  Repository: git+https://github.com/csstools/postcss-plugins.git
+  Authors: see package repository
+
+  @esbuild/darwin-arm64 0.25.12
+  License: MIT
+  Repository: git+https://github.com/evanw/esbuild.git
+  Authors: see package repository
+
+  @exodus/bytes 1.14.1
+  License: MIT
+  Repository: git+https://github.com/ExodusOSS/bytes.git
+  Authors: Exodus Movement, Inc.
+
+  @jridgewell/gen-mapping 0.3.13
+  License: MIT
+  Repository: git+https://github.com/jridgewell/sourcemaps.git
+  Authors: Justin Ridgewell <justin@ridgewell.name>
+
+  @jridgewell/remapping 2.3.5
+  License: MIT
+  Repository: git+https://github.com/jridgewell/sourcemaps.git
+  Authors: Justin Ridgewell <justin@ridgewell.name>
+
+  @jridgewell/resolve-uri 3.1.2
+  License: MIT
+  Repository: https://github.com/jridgewell/resolve-uri
+  Authors: Justin Ridgewell <justin@ridgewell.name>
+
+  @jridgewell/sourcemap-codec 1.5.5
+  License: MIT
+  Repository: git+https://github.com/jridgewell/sourcemaps.git
+  Authors: Justin Ridgewell <justin@ridgewell.name>
+
+  @jridgewell/trace-mapping 0.3.31
+  License: MIT
+  Repository: git+https://github.com/jridgewell/sourcemaps.git
+  Authors: Justin Ridgewell <justin@ridgewell.name>
+
+  @polka/url 1.0.0-next.29
+  License: MIT
+  Repository: lukeed/polka
+  Authors: Luke Edwards
+
+  @rollup/rollup-darwin-arm64 4.59.0
+  License: MIT
+  Repository: git+https://github.com/rollup/rollup.git
+  Authors: Lukas Taegert-Atkinson
+
+  @standard-schema/spec 1.1.0
+  License: MIT
+  Repository: https://github.com/standard-schema/standard-schema
+  Authors: Colin McDonnell
+
+  @sveltejs/acorn-typescript 1.0.9
+  License: MIT
+  Repository: git+https://github.com/sveltejs/acorn-typescript.git
+  Authors: tyrealhu and the Svelte team
+
+  @sveltejs/adapter-static 3.0.10
+  License: MIT
+  Repository: git+https://github.com/sveltejs/kit.git
+  Authors: see package repository
+
+  @sveltejs/kit 2.53.4
+  License: MIT
+  Repository: git+https://github.com/sveltejs/kit.git
+  Authors: see package repository
+
+  @sveltejs/vite-plugin-svelte 5.1.1
+  License: MIT
+  Repository: git+https://github.com/sveltejs/vite-plugin-svelte.git
+  Authors: dominikg
+
+  @sveltejs/vite-plugin-svelte-inspector 4.0.1
+  License: MIT
+  Repository: git+https://github.com/sveltejs/vite-plugin-svelte.git
+  Authors: dominikg
+
+  @testing-library/dom 10.4.1
+  License: MIT
+  Repository: https://github.com/testing-library/dom-testing-library
+  Authors: Kent C. Dodds <me@kentcdodds.com> (https://kentcdodds.com)
+
+  @testing-library/jest-dom 6.9.1
+  License: MIT
+  Repository: https://github.com/testing-library/jest-dom
+  Authors: Ernesto Garcia <gnapse@gmail.com> (http://gnapse.github.io)
+
+  @testing-library/svelte 5.3.1
+  License: MIT
+  Repository: git+https://github.com/testing-library/svelte-testing-library.git
+  Authors: see package repository
+
+  @testing-library/svelte-core 1.0.0
+  License: MIT
+  Repository: git+https://github.com/testing-library/svelte-testing-library.git
+  Authors: see package repository
+
+  @types/aria-query 5.0.4
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/chai 5.2.3
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/cookie 0.6.0
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3 7.4.3
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-array 3.2.2
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-axis 3.0.6
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-brush 3.0.6
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-chord 3.0.6
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-color 3.1.3
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-contour 3.0.6
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-delaunay 6.0.4
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-dispatch 3.0.7
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-drag 3.0.7
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-dsv 3.0.7
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-ease 3.0.2
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-fetch 3.0.7
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-force 3.0.10
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-format 3.0.4
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-geo 3.1.0
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-hierarchy 3.1.7
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-interpolate 3.0.4
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-path 3.1.1
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-polygon 3.0.2
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-quadtree 3.0.6
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-random 3.0.3
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-scale 4.0.9
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-scale-chromatic 3.1.0
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-selection 3.0.11
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-shape 3.1.8
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-time 3.0.4
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-time-format 4.0.3
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-timer 3.0.2
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-transition 3.0.9
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/d3-zoom 3.0.8
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/deep-eql 4.0.2
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/estree 1.0.8
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/geojson 7946.0.16
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @types/trusted-types 2.0.7
+  License: MIT
+  Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
+  Authors: see package repository
+
+  @vitest/expect 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  @vitest/mocker 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  @vitest/pretty-format 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  @vitest/runner 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  @vitest/snapshot 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  @vitest/spy 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  @vitest/utils 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: see package repository
+
+  acorn 8.16.0
+  License: MIT
+  Repository: git+https://github.com/acornjs/acorn.git
+  Authors: see package repository
+
+  agent-base 7.1.4
+  License: MIT
+  Repository: https://github.com/TooTallNate/proxy-agents.git
+  Authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
+
+  ansi-regex 5.0.1
+  License: MIT
+  Repository: chalk/ansi-regex
+  Authors: Sindre Sorhus
+
+  ansi-styles 5.2.0
+  License: MIT
+  Repository: chalk/ansi-styles
+  Authors: Sindre Sorhus
+
+  aria-query 5.3.0
+  License: Apache-2.0
+  Repository: git+https://github.com/A11yance/aria-query.git
+  Authors: Jesse Beach <splendidnoise@gmail.com>
+
+  aria-query 5.3.1
+  License: Apache-2.0
+  Repository: git+https://github.com/A11yance/aria-query.git
+  Authors: Jesse Beach <splendidnoise@gmail.com>
+
+  assertion-error 2.0.1
+  License: MIT
+  Repository: git@github.com:chaijs/assertion-error.git
+  Authors: Jake Luer <jake@qualiancy.com> (http://qualiancy.com)
+
+  axobject-query 4.1.0
+  License: Apache-2.0
+  Repository: git+https://github.com/A11yance/axobject-query.git
+  Authors: Jesse Beach <splendidnoise@gmail.com>
+
+  bidi-js 1.0.3
+  License: MIT
+  Repository: https://github.com/lojjic/bidi-js.git
+  Authors: Jason Johnston
+
+  chai 6.2.2
+  License: MIT
+  Repository: https://github.com/chaijs/chai
+  Authors: Jake Luer <jake@alogicalparadox.com>
+
+  chokidar 4.0.3
+  License: MIT
+  Repository: git+https://github.com/paulmillr/chokidar.git
+  Authors: Paul Miller (https://paulmillr.com)
+
+  clsx 2.1.1
+  License: MIT
+  Repository: lukeed/clsx
+  Authors: Luke Edwards
+
+  commander 7.2.0
+  License: MIT
+  Repository: https://github.com/tj/commander.js.git
+  Authors: TJ Holowaychuk <tj@vision-media.ca>
+
+  cookie 0.6.0
+  License: MIT
+  Repository: jshttp/cookie
+  Authors: Roman Shtylman <shtylman@gmail.com>
+
+  css-tree 3.1.0
+  License: MIT
+  Repository: csstree/csstree
+  Authors: Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)
+
+  css.escape 1.5.1
+  License: MIT
+  Repository: https://github.com/mathiasbynens/CSS.escape.git
+  Authors: Mathias Bynens
+
+  cssstyle 6.2.0
+  License: MIT
+  Repository: git+https://github.com/jsdom/cssstyle.git
+  Authors: see package repository
+
+  d3 7.9.0
+  License: ISC
+  Repository: https://github.com/d3/d3.git
+  Authors: Mike Bostock
+
+  d3-array 3.2.4
+  License: ISC
+  Repository: https://github.com/d3/d3-array.git
+  Authors: Mike Bostock
+
+  d3-axis 3.0.0
+  License: ISC
+  Repository: https://github.com/d3/d3-axis.git
+  Authors: Mike Bostock
+
+  d3-brush 3.0.0
+  License: ISC
+  Repository: https://github.com/d3/d3-brush.git
+  Authors: Mike Bostock
+
+  d3-chord 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-chord.git
+  Authors: Mike Bostock
+
+  d3-color 3.1.0
+  License: ISC
+  Repository: https://github.com/d3/d3-color.git
+  Authors: Mike Bostock
+
+  d3-contour 4.0.2
+  License: ISC
+  Repository: https://github.com/d3/d3-contour.git
+  Authors: Mike Bostock
+
+  d3-delaunay 6.0.4
+  License: ISC
+  Repository: https://github.com/d3/d3-delaunay.git
+  Authors: Mike Bostock
+
+  d3-dispatch 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-dispatch.git
+  Authors: Mike Bostock
+
+  d3-drag 3.0.0
+  License: ISC
+  Repository: https://github.com/d3/d3-drag.git
+  Authors: Mike Bostock
+
+  d3-dsv 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-dsv.git
+  Authors: Mike Bostock
+
+  d3-ease 3.0.1
+  License: BSD-3-Clause
+  Repository: https://github.com/d3/d3-ease.git
+  Authors: Mike Bostock
+
+  d3-fetch 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-fetch.git
+  Authors: Mike Bostock
+
+  d3-force 3.0.0
+  License: ISC
+  Repository: https://github.com/d3/d3-force.git
+  Authors: Mike Bostock
+
+  d3-format 3.1.2
+  License: ISC
+  Repository: https://github.com/d3/d3-format.git
+  Authors: Mike Bostock
+
+  d3-geo 3.1.1
+  License: ISC
+  Repository: https://github.com/d3/d3-geo.git
+  Authors: Mike Bostock
+
+  d3-hierarchy 3.1.2
+  License: ISC
+  Repository: https://github.com/d3/d3-hierarchy.git
+  Authors: Mike Bostock
+
+  d3-interpolate 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-interpolate.git
+  Authors: Mike Bostock
+
+  d3-path 3.1.0
+  License: ISC
+  Repository: https://github.com/d3/d3-path.git
+  Authors: Mike Bostock
+
+  d3-polygon 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-polygon.git
+  Authors: Mike Bostock
+
+  d3-quadtree 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-quadtree.git
+  Authors: Mike Bostock
+
+  d3-random 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-random.git
+  Authors: Mike Bostock
+
+  d3-scale 4.0.2
+  License: ISC
+  Repository: https://github.com/d3/d3-scale.git
+  Authors: Mike Bostock
+
+  d3-scale-chromatic 3.1.0
+  License: ISC
+  Repository: https://github.com/d3/d3-scale-chromatic.git
+  Authors: Mike Bostock
+
+  d3-selection 3.0.0
+  License: ISC
+  Repository: https://github.com/d3/d3-selection.git
+  Authors: Mike Bostock
+
+  d3-shape 3.2.0
+  License: ISC
+  Repository: https://github.com/d3/d3-shape.git
+  Authors: Mike Bostock
+
+  d3-time 3.1.0
+  License: ISC
+  Repository: https://github.com/d3/d3-time.git
+  Authors: Mike Bostock
+
+  d3-time-format 4.1.0
+  License: ISC
+  Repository: https://github.com/d3/d3-time-format.git
+  Authors: Mike Bostock
+
+  d3-timer 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-timer.git
+  Authors: Mike Bostock
+
+  d3-transition 3.0.1
+  License: ISC
+  Repository: https://github.com/d3/d3-transition.git
+  Authors: Mike Bostock
+
+  d3-zoom 3.0.0
+  License: ISC
+  Repository: https://github.com/d3/d3-zoom.git
+  Authors: Mike Bostock
+
+  data-urls 7.0.0
+  License: MIT
+  Repository: git+https://github.com/jsdom/data-urls.git
+  Authors: Domenic Denicola <d@domenic.me> (https://domenic.me/)
+
+  debug 4.4.3
+  License: MIT
+  Repository: git://github.com/debug-js/debug.git
+  Authors: Josh Junon (https://github.com/qix-)
+
+  decimal.js 10.6.0
+  License: MIT
+  Repository: https://github.com/MikeMcl/decimal.js.git
+  Authors: Michael Mclaughlin
+
+  deepmerge 4.3.1
+  License: MIT
+  Repository: git://github.com/TehShrike/deepmerge.git
+  Authors: see package repository
+
+  delaunator 5.0.1
+  License: ISC
+  Repository: https://github.com/mapbox/delaunator.git
+  Authors: Vladimir Agafonkin
+
+  dequal 2.0.3
+  License: MIT
+  Repository: lukeed/dequal
+  Authors: Luke Edwards
+
+  devalue 5.6.3
+  License: MIT
+  Repository: sveltejs/devalue
+  Authors: see package repository
+
+  dom-accessibility-api 0.5.16
+  License: MIT
+  Repository: https://github.com/eps1lon/dom-accessibility-api.git
+  Authors: see package repository
+
+  dom-accessibility-api 0.6.3
+  License: MIT
+  Repository: https://github.com/eps1lon/dom-accessibility-api.git
+  Authors: see package repository
+
+  entities 6.0.1
+  License: BSD-2-Clause
+  Repository: git://github.com/fb55/entities.git
+  Authors: Felix Boehm <me@feedic.com>
+
+  es-module-lexer 1.7.0
+  License: MIT
+  Repository: git+https://github.com/guybedford/es-module-lexer.git
+  Authors: Guy Bedford
+
+  esbuild 0.25.12
+  License: MIT
+  Repository: git+https://github.com/evanw/esbuild.git
+  Authors: see package repository
+
+  esm-env 1.2.2
+  License: MIT
+  Repository: https://github.com/benmccann/esm-env.git
+  Authors: Ben McCann (https://www.benmccann.com)
+
+  esrap 2.2.3
+  License: MIT
+  Repository: git+https://github.com/sveltejs/esrap.git
+  Authors: see package repository
+
+  estree-walker 3.0.3
+  License: MIT
+  Repository: https://github.com/Rich-Harris/estree-walker
+  Authors: Rich Harris
+
+  expect-type 1.3.0
+  License: Apache-2.0
+  Repository: https://github.com/mmkal/expect-type.git
+  Authors: see package repository
+
+  fdir 6.5.0
+  License: MIT
+  Repository: git+https://github.com/thecodrr/fdir.git
+  Authors: thecodrr <thecodrr@protonmail.com>
+
+  fsevents 2.3.3
+  License: MIT
+  Repository: https://github.com/fsevents/fsevents.git
+  Authors: see package repository
+
+  html-encoding-sniffer 6.0.0
+  License: MIT
+  Repository: git+https://github.com/jsdom/html-encoding-sniffer.git
+  Authors: Domenic Denicola <d@domenic.me> (https://domenic.me/)
+
+  http-proxy-agent 7.0.2
+  License: MIT
+  Repository: https://github.com/TooTallNate/proxy-agents.git
+  Authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
+
+  https-proxy-agent 7.0.6
+  License: MIT
+  Repository: https://github.com/TooTallNate/proxy-agents.git
+  Authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
+
+  iconv-lite 0.6.3
+  License: MIT
+  Repository: git://github.com/ashtuchkin/iconv-lite.git
+  Authors: Alexander Shtuchkin <ashtuchkin@gmail.com>
+
+  indent-string 4.0.0
+  License: MIT
+  Repository: sindresorhus/indent-string
+  Authors: Sindre Sorhus
+
+  internmap 2.0.3
+  License: ISC
+  Repository: https://github.com/mbostock/internmap.git
+  Authors: Mike Bostock
+
+  is-potential-custom-element-name 1.0.1
+  License: MIT
+  Repository: https://github.com/mathiasbynens/is-potential-custom-element-name.git
+  Authors: Mathias Bynens
+
+  is-reference 3.0.3
+  License: MIT
+  Repository: git+https://github.com/Rich-Harris/is-reference.git
+  Authors: Rich Harris
+
+  js-tokens 4.0.0
+  License: MIT
+  Repository: lydell/js-tokens
+  Authors: Simon Lydell
+
+  jsdom 28.1.0
+  License: MIT
+  Repository: git+https://github.com/jsdom/jsdom.git
+  Authors: see package repository
+
+  kleur 4.1.5
+  License: MIT
+  Repository: lukeed/kleur
+  Authors: Luke Edwards
+
+  locate-character 3.0.0
+  License: MIT
+  Repository: git+https://gitlab.com/Rich-Harris/locate-character.git
+  Authors: Rich Harris
+
+  lru-cache 11.2.6
+  License: BlueOak-1.0.0
+  Repository: git+ssh://git@github.com/isaacs/node-lru-cache.git
+  Authors: Isaac Z. Schlueter <i@izs.me>
+
+  lz-string 1.5.0
+  License: MIT
+  Repository: https://github.com/pieroxy/lz-string.git
+  Authors: pieroxy <pieroxy@pieroxy.net>
+
+  magic-string 0.30.21
+  License: MIT
+  Repository: git+https://github.com/Rich-Harris/magic-string.git
+  Authors: Rich Harris
+
+  mdn-data 2.12.2
+  License: CC0-1.0
+  Repository: https://github.com/mdn/data.git
+  Authors: Mozilla Developer Network
+
+  min-indent 1.0.1
+  License: MIT
+  Repository: https://github.com/thejameskyle/min-indent
+  Authors: James Kyle
+
+  mri 1.2.0
+  License: MIT
+  Repository: lukeed/mri
+  Authors: Luke Edwards
+
+  mrmime 2.0.1
+  License: MIT
+  Repository: lukeed/mrmime
+  Authors: Luke Edwards
+
+  ms 2.1.3
+  License: MIT
+  Repository: vercel/ms
+  Authors: see package repository
+
+  nanoid 3.3.11
+  License: MIT
+  Repository: ai/nanoid
+  Authors: Andrey Sitnik <andrey@sitnik.ru>
+
+  obug 2.1.1
+  License: MIT
+  Repository: git+https://github.com/sxzz/obug.git
+  Authors: Kevin Deng <sxzz@sxzz.moe>
+
+  parse5 8.0.0
+  License: MIT
+  Repository: git://github.com/inikulin/parse5.git
+  Authors: Ivan Nikulin <ifaaan@gmail.com> (https://github.com/inikulin)
+
+  pathe 2.0.3
+  License: MIT
+  Repository: unjs/pathe
+  Authors: see package repository
+
+  picocolors 1.1.1
+  License: ISC
+  Repository: alexeyraspopov/picocolors
+  Authors: Alexey Raspopov
+
+  picomatch 4.0.3
+  License: MIT
+  Repository: micromatch/picomatch
+  Authors: Jon Schlinkert (https://github.com/jonschlinkert)
+
+  postcss 8.5.8
+  License: MIT
+  Repository: postcss/postcss
+  Authors: Andrey Sitnik <andrey@sitnik.ru>
+
+  pretty-format 27.5.1
+  License: MIT
+  Repository: https://github.com/facebook/jest.git
+  Authors: James Kyle <me@thejameskyle.com>
+
+  punycode 2.3.1
+  License: MIT
+  Repository: https://github.com/mathiasbynens/punycode.js.git
+  Authors: Mathias Bynens
+
+  react-is 17.0.2
+  License: MIT
+  Repository: https://github.com/facebook/react.git
+  Authors: see package repository
+
+  readdirp 4.1.2
+  License: MIT
+  Repository: git://github.com/paulmillr/readdirp.git
+  Authors: Thorsten Lorenz <thlorenz@gmx.de> (thlorenz.com)
+
+  redent 3.0.0
+  License: MIT
+  Repository: sindresorhus/redent
+  Authors: Sindre Sorhus
+
+  require-from-string 2.0.2
+  License: MIT
+  Repository: floatdrop/require-from-string
+  Authors: Vsevolod Strukchinsky
+
+  robust-predicates 3.0.2
+  License: Unlicense
+  Repository: https://github.com/mourner/robust-predicates.git
+  Authors: Vladimir Agafonkin
+
+  rollup 4.59.0
+  License: MIT
+  Repository: git+https://github.com/rollup/rollup.git
+  Authors: Rich Harris
+
+  rw 1.3.3
+  License: BSD-3-Clause
+  Repository: http://github.com/mbostock/rw.git
+  Authors: Mike Bostock
+
+  sade 1.8.1
+  License: MIT
+  Repository: lukeed/sade
+  Authors: Luke Edwards
+
+  safer-buffer 2.1.2
+  License: MIT
+  Repository: git+https://github.com/ChALkeR/safer-buffer.git
+  Authors: Nikita Skovoroda
+
+  saxes 6.0.0
+  License: ISC
+  Repository: https://github.com/lddubeau/saxes.git
+  Authors: Louis-Dominique Dubeau <ldd@lddubeau.com>
+
+  set-cookie-parser 3.0.1
+  License: MIT
+  Repository: nfriedly/set-cookie-parser
+  Authors: Nathan Friedly
+
+  siginfo 2.0.0
+  License: ISC
+  Repository: git+https://github.com/emilbayes/siginfo.git
+  Authors: Emil Bay <github@tixz.dk>
+
+  sirv 3.0.2
+  License: MIT
+  Repository: lukeed/sirv
+  Authors: Luke Edwards
+
+  source-map-js 1.2.1
+  License: BSD-3-Clause
+  Repository: 7rulnik/source-map-js
+  Authors: Valentin 7rulnik Semirulnik <v7rulnik@gmail.com>
+
+  stackback 0.0.2
+  License: MIT
+  Repository: git://github.com/shtylman/node-stackback.git
+  Authors: Roman Shtylman <shtylman@gmail.com>
+
+  std-env 3.10.0
+  License: MIT
+  Repository: unjs/std-env
+  Authors: see package repository
+
+  strip-indent 3.0.0
+  License: MIT
+  Repository: sindresorhus/strip-indent
+  Authors: Sindre Sorhus
+
+  svelte 5.53.7
+  License: MIT
+  Repository: git+https://github.com/sveltejs/svelte.git
+  Authors: see package repository
+
+  svelte-check 4.4.4
+  License: MIT
+  Repository: git+https://github.com/sveltejs/language-tools.git
+  Authors: The Svelte Community
+
+  symbol-tree 3.2.4
+  License: MIT
+  Repository: https://github.com/jsdom/js-symbol-tree.git
+  Authors: Joris van der Wel <joris@jorisvanderwel.com>
+
+  tinybench 2.9.0
+  License: MIT
+  Repository: tinylibs/tinybench
+  Authors: see package repository
+
+  tinyexec 1.0.2
+  License: MIT
+  Repository: git+https://github.com/tinylibs/tinyexec.git
+  Authors: James Garbutt (https://github.com/43081j)
+
+  tinyglobby 0.2.15
+  License: MIT
+  Repository: git+https://github.com/SuperchupuDev/tinyglobby.git
+  Authors: Superchupu
+
+  tinyrainbow 3.0.3
+  License: MIT
+  Repository: git+https://github.com/tinylibs/tinyrainbow.git
+  Authors: see package repository
+
+  tldts 7.0.24
+  License: MIT
+  Repository: git+ssh://git@github.com/remusao/tldts.git
+  Authors: Rémi Berson
+
+  tldts-core 7.0.24
+  License: MIT
+  Repository: git+ssh://git@github.com/remusao/tldts.git
+  Authors: Rémi Berson
+
+  totalist 3.0.1
+  License: MIT
+  Repository: lukeed/totalist
+  Authors: Luke Edwards
+
+  tough-cookie 6.0.0
+  License: BSD-3-Clause
+  Repository: git://github.com/salesforce/tough-cookie.git
+  Authors: Jeremy Stashewsky
+
+  tr46 6.0.0
+  License: MIT
+  Repository: git+https://github.com/jsdom/tr46.git
+  Authors: Sebastian Mayr <npm@smayr.name>
+
+  typescript 5.9.3
+  License: Apache-2.0
+  Repository: https://github.com/microsoft/TypeScript.git
+  Authors: Microsoft Corp.
+
+  undici 7.22.0
+  License: MIT
+  Repository: git+https://github.com/nodejs/undici.git
+  Authors: see package repository
+
+  vite 6.4.1
+  License: MIT
+  Repository: git+https://github.com/vitejs/vite.git
+  Authors: Evan You
+
+  vitefu 1.1.2
+  License: MIT
+  Repository: git+https://github.com/svitejs/vitefu.git
+  Authors: see package repository
+
+  vitest 4.0.18
+  License: MIT
+  Repository: git+https://github.com/vitest-dev/vitest.git
+  Authors: Anthony Fu <anthonyfu117@hotmail.com>
+
+  w3c-xmlserializer 5.0.0
+  License: MIT
+  Repository: jsdom/w3c-xmlserializer
+  Authors: see package repository
+
+  webidl-conversions 8.0.1
+  License: BSD-2-Clause
+  Repository: git+https://github.com/jsdom/webidl-conversions.git
+  Authors: Domenic Denicola <d@domenic.me> (https://domenic.me/)
+
+  whatwg-mimetype 5.0.0
+  License: MIT
+  Repository: jsdom/whatwg-mimetype
+  Authors: Domenic Denicola <d@domenic.me> (https://domenic.me/)
+
+  whatwg-url 16.0.1
+  License: MIT
+  Repository: git+https://github.com/jsdom/whatwg-url.git
+  Authors: Sebastian Mayr <github@smayr.name>
+
+  why-is-node-running 2.3.0
+  License: MIT
+  Repository: https://github.com/mafintosh/why-is-node-running.git
+  Authors: Mathias Buus (@mafintosh)
+
+  xml-name-validator 5.0.0
+  License: Apache-2.0
+  Repository: jsdom/xml-name-validator
+  Authors: Domenic Denicola <d@domenic.me> (https://domenic.me/)
+
+  xmlchars 2.2.0
+  License: MIT
+  Repository: https://github.com/lddubeau/xmlchars.git
+  Authors: Louis-Dominique Dubeau <ldd@lddubeau.com>
+
+  zimmerframe 1.1.4
+  License: MIT
+  Repository: https://github.com/sveltejs/zimmerframe
+  Authors: see package repository
+
+==================================================
 LICENSE SUMMARY
 ==================================================
 
+  MIT: 215
   MIT OR Apache-2.0: 189
-  MIT: 51
+  ISC: 37
   Apache-2.0 OR MIT: 25
   Unicode-3.0: 18
   Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT: 14
   MIT/Apache-2.0: 13
+  Apache-2.0: 9
+  BSD-3-Clause: 5
   Unlicense OR MIT: 3
-  Apache-2.0: 3
   Unlicense/MIT: 2
   Apache-2.0 OR ISC OR MIT: 2
-  ISC: 2
   Apache-2.0 OR BSL-1.0 OR MIT: 2
   BSD-2-Clause OR Apache-2.0 OR MIT: 2
+  MIT-0: 2
+  BSD-2-Clause: 2
   0BSD OR MIT OR Apache-2.0: 1
   (Apache-2.0 OR MIT) AND BSD-3-Clause: 1
   Apache-2.0/MIT: 1
@@ -1740,9 +2827,11 @@ LICENSE SUMMARY
   MIT OR Apache-2.0 OR LGPL-2.1-or-later: 1
   Apache-2.0 AND ISC: 1
   Apache-2.0 OR BSL-1.0: 1
-  BSD-3-Clause: 1
   Zlib OR Apache-2.0 OR MIT: 1
   MIT OR Apache-2.0 OR Zlib: 1
   (MIT OR Apache-2.0) AND Unicode-3.0: 1
+  BlueOak-1.0.0: 1
+  CC0-1.0: 1
+  Unlicense: 1
 
-Total third-party packages: 341
+Total third-party packages: 557
