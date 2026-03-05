@@ -167,10 +167,13 @@ def phase1_completeness() -> tuple[list[str], int, int, int]:
             if snake not in lookup_fields:
                 issues.append(f"Orphan table doc: {doc.relative_to(REPO_ROOT)} (no field '{snake}' in WorldLookupTables)")
 
+    # Derived variables documented alongside parameters (not ScenarioParams fields)
+    DERIVED_PARAM_DOCS = {"investment_rate"}
+
     if DOC_PARAMS.exists():
         for doc in DOC_PARAMS.glob("*.md"):
             snake = doc.stem.replace("-", "_")
-            if snake not in param_fields:
+            if snake not in param_fields and snake not in DERIVED_PARAM_DOCS:
                 issues.append(f"Orphan parameter doc: {doc.relative_to(REPO_ROOT)} (no field '{snake}' in ScenarioParams)")
 
     if DOC_SECTORS.exists():
