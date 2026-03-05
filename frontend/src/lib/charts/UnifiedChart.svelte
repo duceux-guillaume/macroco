@@ -12,7 +12,7 @@
 	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
-	import { constrainToXAxis, isTransformZoomed, isTap, computeTrend, computeVisibleYExtent } from './zoom-helpers';
+	import { constrainToXAxis, isTransformZoomed, computeTrend, computeVisibleYExtent } from './zoom-helpers';
 	import type { WorldState } from '../types';
 
 	const NOW_YEAR = 2026;
@@ -890,35 +890,15 @@
 				}
 			});
 
-		// Mobile: tap to pin tooltip
+		// Mobile: tap to pin tooltip via click event.
+		// Touch devices synthesize click from taps. This is more reliable than
+		// touchstart/touchend because d3.zoom intercepts touch events for
+		// pan gestures (calling preventDefault), which suppresses custom touch handlers.
 		if (isTouchDevice) {
-			let touchStartTime = 0;
-			let touchStartPos = { x: 0, y: 0 };
-
-			svg.on('touchstart.tooltip', (event: TouchEvent) => {
-				if (event.touches.length === 1) {
-					touchStartTime = Date.now();
-					touchStartPos = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-				}
-			}, { passive: true } as any);
-
-			svg.on('touchend.tooltip', (event: TouchEvent) => {
-				if (event.changedTouches.length !== 1) return;
-				const endPos = event.changedTouches[0];
-				if (!isTap(Date.now() - touchStartTime, touchStartPos.x, touchStartPos.y, endPos.clientX, endPos.clientY)) return;
-
-				const svgNode = svg.node()!;
-				const rect = svgNode.getBoundingClientRect();
-				const mx = endPos.clientX - rect.left - margin.left;
-				const my = endPos.clientY - rect.top - margin.top;
-
-				if (mx >= 0 && mx <= innerW && my >= 0 && my <= innerH) {
-					showTooltipAtX(mx);
-				} else {
-					tooltipLine.style('display', 'none');
-					dismissTooltip();
-				}
-			}, { passive: true } as any);
+			overlay.on('click', (event: MouseEvent) => {
+				const [mx] = d3.pointer(event, overlay.node()!);
+				showTooltipAtX(mx);
+			});
 		}
 	});
 </script>
