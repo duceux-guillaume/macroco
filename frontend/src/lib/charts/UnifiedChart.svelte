@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as d3 from 'd3';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { get } from 'svelte/store';
 	import { browser } from '$app/environment';
 	import { resize } from '../utils/resize';
@@ -38,9 +38,7 @@
 	let isZoomed = $derived(currentTransform.k > 1.01);
 	let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, null> | null = null;
 
-	const isTouchDevice = $derived(
-		browser && window.matchMedia('(pointer: coarse)').matches
-	);
+	const isTouchDevice = browser && window.matchMedia('(pointer: coarse)').matches;
 
 	let margin = $derived(
 		width < 500
@@ -72,6 +70,11 @@
 		} else {
 			selectedVariableId.set(fieldPath);
 		}
+	}
+
+	function dismissTooltip() {
+		tooltipVisible = false;
+		hoveredYear.set(null);
 	}
 
 	function resetZoom() {
@@ -120,6 +123,10 @@
 		format: string;
 		historical?: boolean;
 	}
+
+	// Lightweight zoom render function — updated by main effect, called by zoom handler.
+	// Avoids full $effect re-run on every zoom/pan gesture (~60Hz).
+	let applyZoomTransform: ((transform: d3.ZoomTransform) => void) | null = null;
 
 	$effect(() => {
 		if (!containerEl || width <= 0 || height <= 0) return;
@@ -281,12 +288,15 @@
 		if (allYears.length === 0) return;
 		const xExtent = d3.extent(allYears) as [number, number];
 
-		const xScale = d3.scaleLinear().domain(xExtent).range([0, innerW]);
-		const baseXScale = xScale.copy();
-		const zoomedX = currentTransform.rescaleX(baseXScale);
+		// Read current zoom without creating a reactive dependency
+		const transform = untrack(() => currentTransform);
+
+		const baseXScale = d3.scaleLinear().domain(xExtent).range([0, innerW]);
+		const zoomedX = transform.rescaleX(baseXScale.copy());
 
 		let yScale: d3.ScaleLinear<number, number>;
 		let yTickFormat: (d: d3.NumberValue) => string;
+		let compareVarFmt: ((v: number) => string) | null = null;
 
 		if (useNormalizedY) {
 			yScale = d3.scaleLinear().domain([0, 1]).range([innerH, 0]);
@@ -301,8 +311,8 @@
 			const yPad = (yExtent[1] - yExtent[0]) * 0.05 || 1;
 			yScale = d3.scaleLinear().domain([Math.max(0, yExtent[0] - yPad), yExtent[1] + yPad]).range([innerH, 0]);
 			const varConfig = unifiedVariables.find((v) => v.fieldPath === _compareVariable) ?? unifiedVariables[0];
-			const fmt = getFormatter(varConfig.format);
-			yTickFormat = (d) => fmt(d as number);
+			compareVarFmt = getFormatter(varConfig.format);
+			yTickFormat = (d) => compareVarFmt!(d as number);
 		}
 
 		const line = d3.line<{ year: number; y: number }>()
@@ -694,27 +704,106 @@
 			(exit) => exit.remove()
 		);
 
+		// Lightweight zoom render: updates only scale-dependent elements.
+		// Captured by closure so the zoom handler can call it at ~60Hz without
+		// triggering the full $effect (which rebuilds all data/D3 joins).
+		applyZoomTransform = (newTransform: d3.ZoomTransform) => {
+			const zx = newTransform.rescaleX(baseXScale.copy());
+
+			// Recompute Y scale for compare mode (auto-fit to visible window)
+			let ys = yScale;
+			if (!useNormalizedY) {
+				const [visStart, visEnd] = zx.domain();
+				const visVals = linesData.flatMap((l) =>
+					l.points.filter((p) => p.year >= visStart && p.year <= visEnd).map((p) => p.y)
+				);
+				if (visVals.length > 0) {
+					const yExt = d3.extent(visVals) as [number, number];
+					const yP = (yExt[1] - yExt[0]) * 0.05 || 1;
+					ys = d3.scaleLinear().domain([Math.max(0, yExt[0] - yP), yExt[1] + yP]).range([innerH, 0]);
+					g.select<SVGGElement>('g.y-axis')
+						.call(d3.axisLeft(ys).ticks(5).tickFormat(yTickFormat) as any);
+				}
+			}
+
+			// Update line paths
+			const zLine = d3.line<{ year: number; y: number }>()
+				.x((d) => zx(d.year))
+				.y((d) => ys(d.y));
+			g.selectAll<SVGPathElement, LineDatum>('path.var-line')
+				.attr('d', (d) => zLine(d.points));
+
+			// Update X axis (no transition during continuous zoom)
+			g.select<SVGGElement>('g.x-axis')
+				.call(d3.axisBottom(zx).tickFormat(d3.format('d')).ticks(Math.min(innerW / 80, 10)) as any);
+
+			// Update now-line
+			const [vMin, vMax] = zx.domain();
+			const nowVisible = NOW_YEAR >= vMin && NOW_YEAR <= vMax;
+			g.selectAll<SVGGElement, number>('g.now-line')
+				.data(nowVisible ? [NOW_YEAR] : [])
+				.join(
+					(enter) => {
+						const ng = enter.append('g').attr('class', 'now-line');
+						ng.append('line')
+							.attr('x1', zx(NOW_YEAR)).attr('x2', zx(NOW_YEAR))
+							.attr('y1', 0).attr('y2', innerH)
+							.attr('stroke', 'var(--text-secondary)')
+							.attr('stroke-width', 1).attr('opacity', 0.5);
+						ng.append('text')
+							.attr('x', zx(NOW_YEAR) + 3).attr('y', innerH - 4)
+							.attr('fill', 'var(--text-secondary)')
+							.attr('font-size', '9px').attr('opacity', 0.6)
+							.text('Now');
+						return ng;
+					},
+					(update) => {
+						update.select('line').attr('x1', zx(NOW_YEAR)).attr('x2', zx(NOW_YEAR));
+						update.select('text').attr('x', zx(NOW_YEAR) + 3);
+						return update;
+					},
+					(exit) => exit.remove()
+				);
+
+			// Update annotation positions
+			g.selectAll<SVGGElement, { year: number }>('g.annotation').each(function(d) {
+				const el = d3.select(this);
+				el.select('line').attr('x1', zx(d.year)).attr('x2', zx(d.year));
+				el.select('text').attr('x', zx(d.year) + 3);
+			});
+		};
+
 		// Zoom behavior (X-axis only)
 		const zoom = d3.zoom<SVGSVGElement, null>()
 			.scaleExtent([1, 20])
 			.translateExtent([[0, 0], [innerW, innerH]])
 			.extent([[0, 0], [innerW, innerH]])
-			.filter((event: Event) => {
-				if (event.type === 'dblclick') return false;
-				return true;
-			})
+			.filter((event: Event) => event.type !== 'dblclick')
 			.on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, null>) => {
 				const t = event.transform;
 				const constrainedT = d3.zoomIdentity.translate(t.x, 0).scale(t.k);
+				// Update state for isZoomed button reactivity
 				currentTransform = constrainedT;
-				// Dismiss tooltip during zoom/pan
-				tooltipVisible = false;
-				hoveredYear.set(null);
+				// Directly update D3 elements (no $effect re-run)
+				if (applyZoomTransform) applyZoomTransform(constrainedT);
+				dismissTooltip();
 			});
 
 		svg.call(zoom);
-		svg.call(zoom.transform, currentTransform);
 		zoomBehavior = zoom;
+
+		// Restore zoom transform without triggering handler (avoids feedback loop)
+		if (transform !== d3.zoomIdentity) {
+			zoom.on('zoom', null);
+			svg.call(zoom.transform, transform);
+			zoom.on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, null>) => {
+				const t = event.transform;
+				const constrainedT = d3.zoomIdentity.translate(t.x, 0).scale(t.k);
+				currentTransform = constrainedT;
+				if (applyZoomTransform) applyZoomTransform(constrainedT);
+				dismissTooltip();
+			});
+		}
 
 		// Double-click/double-tap to reset zoom
 		svg.on('dblclick.zoom', null);
@@ -744,12 +833,14 @@
 			.style('display', 'none');
 
 		function showTooltipAtX(mx: number) {
-			const year = Math.round(zoomedX.invert(mx));
+			// Read current transform directly from D3 (source of truth during zoom)
+			const currentZx = d3.zoomTransform(svg.node()!).rescaleX(baseXScale.copy());
+			const year = Math.round(currentZx.invert(mx));
 
 			tooltipLine
 				.style('display', null)
-				.attr('x1', zoomedX(year))
-				.attr('x2', zoomedX(year));
+				.attr('x1', currentZx(year))
+				.attr('x2', currentZx(year));
 
 			const items: typeof tooltipItems = [];
 			for (const ld of linesData) {
@@ -780,7 +871,7 @@
 			tooltipItems = items;
 			hoveredYear.set(year);
 
-			const px = margin.left + zoomedX(year);
+			const px = margin.left + currentZx(year);
 			tooltipX = px + 12;
 			if (tooltipX + 200 > width) {
 				tooltipX = px - 210;
@@ -802,8 +893,7 @@
 			.on('mouseleave', () => {
 				if (!isTouchDevice) {
 					tooltipLine.style('display', 'none');
-					tooltipVisible = false;
-					hoveredYear.set(null);
+					dismissTooltip();
 				}
 			});
 
@@ -836,8 +926,7 @@
 					showTooltipAtX(mx);
 				} else {
 					tooltipLine.style('display', 'none');
-					tooltipVisible = false;
-					hoveredYear.set(null);
+					dismissTooltip();
 				}
 			}, { passive: true } as any);
 		}
