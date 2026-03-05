@@ -24,28 +24,23 @@ def rust_licenses():
         return []
 
     meta = json.loads(result.stdout)
+    repo_root_str = str(REPO_ROOT)
 
     entries = []
     for pkg in sorted(meta["packages"], key=lambda p: p["name"]):
         # Skip workspace crates by checking manifest path
-        manifest = Path(pkg.get("manifest_path", ""))
-        try:
-            manifest.relative_to(REPO_ROOT)
-            continue  # It's a workspace crate
-        except ValueError:
-            pass  # External dependency
+        if str(pkg.get("manifest_path", "")).startswith(repo_root_str):
+            continue
 
         license_text = pkg.get("license", "UNKNOWN") or "UNKNOWN"
         authors = ", ".join(pkg.get("authors", [])) or "see package repository"
-        repo = pkg.get("repository", "")
 
         entries.append({
             "name": pkg["name"],
             "version": pkg["version"],
             "license": license_text,
             "authors": authors,
-            "repository": repo,
-            "ecosystem": "rust",
+            "repository": pkg.get("repository", ""),
         })
     return entries
 
@@ -59,25 +54,23 @@ def node_licenses():
         print("node_modules not found, skipping Node dependencies", file=sys.stderr)
         return []
 
-    # Get full dependency tree
-    result = subprocess.run(
+    # npm ls may exit non-zero with peer dep warnings, still produces valid JSON
+    proc = subprocess.run(
         ["npm", "ls", "--all", "--json"],
         capture_output=True,
         text=True,
         cwd=frontend_dir,
     )
-    # npm ls may exit non-zero with peer dep warnings, still produces valid JSON
     try:
-        tree = json.loads(result.stdout)
+        tree = json.loads(proc.stdout)
     except json.JSONDecodeError:
         print("Failed to parse npm ls output", file=sys.stderr)
         return []
 
-    def collect_deps(node, result_set):
+    def collect_deps(node, deps):
         for name, info in node.get("dependencies", {}).items():
-            ver = info.get("version", "?")
-            result_set.add((name, ver))
-            collect_deps(info, result_set)
+            deps.add((name, info.get("version", "?")))
+            collect_deps(info, deps)
 
     all_deps = set()
     collect_deps(tree, all_deps)
@@ -85,11 +78,11 @@ def node_licenses():
     entries = []
     for name, ver in sorted(all_deps):
         pkg_json_path = node_modules / name / "package.json"
-        if not pkg_json_path.exists():
+        try:
+            with open(pkg_json_path) as f:
+                pkg = json.load(f)
+        except (OSError, json.JSONDecodeError):
             continue
-
-        with open(pkg_json_path) as f:
-            pkg = json.load(f)
 
         lic = pkg.get("license", "UNKNOWN")
         if isinstance(lic, dict):
@@ -108,12 +101,28 @@ def node_licenses():
             "license": lic or "UNKNOWN",
             "authors": author or "see package repository",
             "repository": repo or "",
-            "ecosystem": "node",
         })
     return entries
 
 
-def format_output(rust_entries, node_entries):
+def _format_section(lines, title, entries):
+    """Append a titled section of license entries to lines."""
+    if not entries:
+        return
+    lines.append("=" * 50)
+    lines.append(title)
+    lines.append("=" * 50)
+    lines.append("")
+    for e in entries:
+        lines.append(f"  {e['name']} {e['version']}")
+        lines.append(f"  License: {e['license']}")
+        if e["repository"]:
+            lines.append(f"  Repository: {e['repository']}")
+        lines.append(f"  Authors: {e['authors']}")
+        lines.append("")
+
+
+def format_output(sections):
     """Format all entries into the THIRD_PARTY_LICENSES text file."""
     lines = [
         "THIRD-PARTY SOFTWARE NOTICES AND INFORMATION",
@@ -124,34 +133,12 @@ def format_output(rust_entries, node_entries):
         "",
     ]
 
-    if rust_entries:
-        lines.append("=" * 50)
-        lines.append("RUST DEPENDENCIES")
-        lines.append("=" * 50)
-        lines.append("")
-        for e in rust_entries:
-            lines.append(f"  {e['name']} {e['version']}")
-            lines.append(f"  License: {e['license']}")
-            if e["repository"]:
-                lines.append(f"  Repository: {e['repository']}")
-            lines.append(f"  Authors: {e['authors']}")
-            lines.append("")
-
-    if node_entries:
-        lines.append("=" * 50)
-        lines.append("NODE DEPENDENCIES")
-        lines.append("=" * 50)
-        lines.append("")
-        for e in node_entries:
-            lines.append(f"  {e['name']} {e['version']}")
-            lines.append(f"  License: {e['license']}")
-            if e["repository"]:
-                lines.append(f"  Repository: {e['repository']}")
-            lines.append(f"  Authors: {e['authors']}")
-            lines.append("")
+    all_entries = []
+    for title, entries in sections:
+        _format_section(lines, title, entries)
+        all_entries.extend(entries)
 
     # Summary
-    all_entries = rust_entries + node_entries
     license_counts = {}
     for e in all_entries:
         lic = e["license"]
@@ -186,7 +173,10 @@ def main():
         print("No dependencies found", file=sys.stderr)
         sys.exit(1)
 
-    output = format_output(rust, node)
+    output = format_output([
+        ("RUST DEPENDENCIES", rust),
+        ("NODE DEPENDENCIES", node),
+    ])
 
     if args.check:
         if not OUTPUT.exists():
