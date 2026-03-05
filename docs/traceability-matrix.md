@@ -36,6 +36,7 @@
 | REQ-028 | User feedback mechanism | Done (exempt: UI-only feature with unit tests on URL builder; no backend logic to test.) | `frontend/src/lib/utils/feedback-url.test.ts` |
 | REQ-030 | Multi-scenario historical calibration | In Progress | — |
 | REQ-031 | Scenario trajectory validation | In Progress | — |
+| REQ-032 | PR preview deployment | Done (exempt: CI infrastructure, validated by pipeline execution) | — |
 
 ## Reverse: Test -> REQs
 
@@ -76,9 +77,9 @@
 
 ## Summary
 
-- **Done requirements:** 24
+- **Done requirements:** 25
 - **Covered by tests:** 16
-- **Exempt:** 7
+- **Exempt:** 8
 - **Uncovered:** 1
 
 ### Uncovered Done Requirements
