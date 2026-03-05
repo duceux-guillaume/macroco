@@ -1,6 +1,6 @@
 //! Top-level derivative function: `dy/dt = f(t, y, params)`.
 //!
-//! This function computes the rate of change for all 16 ODE stocks.
+//! This function computes the rate of change for all 20 ODE stocks.
 //! Sector computation order is fixed to satisfy dependencies:
 //!
 //!   0. Pre-seed food_per_capita from stocks (auxiliary, zeroed by from_vec)
@@ -27,8 +27,8 @@ use crate::model::{
 /// Returns a `WorldState` where all stock fields hold *rates of change*
 /// (units: [stock_unit / year]), not values. The `time` field is unused.
 ///
-/// Auxiliary fields on the returned state are zeroed — only the 16 ODE
-/// stocks (cohorts, perceived_le, capitals, land, fpc_smooth, resources, pollution) carry data.
+/// Auxiliary fields on the returned state are zeroed — only the 20 ODE
+/// stocks (cohorts, perceived_le + 2 stages, capitals, land, fpc_smooth, resources, pollution + 2 stages) carry data.
 pub fn derivatives(
     state: &WorldState,
     params: &ScenarioParams,
@@ -112,11 +112,11 @@ mod tests {
     }
 
     #[test]
-    fn test_returns_16_stock_derivatives() {
+    fn test_returns_20_stock_derivatives() {
         let (s, params, tables) = setup();
         let d = derivatives(&s, &params, &tables);
         let v = d.to_vec();
-        assert_eq!(v.len(), 16);
+        assert_eq!(v.len(), 20);
         // Most should be nonzero at 1900
         let nonzero_count = v.iter().filter(|x| x.abs() > 1e-20).count();
         assert!(nonzero_count >= 12,
