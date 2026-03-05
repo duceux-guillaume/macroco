@@ -74,6 +74,40 @@ The sector itself contains no lookup tables — extraction depends only on popul
 
 See the [FCAOR table documentation](../tables/capital-fraction-resource-extraction.md) for breakpoints and interpretation.
 
+## Info Panel
+
+### resources.nonrenewable_resources
+
+**Name:** Non-Renewable Resources
+
+**Unit:** fraction of initial
+
+**Stock:** true
+
+**Beginner:** The stock of oil, coal, metals, and minerals. Starts at 1.0 (100%) and is drawn down by industrial activity. Cannot be replenished.
+
+**Expert:** d(NNR)/dt = -population x IOPC x 3.0e-15 / resource_efficiency. Calibrated so 1970 extraction ~ 0.54%/yr of initial stock.
+
+**Feedback loops:** resource-collapse, population-resource
+
+**Related variables:** resources.fraction_remaining, capital.industrial_output_per_capita
+
+### resources.fraction_remaining
+
+**Name:** Resources Remaining
+
+**Unit:** fraction (0--1)
+
+**Stock:** false
+
+**Beginner:** What percentage of the original resource stock is left. As this drops, the economy must spend more and more effort on extraction, leaving less for everything else.
+
+**Expert:** fraction_remaining = clamp(nonrenewable_resources, 0, 1). Feeds capital_output_ratio_resources (multiplier 0.50->4.0) and capital_fraction_resource_extraction (0.0->1.0). Breakeven ~ 0.65.
+
+**Feedback loops:** resource-collapse
+
+**Related variables:** resources.nonrenewable_resources, capital.industrial_output, capital.industrial_capital
+
 ## References
 
 - Meadows, D. H., Randers, J., & Meadows, D. L. (2004). *Limits to Growth: The 30-Year Update*. Chelsea Green Publishing. Chapter on non-renewable resources.

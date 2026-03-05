@@ -170,6 +170,120 @@ $$\frac{dFPC_s}{dt} = \frac{FPC - FPC_s}{2}$$
 | FALM | Fraction Land Maintenance | food ratio | maintenance fraction | Exact | [link](../tables/fraction-land-maintenance.md) |
 | FRNF | Food Fertility Multiplier | food ratio | fertility fraction | Custom | [link](../tables/food-fertility-multiplier.md) |
 
+## Info Panel
+
+### agriculture.arable_land
+
+**Name:** Arable Land
+
+**Unit:** hectares
+
+**Stock:** true
+
+**Beginner:** Total farmland being cultivated. Increases when new land is developed, decreases from erosion. The best land was developed first, so new land costs more.
+
+**Expert:** d(AL)/dt = development_rate - erosion_rate. Development limited by potentially_arable_land and investment. Erosion = AL x 0.002 x erosion_mult(yield_ratio) x (1 - land_protection).
+
+**Feedback loops:** pollution-food
+
+**Related variables:** agriculture.food, agriculture.food_per_capita, agriculture.land_yield
+
+### agriculture.urban_industrial_land
+
+**Name:** Urban-Industrial Land
+
+**Unit:** hectares
+
+**Stock:** true
+
+**Beginner:** Land used for cities, roads, and factories. As the economy grows, more land is converted from farmland to urban use. This reduces the amount of land available for food production.
+
+**Expert:** First-order delay converging to UILPC(IOPC) x POP with time constant UILD=10yr. Growth subtracts from arable land stock, constrained by available arable land.
+
+**Feedback loops:** pollution-food
+
+**Related variables:** agriculture.arable_land, capital.industrial_output_per_capita
+
+### agriculture.land_fertility
+
+**Name:** Land Fertility
+
+**Unit:** kg/hectare/yr
+
+**Stock:** true
+
+**Beginner:** How productive the soil is. Starts at 600 kg/ha/yr. Pollution degrades soil fertility over time, while land maintenance investments can regenerate it. This is the base yield before capital and technology multipliers.
+
+**Expert:** d(LFERT)/dt = LFR - LFD. LFD = LFERT x LFDR(pollution_index). LFR = (ILF - LFERT) / LFRT(FALM(food_ratio)). ILF = 600 kg/ha/yr. World3-03 ODE stock.
+
+**Feedback loops:** pollution-food
+
+**Related variables:** agriculture.land_yield, pollution.pollution_index
+
+### agriculture.food_per_capita_smooth
+
+**Name:** Perceived Food Per Capita
+
+**Unit:** kg/person/yr
+
+**Stock:** true
+
+**Beginner:** Smoothed food per capita with a 2-year perception delay. The economy allocates capital to agriculture based on this smoothed value, preventing rapid oscillation between over- and under-investment in food production.
+
+**Expert:** First-order delay: d(FPC_smooth)/dt = (FPC - FPC_smooth) / FSPD. FSPD = 2 years. Used instead of raw FPC for industrial_fraction_to_agriculture lookup, preventing period-2 numerical oscillation.
+
+**Feedback loops:** food-population
+
+**Related variables:** agriculture.food_per_capita
+
+### agriculture.food
+
+**Name:** Total Food Production
+
+**Unit:** kg/yr
+
+**Stock:** false
+
+**Beginner:** Total food produced worldwide. Equals arable land times yield per hectare. Both can change over time.
+
+**Expert:** food = arable_land x land_yield. land_yield = 600 x yield_mult_capital(inputs/ha) x yield_mult_pollution(poll_index) x agri_technology.
+
+**Feedback loops:** pollution-food, food-population
+
+**Related variables:** agriculture.arable_land, agriculture.land_yield
+
+### agriculture.food_per_capita
+
+**Name:** Food Per Capita
+
+**Unit:** kg/person/yr
+
+**Stock:** false
+
+**Beginner:** How much food each person gets on average. When it drops below subsistence level (230 kg/yr), life expectancy falls and death rates rise. When it's adequate, people are healthier and may have more children.
+
+**Expert:** FPC = food / population. food_ratio = FPC / subsistence_food (default 230 kg/yr). Drives life_exp_multiplier_food, food_fertility_multiplier, and industrial_fraction_to_agriculture.
+
+**Feedback loops:** pollution-food, food-population
+
+**Related variables:** agriculture.food, population.population, population.life_expectancy
+
+### agriculture.land_yield
+
+**Name:** Land Yield
+
+**Unit:** kg/hectare/yr
+
+**Stock:** false
+
+**Beginner:** How much food each hectare of farmland produces. Increases with more fertilizer and machinery, decreases when pollution damages crops.
+
+**Expert:** LY = land_fertility x LYMC(agri_inputs/ha) x LYMAP(pollution_index) x ag_tech, where ag_tech = agricultural_technology x (1 + ag_tech_growth_rate)^max(year-1960, 0). Base fertility 600 kg/ha/yr (1900). LYMC ranges 1.0->10.0. LYMAP ranges 1.0->0.40.
+
+**Feedback loops:** pollution-food
+
+**Related variables:** agriculture.food, pollution.pollution_index
+
 ## References
 
 - Meadows, D. H., Meadows, D. L., Randers, J., & Behrens, W. W. III. (1972). *The Limits to Growth*. Universe Books.

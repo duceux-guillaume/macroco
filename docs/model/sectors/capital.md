@@ -141,6 +141,88 @@ World3-03 uses $$alic_1 = 14$$ years (depreciation rate $$1/14 \approx 0.0714$$)
 | [Jobs Per Capital Unit](../tables/jobs-per-capital.md) | JPICU | Exact match | Labor intensity of industrial capital |
 | [Labor Force Participation](../tables/labor-force-participation.md) | LFP | Custom | Labor participation by age structure |
 
+## Info Panel
+
+### capital.perceived_iopc
+
+**Name:** Perceived Income
+
+**Unit:** $/person/yr (1975)
+
+**Stock:** true
+
+**Beginner:** What people perceive as their standard of living, lagging behind actual income by about 20 years. Social norms and family size expectations adjust to this delayed perception, not to current income.
+
+**Expert:** First-order delay of IOPC with time constant 20 years (World3-03: DIOPC = Smooth(IOPC, SAD=20yr)). Drives desired family size lookup (SFSN) -- social norms adjust slowly to income changes.
+
+**Feedback loops:** demographic-transition
+
+**Related variables:** capital.industrial_output_per_capita, population.fertility_rate
+
+### capital.industrial_capital
+
+**Name:** Industrial Capital
+
+**Unit:** USD (1975)
+
+**Stock:** true
+
+**Beginner:** The total stock of factories, machines, and infrastructure. Grows when investment exceeds wear-and-tear (depreciation). Produces the industrial output that drives the economy.
+
+**Expert:** d(IC)/dt = industrial_output x frac_to_investment - IC x depreciation_rate. Investment is the residual after consumption, services, and agriculture allocation.
+
+**Feedback loops:** resource-collapse, demographic-transition
+
+**Related variables:** capital.industrial_output, capital.industrial_output_per_capita, resources.fraction_remaining
+
+### capital.industrial_output
+
+**Name:** Industrial Output
+
+**Unit:** USD/yr (1975)
+
+**Stock:** false
+
+**Beginner:** Total economic production per year. Split between investment (building more capital), services (health, education), and agriculture.
+
+**Expert:** IO = productive_capital / ICOR. productive_capital = IC x (1 - capital_for_resources) x tech_multiplier. ICOR = 3.0 x COR_resources(fraction_remaining).
+
+**Feedback loops:** resource-collapse, pollution-food
+
+**Related variables:** capital.industrial_capital, capital.industrial_output_per_capita
+
+### capital.industrial_output_per_capita
+
+**Name:** Industrial Output Per Capita
+
+**Unit:** $/person/yr (1975)
+
+**Stock:** false
+
+**Beginner:** Economic output divided by population -- a rough measure of average income. When it rises, people choose smaller families. When it falls, the economy is contracting.
+
+**Expert:** IOPC = industrial_output / population. Drives desired_family_size lookup and food_ratio calculations. Key indicator of economic health.
+
+**Feedback loops:** resource-collapse, demographic-transition
+
+**Related variables:** capital.industrial_output, population.population, population.fertility_rate
+
+### capital.service_output_per_capita
+
+**Name:** Service Output Per Capita
+
+**Unit:** $/person/yr (1975)
+
+**Stock:** false
+
+**Beginner:** How much is spent on services (healthcare, education) per person. Higher service output improves life expectancy through better health services.
+
+**Expert:** SOPC = service_capital / SCOR / population. Feeds into health services calculation and service allocation fraction.
+
+**Feedback loops:** food-population
+
+**Related variables:** population.life_expectancy
+
 ## References
 
 - Meadows, D. H., Meadows, D. L., Randers, J., & Behrens, W. W. (1972). *The Limits to Growth*. Universe Books.

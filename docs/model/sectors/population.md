@@ -199,6 +199,104 @@ The Delay3 pipeline produces more uniform transit time behavior than a single fi
 | [Compensatory fertility](../tables/compensatory-fertility.md) | CMPLE | Infant mortality compensation | Exact match |
 | [Health services per capita](../tables/health-services-per-capita.md) | HSAPC | Service output to health spending | Exact match (aligned) |
 
+## Info Panel
+
+### population.population
+
+**Name:** World Population
+
+**Unit:** persons
+
+**Stock:** true
+
+**Beginner:** Total number of people alive on Earth. Grows when births exceed deaths, shrinks when deaths exceed births.
+
+**Expert:** Sum of four age cohorts (0--14, 15--44, 45--64, 65+). Each cohort is an ODE stock with inflows (births or aging-in) and outflows (aging-out or deaths). Mortality is age-weighted: base_mort = 1/life_expectancy, with multipliers 0.8, 0.5, 1.0, 3.0 for the four cohorts.
+
+**Feedback loops:** demographic-transition, population-resource, food-population
+
+**Related variables:** population.life_expectancy, population.birth_rate, population.death_rate, population.fertility_rate
+
+### population.life_expectancy
+
+**Name:** Life Expectancy
+
+**Unit:** years
+
+**Stock:** false
+
+**Beginner:** How long the average person lives. Depends on food availability, healthcare, crowding, and pollution. When conditions deteriorate, life expectancy falls and death rates rise.
+
+**Expert:** life_expectancy = 28.0 x LEM_food(food_ratio) x LEM_health(HSAPC) x LMC(CMI,FPU) x LEM_pollution(pollution_index). Product of four lookup-table multipliers on a 28-year base. Health services per capita from World3-03 HSAPC table (maps SOPC to health spending directly).
+
+**Feedback loops:** food-population, pollution-food
+
+**Related variables:** population.population, agriculture.food_per_capita, pollution.pollution_index
+
+### population.birth_rate
+
+**Name:** Birth Rate
+
+**Unit:** per year
+
+**Stock:** false
+
+**Beginner:** How many babies are born per person per year. Falls as income rises (people choose smaller families) and with family planning programs.
+
+**Expert:** birth_rate = births_per_year / population. births_per_year = (cohort_15_44 x 0.5) x total_fertility_rate / 30.0. TFR = desired_family_size(iopc) x fp_multiplier(efficacy x ramp) x food_fertility(food_ratio).
+
+**Feedback loops:** demographic-transition, food-population
+
+**Related variables:** population.population, population.fertility_rate
+
+### population.death_rate
+
+**Name:** Death Rate
+
+**Unit:** per year
+
+**Stock:** false
+
+**Beginner:** How many people die per person per year. Rises when food, healthcare, or environmental conditions worsen.
+
+**Expert:** death_rate = total_deaths / population. Deaths per cohort use age-weighted base mortality (1/life_expectancy x age_factor).
+
+**Feedback loops:** food-population, pollution-food
+
+**Related variables:** population.population, population.life_expectancy
+
+### population.fertility_rate
+
+**Name:** Total Fertility Rate
+
+**Unit:** children/woman
+
+**Stock:** false
+
+**Beginner:** Average number of children per woman. Drops as income rises and family planning becomes available. Below ~2.1, population eventually declines.
+
+**Expert:** TFR = desired_family_size(iopc) x family_planning_multiplier(efficacy x ramp) x food_fertility_multiplier(food_ratio). Desired family size ranges from 5.0 at iopc=0 to 1.9 at iopc=1600.
+
+**Feedback loops:** demographic-transition
+
+**Related variables:** population.population, capital.industrial_output_per_capita
+
+### population.perceived_le
+
+**Name:** Perceived Life Expectancy
+
+**Unit:** years
+
+**Stock:** true
+
+**Beginner:** What people believe the average lifespan to be, based on recent experience. Lags behind actual life expectancy by about 20 years. Drives family size decisions -- when parents perceive high child mortality, they have more children as compensation.
+
+**Expert:** First-order delay of actual LE with time constant 20 years (World3-03: PLE = Smooth(LE, LPD=20yr), simplified from Delay3). Feeds CMPLE lookup: at low perceived LE, compensatory fertility multiplier > 1.
+
+**Feedback loops:** demographic-transition
+
+**Related variables:** population.life_expectancy, population.fertility_rate
+
 ## References
 
 - Meadows, D. H., Randers, J., & Meadows, D. L. (2004). *Limits to Growth: The 30-Year Update*. Chelsea Green Publishing. Chapter 3: Population sector structure.
