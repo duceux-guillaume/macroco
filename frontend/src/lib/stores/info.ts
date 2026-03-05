@@ -1,5 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { parameterDescriptions } from '$lib/content/variable-descriptions';
+import { unifiedVariables } from '$lib/charts/unified-config';
 
 /** The field path of the currently selected variable for the info panel (null = closed). */
 export const selectedVariableId = writable<string | null>(null);
@@ -35,9 +36,16 @@ selectedHistoricalId.subscribe((h) => {
 export const highlightedVariables = derived(
 	[selectedParameterId, selectedVariableId],
 	([$paramId, $varId]) => {
+		if ($varId === '__historical__') return new Set(unifiedVariables.map((v) => v.fieldPath));
 		if ($varId) return new Set<string>([$varId]);
 		if (!$paramId) return new Set<string>();
 		const info = parameterDescriptions[$paramId];
 		return new Set(info?.relatedVariables ?? []);
 	}
+);
+
+/** Whether highlighting targets historical lines only (when "Historical" legend item is clicked). */
+export const highlightHistoricalOnly = derived(
+	selectedVariableId,
+	($varId) => $varId === '__historical__'
 );

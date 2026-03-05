@@ -4,7 +4,7 @@
 	import { resize } from '../utils/resize';
 	import { extractSeries } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
-	import { selectedVariableId, selectedHistoricalId, highlightedVariables } from '../stores/info';
+	import { selectedVariableId, selectedHistoricalId, highlightedVariables, highlightHistoricalOnly } from '../stores/info';
 	import { hoveredYear } from '../stores/simulation';
 	import { compareMode, compareVariable, showHistorical, visibleVariables } from '../stores/chart-ui';
 	import { historicalData } from '../stores/historical';
@@ -335,10 +335,12 @@
 		const highlighted = $highlightedVariables;
 		const hasHighlight = highlighted.size > 0;
 		const selectedVarFieldPath = $selectedVariableId;
+		const histOnly = $highlightHistoricalOnly;
 
 		function getFieldPathForLine(d: LineDatum): string | null {
 			if (_compareMode) return null;
-			const varConfig = unifiedVariables.find((v) => v.id === d.id);
+			const baseId = d.id.startsWith('hist-') ? d.id.slice(5) : d.id;
+			const varConfig = unifiedVariables.find((v) => v.id === baseId);
 			return varConfig?.fieldPath ?? null;
 		}
 
@@ -347,7 +349,11 @@
 			if (!hasHighlight) return base;
 			const fieldPath = getFieldPathForLine(d);
 			if (fieldPath === null) return base;
-			return highlighted.has(fieldPath) ? base : 0.15;
+			if (!highlighted.has(fieldPath)) return 0.15;
+			// When "Historical" is selected, only highlight historical lines
+			if (histOnly && !d.historical) return 0.15;
+			// When a variable is selected, highlight both sim + historical
+			return base;
 		}
 
 		function getLineWidth(d: LineDatum): number {
@@ -355,7 +361,9 @@
 			if (!hasHighlight) return base;
 			const fieldPath = getFieldPathForLine(d);
 			if (fieldPath === null) return base;
-			return highlighted.has(fieldPath) ? (d.historical ? 2 : 2.5) : base;
+			if (!highlighted.has(fieldPath)) return base;
+			if (histOnly && !d.historical) return base;
+			return d.historical ? 2 : 2.5;
 		}
 
 		function getLegendOpacity(d: typeof legendData[number]): number {
@@ -363,6 +371,7 @@
 				? _showHistorical
 				: _visibleVars.has(d.fieldPath);
 			if (!isVisible) return 0.35;
+			if (histOnly) return d.fieldPath === '__historical__' ? 1 : 0.35;
 			if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath && d.fieldPath !== '__historical__') return 0.35;
 			return 1;
 		}
@@ -553,7 +562,7 @@
 
 		function handleItemClick(_: MouseEvent, d: typeof legendData[number]) {
 			if (d.fieldPath === '__historical__') {
-				selectedHistoricalId.set('historical');
+				handleLegendSelect('__historical__');
 			} else if (!_compareMode) {
 				handleLegendSelect(d.fieldPath);
 			}
