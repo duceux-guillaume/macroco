@@ -159,12 +159,12 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
     let (peak_fpc, peak_fpc_year) = find_peak(sim, |s| s.agriculture.food_per_capita);
     results.push(CheckResult {
         label: "Food/capita peak range".into(),
-        passed: peak_fpc >= 500.0 && peak_fpc <= 1200.0,
+        passed: (500.0..=1200.0).contains(&peak_fpc),
         detail: format!("peak={:.0} kg/yr (expected 500–1200)", peak_fpc),
     });
     results.push(CheckResult {
         label: "Food/capita peak timing".into(),
-        passed: peak_fpc_year >= 2000.0 && peak_fpc_year <= 2070.0,
+        passed: (2000.0..=2070.0).contains(&peak_fpc_year),
         detail: format!("peak year={:.0} (expected 2000–2070)", peak_fpc_year),
     });
     let fpc_2100 = sim.state_at_year(2100.0).map(|s| s.agriculture.food_per_capita).unwrap_or(0.0);
