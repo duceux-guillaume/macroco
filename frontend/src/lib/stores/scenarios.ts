@@ -35,3 +35,17 @@ export const scenarioColors = derived(
 		return colors;
 	}
 );
+
+/** Display-name map for active scenarios (derived). */
+export const scenarioNames = derived(
+	[scenarios, activeScenarioIds],
+	([$scenarios, $activeIds]) => {
+		const names = new Map<string, string>();
+		for (const s of $scenarios) {
+			if ($activeIds.has(s.id)) {
+				names.set(s.id, s.name);
+			}
+		}
+		return names;
+	}
+);
