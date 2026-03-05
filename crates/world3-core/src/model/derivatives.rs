@@ -79,6 +79,8 @@ pub fn derivatives(
     d.population.cohort_45_64 = pop_deriv.d_cohort_45_64;
     d.population.cohort_65_plus = pop_deriv.d_cohort_65_plus;
     d.population.perceived_le = pop_deriv.d_perceived_le;
+    d.population.perceived_le_stage1 = pop_deriv.d_perceived_le_stage1;
+    d.population.perceived_le_stage2 = pop_deriv.d_perceived_le_stage2;
 
     d.capital.industrial_capital = cap_deriv.d_industrial_capital;
     d.capital.service_capital = cap_deriv.d_service_capital;

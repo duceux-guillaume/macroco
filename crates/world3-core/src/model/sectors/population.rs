@@ -33,6 +33,8 @@ pub struct PopulationDerivatives {
     pub d_cohort_45_64: f64,
     pub d_cohort_65_plus: f64,
     pub d_perceived_le: f64,
+    pub d_perceived_le_stage1: f64,
+    pub d_perceived_le_stage2: f64,
 }
 
 /// Compute population derivatives and update auxiliary fields:
@@ -131,12 +133,13 @@ pub fn population_derivatives(
     let total_deaths = deaths_0_14 + deaths_15_44 + deaths_45_64 + deaths_65_plus;
     state.population.death_rate = total_deaths / pop;
 
-    // ---- Perceived life expectancy (20-year delay) ----
-    // KNOWN DEVIATION: World3-03 uses Delay3(LE, LPD=20yr). Our first-order
-    // approximation responds faster, causing CMPLE to adjust sooner than in
-    // the original model. A proper Delay3 would use 3 cascaded Delay1 stages
-    // with time constant LPD/3 ≈ 6.67 years each.
-    let d_perceived_le = (life_expectancy - perceived_le) / LIFETIME_PERCEPTION_DELAY;
+    // ---- Perceived life expectancy (Delay3: 3 cascaded first-order stages) ----
+    // World3-03: PLE = Delay3(LE, LPD=20yr). Three stages with τ = LPD/3.
+    // This gives pipeline-like behavior (more uniform transit time than Delay1).
+    let tau = LIFETIME_PERCEPTION_DELAY / 3.0;
+    let d_perceived_le_stage1 = (life_expectancy - state.population.perceived_le_stage1) / tau;
+    let d_perceived_le_stage2 = (state.population.perceived_le_stage1 - state.population.perceived_le_stage2) / tau;
+    let d_perceived_le = (state.population.perceived_le_stage2 - perceived_le) / tau;
 
     // ---- Cohort aging rates ----
     let aging_0_to_15 = state.population.cohort_0_14 / COHORT_0_14_DURATION;
@@ -149,6 +152,8 @@ pub fn population_derivatives(
         d_cohort_45_64: aging_15_to_45 - aging_45_to_65 - deaths_45_64,
         d_cohort_65_plus: aging_45_to_65 - deaths_65_plus,
         d_perceived_le,
+        d_perceived_le_stage1,
+        d_perceived_le_stage2,
     }
 }
 
@@ -339,6 +344,26 @@ mod tests {
         assert!(d.d_cohort_45_64.is_finite());
         assert!(d.d_cohort_65_plus.is_finite());
         assert!(d.d_perceived_le.is_finite());
+    }
+
+    #[test]
+    fn test_perceived_le_delay3_stages() {
+        let (mut s, params, tables) = setup();
+        // Set stages in a cascade: stage1 partly caught up, stage2 lagging, output lagging most.
+        s.population.perceived_le_stage1 = 30.0;
+        s.population.perceived_le_stage2 = 25.0;
+        s.population.perceived_le = 20.0;
+        let d = population_derivatives(&mut s, &params, &tables);
+        // All stages should be moving upward (each stage's input > its current value)
+        assert!(d.d_perceived_le_stage1 > 0.0, "stage1 should increase toward LE");
+        assert!(d.d_perceived_le_stage2 > 0.0, "stage2 should increase toward stage1");
+        assert!(d.d_perceived_le > 0.0, "perceived_le should increase toward stage2");
+        // Verify Delay3 structure: each stage driven by (input - self) / tau
+        let tau = 20.0 / 3.0;
+        let le = s.population.life_expectancy;
+        assert_relative_eq!(d.d_perceived_le_stage1, (le - 30.0) / tau, max_relative = 1e-10);
+        assert_relative_eq!(d.d_perceived_le_stage2, (30.0 - 25.0) / tau, max_relative = 1e-10);
+        assert_relative_eq!(d.d_perceived_le, (25.0 - 20.0) / tau, max_relative = 1e-10);
     }
 
     #[test]
