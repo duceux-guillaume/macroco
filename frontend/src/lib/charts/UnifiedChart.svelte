@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import { resize } from '../utils/resize';
 	import { extractSeries } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
@@ -62,11 +63,7 @@
 	}
 
 	function handleLegendSelect(fieldPath: string) {
-		// Read current value synchronously
-		let currentVal: string | null = null;
-		const unsub = selectedVariableId.subscribe((v) => (currentVal = v));
-		unsub();
-		if (currentVal === fieldPath) {
+		if (get(selectedVariableId) === fieldPath) {
 			selectedVariableId.set(null);
 		} else {
 			selectedVariableId.set(fieldPath);
@@ -76,19 +73,11 @@
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
-			// Deselect historical highlight first
-			let currentHist: string | null = null;
-			const unsubHist = selectedHistoricalId.subscribe((v) => (currentHist = v));
-			unsubHist();
-			if (currentHist) {
+			if (get(selectedHistoricalId)) {
 				selectedHistoricalId.set(null);
 				return;
 			}
-			// Deselect variable
-			let currentVar: string | null = null;
-			const unsub = selectedVariableId.subscribe((v) => (currentVar = v));
-			unsub();
-			if (currentVar) {
+			if (get(selectedVariableId)) {
 				selectedVariableId.set(null);
 				return;
 			}
@@ -570,10 +559,7 @@
 
 		function handleItemClick(_: MouseEvent, d: typeof legendData[number]) {
 			if (d.fieldPath === '__historical__') {
-				let currentHist: string | null = null;
-				const unsub = selectedHistoricalId.subscribe((v) => (currentHist = v));
-				unsub();
-				selectedHistoricalId.set(currentHist ? null : 'historical');
+				selectedHistoricalId.set(get(selectedHistoricalId) ? null : 'historical');
 			} else if (!_compareMode) {
 				handleLegendSelect(d.fieldPath);
 			}
