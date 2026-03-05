@@ -197,14 +197,14 @@
 
 ## Abandoned
 
-- [ ] **REQ-011: Extension sectors — climate, energy, biodiversity, inequality**
-  - *Context:* Originally a monolithic requirement for all 4 extension sectors. Split into scenario-specific requirements.
-  - *Replaced by:* REQ-033 (climate + energy, M3) and REQ-034 (biodiversity + inequality, M4)
-
 - [ ] **REQ-006: PNG chart output**
   - *Context:* Visual output of simulation results is needed for documentation and quick inspection.
   - *Abandoned:* Superseded by the interactive D3 frontend (REQ-009). The `--chart` flag and `plotters` dependency have been removed. The `diagnose` command (REQ-039) provides superior text-based analysis for debugging.
   - *Exempt:* Abandoned requirement; code and tests removed
+
+- [ ] **REQ-011: Extension sectors — climate, energy, biodiversity, inequality**
+  - *Context:* Originally a monolithic requirement for all 4 extension sectors. Split into scenario-specific requirements.
+  - *Replaced by:* REQ-033 (climate + energy, M3) and REQ-034 (biodiversity + inequality, M4)
 
 - [ ] **REQ-030: Multi-scenario historical calibration**
   - *Context:* Originally a monolithic requirement for calibrating all non-BAU scenarios. Split into per-scenario requirements.

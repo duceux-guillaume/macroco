@@ -11,7 +11,7 @@
 | REQ-003 | CLI batch simulation | Done | `crates/world3-cli/src/diagnose/analysis.rs`, `crates/world3-cli/src/diagnose/compare.rs`, `crates/world3-cli/src/diagnose/format_json.rs`, `crates/world3-cli/src/diagnose/format_text.rs`, `crates/world3-cli/src/diagnose/mod.rs`, `crates/world3-core/src/output.rs` |
 | REQ-004 | Scenario presets | Done | `crates/world3-core/src/model/params.rs` |
 | REQ-005 | Validation against Meadows 1972 | Done | `crates/world3-core/src/solver/rk4.rs` |
-| REQ-006 | PNG chart output | Done | — |
+| REQ-006 | PNG chart output | Abandoned (exempt: Abandoned requirement; code and tests removed) | — |
 | REQ-007 | REST API server | Done | `frontend/src/lib/api.test.ts` |
 | REQ-008 | WebSocket streaming simulation | Done | `crates/world3-api/src/routes/ws.rs`, `frontend/src/lib/ws.test.ts` |
 | REQ-009 | SvelteKit frontend | Done | `frontend/src/lib/api.test.ts`, `frontend/src/lib/charts/chart-config.test.ts`, `frontend/src/lib/charts/unified-config.test.ts`, `frontend/src/lib/stores/stores.test.ts`, `frontend/src/lib/utils/extract.test.ts`, `frontend/src/lib/utils/format.test.ts` |
@@ -40,7 +40,10 @@
 | REQ-034 | Biodiversity and inequality extension sectors | Planned | — |
 | REQ-035 | Technology scenario historical calibration | Planned | — |
 | REQ-036 | Stabilized scenario historical calibration | Planned | — |
-| REQ-037 | Chart zoom and mobile touch UX | Done | `frontend/src/lib/charts/zoom-helpers.test.ts` |
+| REQ-037 | CLI — CI/CD validation | Done (exempt: Organizational requirement; CLI validate tested by REQ-005 tests) | `frontend/src/lib/charts/zoom-helpers.test.ts` |
+| REQ-038 | CLI — Batch export | Done (exempt: Organizational requirement; CSV output tested by REQ-003 tests) | — |
+| REQ-039 | CLI — Simulation debugging | Done (exempt: Organizational requirement; diagnose tested via agent workflow tests) | — |
+| REQ-040 | CLI — Reproducibility | Done (exempt: Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests) | — |
 
 ## Reverse: Test -> REQs
 
@@ -83,11 +86,7 @@
 
 ## Summary
 
-- **Done requirements:** 25
-- **Covered by tests:** 17
-- **Exempt:** 7
-- **Uncovered:** 1
-
-### Uncovered Done Requirements
-
-- REQ-006: PNG chart output
+- **Done requirements:** 27
+- **Covered by tests:** 16
+- **Exempt:** 11
+- **Uncovered:** 0
