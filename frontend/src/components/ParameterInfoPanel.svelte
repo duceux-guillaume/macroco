@@ -172,6 +172,7 @@
 		beginner={info.beginner}
 		expert={info.expert}
 		onclose={close}
+		docPath={info?.docPath}
 	>
 		<section>
 			<h3>Impact</h3>
