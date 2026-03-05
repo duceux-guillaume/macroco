@@ -19,6 +19,10 @@ Resources deplete --> Extraction costs rise --> More capital diverted to extract
 
 In the model, the fraction of capital allocated to obtaining resources (FCAOR) rises steeply as `fraction_remaining` drops below ~0.5. This is computed in the [Resources](sectors/resources.md) sector and feeds directly into the [Capital](sectors/capital.md) sector's output calculations. The lookup table `fcaor` encodes this non-linear relationship.
 
+**ID:** `resource-collapse`
+**Type:** reinforcing
+**Chain:** `resources.fraction_remaining` > `capital.industrial_output` > `capital.industrial_capital` > `resources.fraction_remaining`
+
 
 ## 2. Pollution --> Agricultural Decline --> Food Crisis (reinforcing)
 
@@ -35,6 +39,10 @@ Industrial output generates pollution --> Pollution reduces crop yields
 
 The pollution sector's `pollution_index` feeds into the agriculture sector's land fertility calculation via the `lfdr` (land fertility degradation rate) lookup table. This coupling is evaluated at step 4 (agriculture) using the pollution values from step 5 of the *previous* time step, then updated at step 5 of the current step.
 
+**ID:** `pollution-food`
+**Type:** reinforcing
+**Chain:** `capital.industrial_output` > `pollution.pollution_index` > `agriculture.land_yield` > `agriculture.food_per_capita`
+
 
 ## 3. Demographic Transition (balancing)
 
@@ -48,6 +56,10 @@ Rising income --> Smaller desired family size --> Lower birth rate
 ```
 
 In the model, industrial output per capita (IOPC) influences desired completed family size (DCFS) through the `dcfs` lookup table, which in turn drives the crude birth rate in the [Population](sectors/population.md) sector. The delay between rising income and falling birth rates is a critical parameter --- the demographic transition takes roughly a generation to complete, and if collapse arrives first, the stabilizing effect never materializes.
+
+**ID:** `demographic-transition`
+**Type:** stabilizing
+**Chain:** `capital.industrial_output_per_capita` > `population.fertility_rate` > `population.population` > `capital.industrial_output_per_capita`
 
 
 ## 4. Population --> Resource Pressure (reinforcing)
@@ -63,6 +75,10 @@ More people --> More consumption --> Faster resource depletion
 
 This loop operates through the [Capital](sectors/capital.md) sector: population enters as the denominator in per-capita calculations (IOPC, SOPC, food per capita), and total industrial output scales with population-driven demand. The resource usage rate in the [Resources](sectors/resources.md) sector is a function of industrial output, which itself depends on population.
 
+**ID:** `population-resource`
+**Type:** reinforcing
+**Chain:** `population.population` > `resources.fraction_remaining` > `capital.industrial_output_per_capita` > `population.life_expectancy`
+
 
 ## 5. Pollution Tipping Point (reinforcing)
 
@@ -77,6 +93,10 @@ Pollution rises --> Assimilation time increases --> Pollution accumulates faster
 
 The `ppasr` (persistent pollution assimilation rate) lookup table in the [Pollution](sectors/pollution.md) sector encodes this non-linearity. At low pollution indices, assimilation keeps pace with generation. Above a tipping point (roughly `pollution_index > 1.0`), the assimilation rate drops and pollution runs away. The Delay3 structure for pollution appearance adds further lag --- by the time the system "sees" the pollution, it is too late to reverse.
 
+**ID:** `pollution-tipping`
+**Type:** reinforcing
+**Chain:** `pollution.persistent_pollution` > `pollution.pollution_index` > `pollution.persistent_pollution`
+
 
 ## 6. Food--Population Balance (balancing)
 
@@ -90,3 +110,7 @@ Adequate food --> Lower mortality, higher fertility --> Population grows
 ```
 
 Food per capita enters the [Population](sectors/population.md) sector through two channels: the life expectancy multiplier from food (`lmf` lookup table), which affects mortality, and the desired family size calculation, which affects fertility. The smoothed food per capita (`food_per_capita_smooth`, a proper ODE stock with a 2-year time constant) prevents the population sector from overreacting to short-term food fluctuations.
+
+**ID:** `food-population`
+**Type:** stabilizing
+**Chain:** `agriculture.food_per_capita` > `population.life_expectancy` > `population.population` > `agriculture.food_per_capita`
