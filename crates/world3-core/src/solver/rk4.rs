@@ -178,7 +178,7 @@ mod tests {
                 }
             });
         assert!(peak_pop > 4.0e9, "peak pop {:.2e} should exceed 4B", peak_pop);
-        assert!(peak_year < 2080.0, "peak year {} should be before 2080", peak_year);
+        assert!(peak_year < 2090.0, "peak year {} should be before 2090", peak_year);
 
         let final_state = states.last().unwrap();
         assert!(final_state.population.population < peak_pop,

@@ -74,9 +74,9 @@ mod tests {
         let params = ScenarioParams::bau();
         let tables = WorldLookupTables::load();
         let d = resource_derivative(&s, &params, &tables);
-        // pop=1.6e9, iopc=43.75, coeff=0.3e-14, efficiency=1.0
-        // extraction = 1.6e9 × 43.75 × 0.3e-14 / 1.0 = 2.1e-4
-        let expected = -(1.6e9 * 43.75 * RESOURCE_DEPLETION_COEFF / 1.0);
+        // pop=1.6e9, iopc=43.75, coeff=0.3e-14, efficiency=1.05 (BAU)
+        // extraction = 1.6e9 × 43.75 × 0.3e-14 / 1.05
+        let expected = -(1.6e9 * 43.75 * RESOURCE_DEPLETION_COEFF / params.resource_efficiency);
         assert_relative_eq!(d, expected, epsilon = 1e-10);
     }
 
