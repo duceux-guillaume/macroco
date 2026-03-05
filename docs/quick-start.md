@@ -85,7 +85,7 @@ Macroco starting on http://localhost:8080
 
 The first build takes 2–3 minutes (Rust compiles everything from source). Subsequent starts are much faster.
 
-Open **http://localhost:8080** in your browser. You'll see the simulator with the "Business as Usual" scenario loaded.
+Open **http://localhost:8080** in your browser. You'll see the simulator with the "Collapse" scenario loaded.
 
 ### Frontend hot-reload (for developers)
 
@@ -121,9 +121,9 @@ docker run -p 8080:8080 macroco
 
 ## 4. First things to try
 
-1. **Compare scenarios** — Click the preset buttons in the sidebar (BAU, Technology, Stabilized) to overlay different futures on the same charts.
+1. **Compare scenarios** — Click the preset buttons in the sidebar (Collapse, Technology, Stabilized) to overlay different futures on the same charts.
 
-2. **Read the charts** — Hover over any chart to see values at a specific year. Notice how population peaks around 2030 in BAU, then declines as resources deplete.
+2. **Read the charts** — Hover over any chart to see values at a specific year. Notice how population peaks around 2030 in Collapse, then declines as resources deplete.
 
 3. **Tweak assumptions** — Expand a parameter group (e.g., "Resources") and drag the "Resource Efficiency" slider. Watch how improved efficiency delays the resource crunch.
 

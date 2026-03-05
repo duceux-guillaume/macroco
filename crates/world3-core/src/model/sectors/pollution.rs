@@ -100,7 +100,7 @@ mod tests {
 
     fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
         let mut s = WorldState::initial_1900();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         // Pre-populate industrial output
         s.capital.industrial_output = 2.1e11 / 3.0;
@@ -161,13 +161,13 @@ mod tests {
     #[test]
     fn test_pollution_control_reduces_generation() {
         let (mut s1, _, tables) = setup();
-        let mut params_no_control = ScenarioParams::bau();
+        let mut params_no_control = ScenarioParams::collapse();
         params_no_control.pollution_control = 0.0;
         pollution_derivatives(&mut s1, &params_no_control, &tables);
         let gen_no_control = s1.pollution.generation_rate;
 
         let (mut s2, _, _) = setup();
-        let mut params_control = ScenarioParams::bau();
+        let mut params_control = ScenarioParams::collapse();
         params_control.pollution_control = 0.8;
         pollution_derivatives(&mut s2, &params_control, &tables);
         let gen_control = s2.pollution.generation_rate;

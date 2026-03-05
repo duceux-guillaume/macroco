@@ -6,7 +6,7 @@ Online live macroeconomic model based on World3-03 (Meadows et al., 2004 — *Li
 **Stack:** Rust backend (Axum) + SvelteKit/TypeScript frontend + D3 v7. Deployed on Fly.io.
 
 ## Current Objective
-Milestone 2: Collapse. The BAU scenario must be historically calibrated against real-world data (1960-2023) and validated to reproduce the overshoot-and-collapse trajectory from Meadows 1972. REQ-031 (scenario trajectory validation) is the remaining in-progress work.
+Milestone 2: Collapse. The Collapse scenario must be historically calibrated against real-world data (1960-2023) and validated to reproduce the overshoot-and-collapse trajectory from Meadows 1972. REQ-031 (scenario trajectory validation) is the remaining in-progress work.
 
 Design principles:
 - Documentation-first: every variable, parameter, and feedback loop has beginner + expert explanation
@@ -38,7 +38,7 @@ frontend/             # SvelteKit app. D3 charts, parameter sliders, scenario ma
 data/
   lookup_tables/      # World 3 piecewise-linear tables (JSON). Must be present at runtime.
   historical/         # Bundled historical CSVs used as seed/fallback data.
-  presets/            # Named scenario parameter sets (BAU, Technology, Stabilized, LtG 1972).
+  presets/            # Named scenario parameter sets (Collapse, Technology, Stabilized, LtG 1972).
 docs/
   plans/                 # Working design/impl plans (gitignored — local only)
   product-requirements.md  # Feature requirements (REQ-NNN IDs)
@@ -68,22 +68,22 @@ fly.toml              # Fly.io app configuration
 cargo build --workspace
 
 # Run simulation CLI
-cargo run --bin world3-cli -- simulate --preset bau --output output.csv
+cargo run --bin world3-cli -- simulate --preset collapse --output output.csv
 
-# Validate qualitative dynamics (BAU overshoot-and-collapse shape)
+# Validate qualitative dynamics (Collapse overshoot-and-collapse shape)
 cargo test -p world3-cli --test qualitative_dynamics
 
 # Diagnose simulation output (structured text report)
-cargo run --bin world3-cli -- diagnose --preset bau
+cargo run --bin world3-cli -- diagnose --preset collapse
 
 # Compare two presets
-cargo run --bin world3-cli -- diagnose --preset bau --compare technology
+cargo run --bin world3-cli -- diagnose --preset collapse --compare technology
 
 # JSON output for programmatic use
-cargo run --bin world3-cli -- diagnose --preset bau --format json
+cargo run --bin world3-cli -- diagnose --preset collapse --format json
 
 # Check dt-sensitivity (runs at dt, dt/2, dt/4 and reports convergence)
-cargo run --bin world3-cli -- diagnose --preset bau --stability-check
+cargo run --bin world3-cli -- diagnose --preset collapse --stability-check
 
 # Run API server (serving static frontend)
 STATIC_DIR=frontend/build RUST_LOG=debug cargo run --bin world3-api
@@ -140,18 +140,18 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
 - `WorldState::N` = 21 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`. The 21 stocks include: 4 population cohorts, industrial/service capital, 3 agriculture stocks, NNR, persistent pollution, 2 smoothing stocks, 4 Delay3 pipeline stages (2 for perceived life expectancy, 2 for pollution appearance), and 1 EHSPC smooth stock (effective health services per capita, 20-year smooth).
 - `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (21 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
-- `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
+- `ScenarioParams::default()` must match Collapse preset. When changing defaults, also update `data/presets/collapse.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
 - Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with four intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Stabilized preset), FIOAC consumption fraction is capped at 0.70 (pyworld3 goes to 0.83, which over-allocates to consumption and suppresses IOPC growth), and DCFS (desired completed family size) is calibrated for our model structure rather than exact pyworld3 match.
 - Perceived life expectancy uses a Delay3 (3-stage cascaded delay), matching World3-03 specification. Pollution appearance also uses Delay3. Both add 2 intermediate pipeline stages each to WorldState (4 extra ODE stocks total).
 - ISOPC lookup table provides dynamic service demand reference based on IOPC (replaces hardcoded 200.0). This allows service allocation to scale with industrial development.
-- BAU `technology_growth_rate` = 0.014, `resource_efficiency` = 1.05 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
-- BAU `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technology/Stabilized presets use 0.0 (static `agricultural_technology=2.0` instead).
-- BAU model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
+- Collapse `technology_growth_rate` = 0.014, `resource_efficiency` = 1.05 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
+- Collapse `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technology/Stabilized presets use 0.0 (static `agricultural_technology=2.0` instead).
+- Collapse model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
-- `world3_core::validation::validate_bau()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.
+- `world3_core::validation::validate_collapse()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.
 
 ### Frontend
 - Svelte components live in `frontend/src/components/`, NOT `frontend/src/lib/components/`. Utilities/stores/types live in `frontend/src/lib/`.
@@ -184,9 +184,9 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - `f64::parse()` accepts "NaN", "inf", "-inf" as valid. Always add `.is_finite()` guard when parsing external data destined for JSON serialization.
 - `world3-cli` is a binary crate — use `cargo test -p world3-cli` (not `--lib`).
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
-- `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"bau"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
+- `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"collapse"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
 - `init_app_state()` loads historical CSVs from `HISTORICAL_DATA_DIR` (default `./data/historical`). Integration tests using it must run from the repo root or set the env var.
-- Historical calibration tests: `cargo test -p world3-core --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one BAU sim across all tests.
+- Historical calibration tests: `cargo test -p world3-core --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one Collapse sim across all tests.
 
 ### Debugging Workflow
 - For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.
@@ -197,7 +197,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
 - `diagnose` auto-detects oscillations (rapid alternating phase reversals) — check the Anomalies section for `Oscillation` entries.
 - `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >3% between halvings is flagged UNSTABLE. Pollution peak is the most dt-sensitive variable (~2.4% drift).
-- After the IFPC food allocation rework, all presets (BAU, Technology, Stabilized) are stable at dt=1.0.
+- After the IFPC food allocation rework, all presets (Collapse, Technology, Stabilized) are stable at dt=1.0.
 
 ### Traceability
 - Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates. Rust: place before `#[cfg(test)]`. TypeScript: first line of `.test.ts` file.
@@ -211,7 +211,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
 
 ### Scenario Naming
-- BAU (Business as Usual) = **Collapse** — default trajectory, overshoot and decline
+- **Collapse** — default trajectory, overshoot and decline
 - Technology = **Technotopia** — technology and resource discovery save the day
 - Stabilized = **Ecotopia** — humanity progresses toward justice and moderation
 
@@ -235,16 +235,16 @@ PUBLIC_WS_BASE=ws://localhost:8080/api/v1/ws
 ```
 
 ## Validation Baseline
-The "standard run" (BAU preset, 1900–2100, no policy interventions) must reproduce Meadows 1972 Fig. 35 dynamics:
+The "standard run" (Collapse preset, 1900–2100, no policy interventions) must reproduce Meadows 1972 Fig. 35 dynamics:
 - Global population peaks ~2030 at ~8B then declines
 - Non-renewable resources fall to ~50% of initial by ~2050
 - Food per capita peaks mid-century then falls
 - Industrial output per capita peaks and collapses before 2100
 
-Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoot-and-collapse trajectory shape.
+Run `cargo test -p world3-cli --test qualitative_dynamics` to check Collapse overshoot-and-collapse trajectory shape.
 
 ### Historical Calibration (REQ-026)
-- BAU simulation must track real-world historical data within RMSE% and max-year-error thresholds over ~1960-2023.
+- Collapse simulation must track real-world historical data within RMSE% and max-year-error thresholds over ~1960-2023.
 - RMSE% thresholds: Population (<11%), Food/capita (<15%), IOPC (<19%), NNR fraction (<4%), Life expectancy (<12%).
 - Max-year-error thresholds: Population (<15%), Food/capita (<20%), IOPC (<38%), NNR fraction (<7%), Life expectancy (<19%).
 - Test: `cargo test -p world3-core --test historical_calibration` (11 tests: 5 RMSE + 5 max-year-error + 1 summary)
@@ -264,7 +264,7 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoo
 
 ## Product Milestones
 1. **M1 — Foundation** (complete): Engine, UX, API, CLI, docs, CI/CD.
-2. **M2 — Collapse** (current): BAU historical calibration, trajectory validation.
+2. **M2 — Collapse** (current): Collapse historical calibration, trajectory validation.
 3. **M3 — Technotopia**: Climate + energy sectors, Technology scenario calibration.
 4. **M4 — Ecotopia**: Biodiversity + inequality sectors, Stabilized scenario calibration.
 5. **M5 — Living Data**: `world3-ingestion` crate, 7 data sources, SQLite cache.

@@ -9,4 +9,4 @@ pub use model::state::WorldState;
 pub use output::SimulationOutput;
 pub use solver::rk4::Rk4Solver;
 pub use solver::traits::{OdeSolver, SolverError};
-pub use validation::{CheckResult, validate_bau};
+pub use validation::{CheckResult, validate_collapse};

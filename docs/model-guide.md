@@ -29,13 +29,13 @@ The simulator displays six charts, each tracking a key variable from 1900 to 210
 
 | Preset | What it assumes | What happens |
 |--------|----------------|--------------|
-| **BAU** (Business as Usual) | No policy changes. Current trends continue. | Economy grows, hits resource limits, contracts. Population peaks ~2030 then declines. |
+| **Collapse** | No policy changes. Current trends continue. | Economy grows, hits resource limits, contracts. Population peaks ~2030 then declines. |
 | **Technology** | 4x resource efficiency, 80% pollution control, improved agriculture. No social changes. | Buys time but doesn't prevent overshoot — pollution and food limits catch up. |
 | **Stabilized** | Technology improvements + aggressive family planning (95% from 1975), land protection, investment restraint. | Closest to a sustainable trajectory. Population stabilizes, resources last longer. |
 
 ### What each chart shows
 
-1. **Population** — Total world population in billions. In BAU, it peaks around 8 billion near 2030 then falls as death rates rise from food shortages and pollution.
+1. **Population** — Total world population in billions. In Collapse, it peaks around 8 billion near 2030 then falls as death rates rise from food shortages and pollution.
 
 2. **Resources Remaining** — Fraction of initial non-renewable resources (oil, minerals, etc.) still available. Falls faster as industrial output grows. When it gets low, the cost of extraction rises sharply.
 
@@ -129,7 +129,7 @@ The capital sector models the world economy. Factories, machines, and infrastruc
 
 **What makes the economy grow:** Investment exceeds depreciation, so capital accumulates. Technology improvements get more output per unit of capital.
 
-**What makes the economy shrink:** As resources deplete, it takes more and more capital just to extract what's left — less is available for productive output. This is the key mechanism of collapse in BAU.
+**What makes the economy shrink:** As resources deplete, it takes more and more capital just to extract what's left — less is available for productive output. This is the key mechanism of collapse in the Collapse scenario.
 
 **Key feedback loop:** Resource depletion → higher extraction costs → more capital diverted to extraction → less productive output → slower investment → economic contraction.
 
@@ -219,7 +219,7 @@ land_yield = land_fertility × yield_mult_capital × yield_mult_pollution × ag_
 
 Base fertility is 600 kg/hectare/year (1900 level). The capital multiplier ranges from 1.0 (no inputs) to ~10.0 (maximum inputs). The pollution multiplier falls from 1.0 (pristine) to 0.40 (heavily polluted).
 
-**Agricultural technology growth (Macroco extension):** World3-03 BAU has no time-varying agricultural technology (`lyf=1`, `LYCM=0` in both pyworld3 and Vensim). Real-world agricultural TFP grew ~1%/yr from 1960-2020 (USDA ERS). The `agricultural_technology_growth_rate` parameter (BAU default: 0.005/yr) represents Green Revolution gains -- improved cultivars, irrigation, precision farming -- not captured by the capital-driven yield multiplier (LYMC). Growth starts from 1960, the onset of semi-dwarf wheat/rice development by Norman Borlaug. This extension follows the same pattern as `technology_growth_rate` for industrial output.
+**Agricultural technology growth (Macroco extension):** World3-03 BAU has no time-varying agricultural technology (`lyf=1`, `LYCM=0` in both pyworld3 and Vensim). Real-world agricultural TFP grew ~1%/yr from 1960-2020 (USDA ERS). The `agricultural_technology_growth_rate` parameter (Collapse default: 0.005/yr) represents Green Revolution gains -- improved cultivars, irrigation, precision farming -- not captured by the capital-driven yield multiplier (LYMC). Growth starts from 1960, the onset of semi-dwarf wheat/rice development by Norman Borlaug. This extension follows the same pattern as `technology_growth_rate` for industrial output.
 
 **Food production:**
 
@@ -286,7 +286,7 @@ extraction_rate = population × industrial_output_per_capita × 3.0e-15 / resour
 d(nonrenewable_resources)/dt = -extraction_rate
 ```
 
-The depletion coefficient (3.0e-15) is calibrated so that at 1970 conditions (population = 3.6e9, IOPC = $500/yr), the extraction rate is 5.4e-3 of total NNR per year. Cumulatively, this depletes about 50% of NNR by 2050 under BAU.
+The depletion coefficient (3.0e-15) is calibrated so that at 1970 conditions (population = 3.6e9, IOPC = $500/yr), the extraction rate is 5.4e-3 of total NNR per year. Cumulatively, this depletes about 50% of NNR by 2050 under the Collapse scenario.
 
 **Fraction remaining** (auxiliary):
 
@@ -294,7 +294,7 @@ The depletion coefficient (3.0e-15) is calibrated so that at 1970 conditions (po
 fraction_remaining = clamp(nonrenewable_resources, 0, 1)
 ```
 
-This fraction feeds into the capital sector's `capital_output_ratio_resources` and `capital_fraction_resource_extraction` tables, creating the key feedback that drives BAU collapse.
+This fraction feeds into the capital sector's `capital_output_ratio_resources` and `capital_fraction_resource_extraction` tables, creating the key feedback that drives the Collapse scenario.
 
 **Source:** `crates/world3-core/src/model/sectors/resources.rs`
 
@@ -372,7 +372,7 @@ Resources deplete → Extraction costs rise → More capital diverted to extract
 → Capital depreciates faster than it's replaced → Output falls further
 ```
 
-This is the primary driver of collapse in the BAU scenario. Even though there are still resources in the ground, the *cost* of extracting them consumes so much capital that the economy cannot sustain itself.
+This is the primary driver of collapse in the Collapse scenario. Even though there are still resources in the ground, the *cost* of extracting them consumes so much capital that the economy cannot sustain itself.
 
 ### 2. Pollution → Agricultural Decline → Food Crisis
 

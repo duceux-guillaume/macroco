@@ -173,7 +173,7 @@ mod tests {
 
     fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
         let mut s = WorldState::initial_1900();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         // Pre-populate auxiliary fields needed by population
         s.agriculture.food_per_capita = 400.0;
@@ -278,14 +278,14 @@ mod tests {
     #[test]
     fn test_family_planning_reduces_fertility() {
         let (mut s1, _, tables) = setup();
-        let mut params_no_fp = ScenarioParams::bau();
+        let mut params_no_fp = ScenarioParams::collapse();
         params_no_fp.family_planning_efficacy = 0.0;
         s1.time = 2020.0;
         population_derivatives(&mut s1, &params_no_fp, &tables);
         let fert_no_fp = s1.population.fertility_rate;
 
         let (mut s2, _, _) = setup();
-        let mut params_fp = ScenarioParams::bau();
+        let mut params_fp = ScenarioParams::collapse();
         params_fp.family_planning_efficacy = 0.95;
         params_fp.family_planning_year = 1975.0;
         s2.time = 2020.0;

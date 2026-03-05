@@ -11,7 +11,7 @@ pub struct ScenarioParams {
     // ---- Population policy ----
     /// Year at which family planning reaches full effectiveness [1900..2100, default 2000]
     pub family_planning_year: f64,
-    /// Maximum effectiveness of family planning [0..1, default 0.0 (BAU)]
+    /// Maximum effectiveness of family planning [0..1, default 0.0 (Collapse)]
     pub family_planning_efficacy: f64,
     /// Health services investment multiplier [0.5..3.0, default 1.0]
     pub health_investment_multiplier: f64,
@@ -61,7 +61,7 @@ impl Default for ScenarioParams {
         Self {
             meta: ScenarioMeta::default(),
             family_planning_year: 2000.0,
-            // Default matches BAU: no family planning intervention
+            // Default matches Collapse: no family planning intervention
             family_planning_efficacy: 0.0,
             health_investment_multiplier: 1.0,
             // World3-03: alic1 = 14 yr → depreciation = 1/14.
@@ -96,13 +96,13 @@ impl Default for ScenarioParams {
     }
 }
 
-/// Business-as-usual scenario (no policy interventions, original World 3 conditions).
-/// Default now matches BAU so that API consumers using default() get BAU behavior.
+/// Collapse scenario (no policy interventions, original World 3 conditions).
+/// Default now matches Collapse so that API consumers using default() get Collapse behavior.
 impl ScenarioParams {
-    pub fn bau() -> Self {
+    pub fn collapse() -> Self {
         let mut p = Self::default();
-        p.meta.name = "Business as Usual".into();
-        p.meta.description = "Original World 3 standard run. No policy interventions.".into();
+        p.meta.name = "Collapse".into();
+        p.meta.description = "Original World 3 standard run. No policy interventions. Overshoot and decline.".into();
         p.meta.color_hex = "#e63946".into();
         p
     }
@@ -310,9 +310,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_default_matches_bau() {
+    fn test_default_matches_collapse() {
         let d = ScenarioParams::default();
-        let b = ScenarioParams::bau();
+        let b = ScenarioParams::collapse();
         // Critical fields must match (meta differs)
         assert_eq!(d.family_planning_efficacy, b.family_planning_efficacy);
         assert_eq!(d.industrial_depreciation_rate, b.industrial_depreciation_rate);
@@ -328,7 +328,7 @@ mod tests {
     fn test_presets_valid_ranges() {
         let descriptors = parameter_descriptors();
         let presets = [
-            ScenarioParams::bau(),
+            ScenarioParams::collapse(),
             ScenarioParams::comprehensive_technology(),
             ScenarioParams::stabilized_world(),
         ];

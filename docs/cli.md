@@ -32,7 +32,7 @@ cargo run --bin world3-cli -- simulate [OPTIONS]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--preset <NAME>` | `bau` | Scenario preset: `bau`, `technology`, `stabilized` |
+| `--preset <NAME>` | `collapse` | Scenario preset: `collapse`, `technology`, `stabilized` |
 | `--output <FILE>` | _(none)_ | Write results to CSV file |
 | `--start <YEAR>` | `1900` | Simulation start year |
 | `--end <YEAR>` | `2100` | Simulation end year |
@@ -50,7 +50,7 @@ cargo run --bin world3-cli -- simulate [OPTIONS]
 cargo run --bin world3-cli -- simulate
 
 # Full CSV output
-cargo run --bin world3-cli -- simulate --preset bau --output output.csv
+cargo run --bin world3-cli -- simulate --preset collapse --output output.csv
 
 # Custom time range and step
 cargo run --bin world3-cli -- simulate --preset stabilized \
@@ -70,7 +70,7 @@ nnr_fraction, persistent_pollution, pollution_index
 
 ### `validate`
 
-Validate the BAU run against Meadows 1972 reference checkpoints. Checks qualitative dynamics (not exact values):
+Validate the Collapse run against Meadows 1972 reference checkpoints. Checks qualitative dynamics (not exact values):
 
 1. Population at 1900, 1950, 1970 within expected ranges
 2. Population peaks at 5B–16B between 2020–2090, then declines (widened for Delay3 model)
@@ -95,7 +95,7 @@ cargo run --bin world3-cli -- diagnose [OPTIONS]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--preset <NAME>` | `bau` | Scenario preset to analyze |
+| `--preset <NAME>` | `collapse` | Scenario preset to analyze |
 | `--compare <NAME>` | _(none)_ | Compare against a second preset |
 | `--format <FMT>` | `text` | Output format: `text` or `json` |
 | `--start <YEAR>` | `1900` | Simulation start year |
@@ -106,17 +106,17 @@ cargo run --bin world3-cli -- diagnose [OPTIONS]
 **Examples:**
 
 ```bash
-# Text report for BAU
-cargo run --bin world3-cli -- diagnose --preset bau
+# Text report for Collapse
+cargo run --bin world3-cli -- diagnose --preset collapse
 
 # Compare two scenarios
-cargo run --bin world3-cli -- diagnose --preset bau --compare technology
+cargo run --bin world3-cli -- diagnose --preset collapse --compare technology
 
 # JSON output for scripting
-cargo run --bin world3-cli -- diagnose --preset bau --format json
+cargo run --bin world3-cli -- diagnose --preset collapse --format json
 
 # Check numerical stability
-cargo run --bin world3-cli -- diagnose --preset bau --stability-check
+cargo run --bin world3-cli -- diagnose --preset collapse --stability-check
 ```
 
 **Report sections:**
@@ -137,7 +137,7 @@ Output:
 
 ```
 Available presets:
-  bau          Business as Usual (original World 3 standard run)
+  collapse     Collapse (original World 3 standard run)
   technology   Comprehensive Technology scenario
   stabilized   Stabilized World scenario
 ```

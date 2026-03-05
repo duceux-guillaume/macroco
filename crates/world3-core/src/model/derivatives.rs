@@ -112,7 +112,7 @@ mod tests {
 
     fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
         let s = WorldState::initial_1900();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         (s, params, tables)
     }
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn test_zero_state_does_not_panic() {
         let s = WorldState::default();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         let d = derivatives(&s, &params, &tables);
         let dv = d.to_vec();

@@ -96,7 +96,7 @@ mod tests {
             s.population.population = 1.6e9 + (year - 1900.0) * 1e7;
             states.push(s);
         }
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         SimulationOutput::new(states, params)
     }
 

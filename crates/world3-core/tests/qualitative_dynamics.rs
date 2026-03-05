@@ -1,17 +1,17 @@
 // REQ: REQ-001
-//! BAU Qualitative Dynamics Tests
+//! Collapse Qualitative Dynamics Tests
 //!
-//! Validates that the BAU simulation reproduces World3 overshoot-and-collapse
+//! Validates that the Collapse simulation reproduces World3 overshoot-and-collapse
 //! dynamics via the world3_core::validation module.
 
 mod common;
 
-use world3_core::validation::validate_bau;
+use world3_core::validation::validate_collapse;
 
 #[test]
-fn bau_all_qualitative_checks_pass() {
-    let sim = common::bau_sim();
-    let results = validate_bau(sim);
+fn collapse_all_qualitative_checks_pass() {
+    let sim = common::collapse_sim();
+    let results = validate_collapse(sim);
 
     let mut failures = Vec::new();
     for r in &results {
@@ -24,7 +24,7 @@ fn bau_all_qualitative_checks_pass() {
 
     assert!(
         failures.is_empty(),
-        "BAU qualitative validation failed:\n{}",
+        "Collapse qualitative validation failed:\n{}",
         failures.join("\n")
     );
 }

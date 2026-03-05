@@ -70,7 +70,7 @@ pub fn capital_derivatives(
     // FIOAA uses smoothed FPC / IFPC(IOPC). The smooth FPC is an ODE stock
     // (preserved by from_vec across RK4 stages), while IFPC scales with
     // industrialization to prevent zero-allocation traps at high food levels.
-    // At low IOPC (BAU), IFPC ≈ SFPC so this matches the original allocation.
+    // At low IOPC (Collapse), IFPC ≈ SFPC so this matches the original allocation.
     // At high IOPC (Tech/Stabilized), IFPC rises, keeping food_ratio moderate.
     let ifpc = tables.indicated_food_per_capita.eval(iopc).max(1.0);
     let food_ratio = state.agriculture.food_per_capita_smooth / ifpc;
@@ -136,7 +136,7 @@ mod tests {
 
     fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
         let mut s = WorldState::initial_1900();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         s.agriculture.food_per_capita = 400.0;
         s.agriculture.food_per_capita_smooth = 400.0;
@@ -254,12 +254,12 @@ mod tests {
     #[test]
     fn test_depreciation_rate_sensitivity() {
         let (mut s1, _, tables) = setup();
-        let mut params1 = ScenarioParams::bau();
+        let mut params1 = ScenarioParams::collapse();
         params1.industrial_depreciation_rate = 1.0 / 14.0;
         let d1 = capital_derivatives(&mut s1, &params1, &tables);
 
         let (mut s2, _, _) = setup();
-        let mut params2 = ScenarioParams::bau();
+        let mut params2 = ScenarioParams::collapse();
         params2.industrial_depreciation_rate = 2.0 / 14.0; // doubled
         let d2 = capital_derivatives(&mut s2, &params2, &tables);
 

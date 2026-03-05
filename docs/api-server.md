@@ -22,7 +22,7 @@ RUST_LOG=info cargo run --bin world3-api
 - **`AppState`** holds: the RK4 solver (`Arc<Rk4Solver>`), a scenario store (`Arc<RwLock<HashMap<String, Scenario>>>`), and a broadcast sender (Phase 4 placeholder)
 - All simulations run via `tokio::task::spawn_blocking()` to avoid blocking the async reactor
 - CORS is permissive (any origin, any method, any header)
-- Three preset scenarios (BAU, Technology, Stabilized) are pre-populated at startup
+- Three preset scenarios (Collapse, Technology, Stabilized) are pre-populated at startup
 
 ## REST Endpoints
 
@@ -144,7 +144,7 @@ Returned by `POST /scenarios/:id/run`:
 ```json
 {
   "scenario_id": "uuid",
-  "scenario_name": "Business as Usual",
+  "scenario_name": "Collapse",
   "timeline": [1900, 1901, ..., 2100],
   "states": [
     {
@@ -168,7 +168,7 @@ Returned by `GET /scenarios` and `GET /presets`:
 ```json
 {
   "id": "uuid",
-  "name": "Business as Usual",
+  "name": "Collapse",
   "description": "Original World 3 standard run.",
   "color_hex": "#e63946",
   "is_preset": true

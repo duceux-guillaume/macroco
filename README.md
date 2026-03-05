@@ -19,13 +19,13 @@ The platform. Simulation engine, interactive frontend, API, CLI, documentation, 
 
 ## M2 — Collapse
 
-The default trajectory: overshoot and decline. BAU scenario polished with historical calibration against real-world data (1960-2023) and validated trajectory matching Meadows 1972 dynamics.
+The default trajectory: overshoot and decline. Collapse scenario with historical calibration against real-world data (1960-2023) and validated trajectory matching Meadows 1972 dynamics.
 
 ●●●●●●●○○○ 75% (3/4)
 
 | Category | Requirements |
 |----------|-------------|
-| Validation | REQ-005 Meadows 1972 validation, REQ-026 BAU historical calibration, REQ-031 Trajectory validation |
+| Validation | REQ-005 Meadows 1972 validation, REQ-026 Collapse historical calibration, REQ-031 Trajectory validation |
 | Data | REQ-012 Historical data overlay |
 
 ## M3 — Technotopia

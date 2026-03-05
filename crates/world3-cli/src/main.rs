@@ -24,8 +24,8 @@ struct Cli {
 enum Commands {
     /// Run a simulation and output results
     Simulate {
-        /// Preset scenario: bau, technology, stabilized
-        #[arg(long, default_value = "bau")]
+        /// Preset scenario: collapse, technology, stabilized
+        #[arg(long, default_value = "collapse")]
         preset: String,
 
         /// Output CSV file path (prints summary to stdout if omitted)
@@ -45,7 +45,7 @@ enum Commands {
         dt: f64,
     },
 
-    /// Validate BAU run against Meadows 1972 reference checkpoints
+    /// Validate Collapse run against Meadows 1972 reference checkpoints
     Validate,
 
     /// List all available presets
@@ -53,8 +53,8 @@ enum Commands {
 
     /// Run simulation diagnostics -- structured text/JSON analysis for debugging
     Diagnose {
-        /// Preset scenario: bau, technology, stabilized
-        #[arg(long, default_value = "bau")]
+        /// Preset scenario: collapse, technology, stabilized
+        #[arg(long, default_value = "collapse")]
         preset: String,
 
         /// Compare against a second preset
@@ -123,7 +123,7 @@ fn main() -> Result<()> {
 
         Commands::Presets => {
             println!("Available presets:");
-            println!("  bau          Business as Usual (original World 3 standard run)");
+            println!("  collapse     Collapse (original World 3 standard run, overshoot and decline)");
             println!("  technology   Comprehensive Technology scenario");
             println!("  stabilized   Stabilized World scenario");
         }
@@ -166,10 +166,10 @@ fn main() -> Result<()> {
 
 fn preset_params(name: &str) -> Result<ScenarioParams> {
     match name {
-        "bau" => Ok(ScenarioParams::bau()),
+        "collapse" => Ok(ScenarioParams::collapse()),
         "technology" => Ok(ScenarioParams::comprehensive_technology()),
         "stabilized" => Ok(ScenarioParams::stabilized_world()),
-        other => anyhow::bail!("Unknown preset '{}'. Use: bau, technology, stabilized", other),
+        other => anyhow::bail!("Unknown preset '{}'. Use: collapse, technology, stabilized", other),
     }
 }
 
@@ -259,13 +259,13 @@ fn write_csv(sim: &SimulationOutput, path: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-/// Thin wrapper around `world3_core::validation::validate_bau()`.
-/// Runs BAU simulation, prints PASS/FAIL for each check, exits 1 on failure.
+/// Thin wrapper around `world3_core::validation::validate_collapse()`.
+/// Runs Collapse simulation, prints PASS/FAIL for each check, exits 1 on failure.
 fn validate() -> Result<()> {
-    eprintln!("Running BAU validation against World3 reference dynamics…\n");
+    eprintln!("Running Collapse validation against World3 reference dynamics…\n");
 
-    let sim = diagnose::run_sim("bau", 1900.0, 2100.0, 1.0)?;
-    let results = world3_core::validation::validate_bau(&sim);
+    let sim = diagnose::run_sim("collapse", 1900.0, 2100.0, 1.0)?;
+    let results = world3_core::validation::validate_collapse(&sim);
 
     let mut failed = false;
     for r in &results {

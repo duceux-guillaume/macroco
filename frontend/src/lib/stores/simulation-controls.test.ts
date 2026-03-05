@@ -78,8 +78,8 @@ describe('getSimParams', () => {
 
 	it('returns params for focused scenario', () => {
 		const params = makeParams();
-		stores.focusedScenarioId.set('bau');
-		stores.scenarioParamsCache.set(new Map([['bau', params]]));
+		stores.focusedScenarioId.set('collapse');
+		stores.scenarioParamsCache.set(new Map([['collapse', params]]));
 		expect(simControls.getSimParams()).toEqual(params);
 	});
 });
@@ -87,12 +87,12 @@ describe('getSimParams', () => {
 describe('updateSimField', () => {
 	it('updates cache immediately', () => {
 		const params = makeParams({ start_year: 1900 });
-		stores.focusedScenarioId.set('bau');
-		stores.scenarioParamsCache.set(new Map([['bau', params]]));
+		stores.focusedScenarioId.set('collapse');
+		stores.scenarioParamsCache.set(new Map([['collapse', params]]));
 
 		simControls.updateSimField('start_year', 1950);
 
-		const cached = get(stores.scenarioParamsCache).get('bau')!;
+		const cached = get(stores.scenarioParamsCache).get('collapse')!;
 		expect(cached.start_year).toBe(1950);
 		// Other fields unchanged
 		expect(cached.end_year).toBe(2100);
@@ -100,8 +100,8 @@ describe('updateSimField', () => {
 
 	it('sends WS message after 200ms debounce', () => {
 		const params = makeParams({ start_year: 1900 });
-		stores.focusedScenarioId.set('bau');
-		stores.scenarioParamsCache.set(new Map([['bau', params]]));
+		stores.focusedScenarioId.set('collapse');
+		stores.scenarioParamsCache.set(new Map([['collapse', params]]));
 
 		simControls.updateSimField('start_year', 1950);
 
@@ -114,15 +114,15 @@ describe('updateSimField', () => {
 		expect(mockSend).toHaveBeenCalledOnce();
 		expect(mockSend).toHaveBeenCalledWith({
 			type: 'update_params',
-			scenario_id: 'bau',
+			scenario_id: 'collapse',
 			params: expect.objectContaining({ start_year: 1950 })
 		});
 	});
 
 	it('debounces rapid updates to single WS send', () => {
 		const params = makeParams({ end_year: 2100 });
-		stores.focusedScenarioId.set('bau');
-		stores.scenarioParamsCache.set(new Map([['bau', params]]));
+		stores.focusedScenarioId.set('collapse');
+		stores.scenarioParamsCache.set(new Map([['collapse', params]]));
 
 		simControls.updateSimField('end_year', 2050);
 		vi.advanceTimersByTime(50);
@@ -136,7 +136,7 @@ describe('updateSimField', () => {
 		expect(mockSend).toHaveBeenCalledOnce();
 		expect(mockSend).toHaveBeenCalledWith({
 			type: 'update_params',
-			scenario_id: 'bau',
+			scenario_id: 'collapse',
 			params: expect.objectContaining({ end_year: 2200 })
 		});
 	});
@@ -151,7 +151,7 @@ describe('updateSimField', () => {
 	});
 
 	it('no-ops if params missing from cache', () => {
-		stores.focusedScenarioId.set('bau');
+		stores.focusedScenarioId.set('collapse');
 		// scenarioParamsCache is empty (from beforeEach)
 
 		simControls.updateSimField('start_year', 1950);
@@ -166,23 +166,23 @@ describe('updateSimField', () => {
 			end_year: 2100,
 			time_step: 1.0
 		});
-		stores.focusedScenarioId.set('bau');
-		stores.scenarioParamsCache.set(new Map([['bau', params]]));
+		stores.focusedScenarioId.set('collapse');
+		stores.scenarioParamsCache.set(new Map([['collapse', params]]));
 
 		simControls.updateSimField('start_year', 1970);
-		const after1 = get(stores.scenarioParamsCache).get('bau')!;
+		const after1 = get(stores.scenarioParamsCache).get('collapse')!;
 		expect(after1.start_year).toBe(1970);
 		expect(after1.end_year).toBe(2100);
 		expect(after1.time_step).toBe(1.0);
 
 		simControls.updateSimField('end_year', 2200);
-		const after2 = get(stores.scenarioParamsCache).get('bau')!;
+		const after2 = get(stores.scenarioParamsCache).get('collapse')!;
 		expect(after2.start_year).toBe(1970);
 		expect(after2.end_year).toBe(2200);
 		expect(after2.time_step).toBe(1.0);
 
 		simControls.updateSimField('time_step', 0.5);
-		const after3 = get(stores.scenarioParamsCache).get('bau')!;
+		const after3 = get(stores.scenarioParamsCache).get('collapse')!;
 		expect(after3.start_year).toBe(1970);
 		expect(after3.end_year).toBe(2200);
 		expect(after3.time_step).toBe(0.5);

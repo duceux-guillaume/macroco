@@ -11,7 +11,7 @@ use crate::model::{params::ScenarioParams, state::WorldState};
 ///
 /// World3-03: NRI = 1e12 resource units, NRUR at 1970 ≈ 1e10 units/yr.
 /// Calibrated against historical NNR depletion data (NNR RMSE% = 9.5%).
-/// At 0.3e-14, BAU produces NNR fraction ~0.11 by 2100, consistent with
+/// At 0.3e-14, Collapse produces NNR fraction ~0.11 by 2100, consistent with
 /// Meadows 1972 standard run trajectory.
 const RESOURCE_DEPLETION_COEFF: f64 = 0.3e-14;
 
@@ -71,10 +71,10 @@ mod tests {
         let mut s = WorldState::initial_1900();
         // Set known IOPC auxiliary
         s.capital.industrial_output_per_capita = 43.75;
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         let d = resource_derivative(&s, &params, &tables);
-        // pop=1.6e9, iopc=43.75, coeff=0.3e-14, efficiency=1.05 (BAU)
+        // pop=1.6e9, iopc=43.75, coeff=0.3e-14, efficiency=1.05 (Collapse)
         // extraction = 1.6e9 × 43.75 × 0.3e-14 / 1.05
         let expected = -(1.6e9 * 43.75 * RESOURCE_DEPLETION_COEFF / params.resource_efficiency);
         assert_relative_eq!(d, expected, epsilon = 1e-10);
@@ -85,7 +85,7 @@ mod tests {
         let mut s = WorldState::initial_1900();
         s.population.population = 0.0;
         s.capital.industrial_output_per_capita = 100.0;
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         let d = resource_derivative(&s, &params, &tables);
         assert_eq!(d, 0.0);
@@ -95,7 +95,7 @@ mod tests {
     fn test_resource_derivative_negative_iopc_clamped() {
         let mut s = WorldState::initial_1900();
         s.capital.industrial_output_per_capita = -500.0;
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         let d = resource_derivative(&s, &params, &tables);
         // Negative IOPC clamped to 0 → extraction = 0 → derivative = 0
@@ -108,11 +108,11 @@ mod tests {
         s.capital.industrial_output_per_capita = 200.0;
         let tables = WorldLookupTables::load();
 
-        let mut params1 = ScenarioParams::bau();
+        let mut params1 = ScenarioParams::collapse();
         params1.resource_efficiency = 1.0;
         let d1 = resource_derivative(&s, &params1, &tables);
 
-        let mut params2 = ScenarioParams::bau();
+        let mut params2 = ScenarioParams::collapse();
         params2.resource_efficiency = 2.0;
         let d2 = resource_derivative(&s, &params2, &tables);
 
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn test_resource_derivative_always_nonpositive() {
         let tables = WorldLookupTables::load();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         // Test across various populations and IOPC values
         for &pop in &[1e6, 1e9, 1e10] {
             for &iopc in &[0.0, 100.0, 1000.0, 10000.0] {

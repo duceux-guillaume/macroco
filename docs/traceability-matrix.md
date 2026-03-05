@@ -31,7 +31,7 @@
 | REQ-023 | Simulation controls | Done | `frontend/src/lib/stores/simulation-controls.test.ts` |
 | REQ-024 | Chart annotations | Done | `frontend/src/lib/content/chart-annotations.test.ts` |
 | REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
-| REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-core/tests/historical_calibration.rs` |
+| REQ-026 | Collapse historical calibration regression tests | Done | `crates/world3-core/tests/historical_calibration.rs` |
 | REQ-027 | Bi-directional traceability | Done (exempt: Infrastructure tooling; the traceability script itself is the implementation) | — |
 | REQ-028 | User feedback mechanism | Done (exempt: UI-only feature with unit tests on URL builder; no backend logic to test.) | `frontend/src/lib/utils/feedback-url.test.ts` |
 | REQ-030 | Multi-scenario historical calibration | Abandoned | — |

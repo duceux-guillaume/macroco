@@ -24,7 +24,7 @@ mod tests {
 
     fn make_test_diagnostics() -> SimDiagnostics {
         SimDiagnostics {
-            preset_name: "bau".to_string(),
+            preset_name: "collapse".to_string(),
             time_range: (1900.0, 2100.0),
             dt: 1.0,
             num_steps: 201,
@@ -70,7 +70,7 @@ mod tests {
         let json_str = format_json(&diag);
         let val: serde_json::Value =
             serde_json::from_str(&json_str).expect("invalid JSON output");
-        assert_eq!(val["preset_name"], "bau");
+        assert_eq!(val["preset_name"], "collapse");
     }
 
     #[test]

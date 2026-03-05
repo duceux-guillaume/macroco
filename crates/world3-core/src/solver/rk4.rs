@@ -159,11 +159,11 @@ mod tests {
     }
 
     #[test]
-    fn test_bau_simulation_qualitative() {
+    fn test_collapse_simulation_qualitative() {
         let solver = make_solver();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let initial = WorldState::initial_1900();
-        let states = solver.solve(initial, &params).expect("BAU should not diverge");
+        let states = solver.solve(initial, &params).expect("Collapse should not diverge");
 
         // Should have ~201 steps (1900-2100 inclusive at dt=1)
         assert!(states.len() >= 200);
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn test_solver_divergence_detection() {
         let solver = make_solver();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let mut initial = WorldState::initial_1900();
         // Give absurd initial conditions: population=1e14 (beyond 1e13 threshold)
         initial.population.cohort_0_14 = 1e14;
@@ -216,7 +216,7 @@ mod tests {
     #[test]
     fn test_short_simulation() {
         let solver = make_solver();
-        let mut params = ScenarioParams::bau();
+        let mut params = ScenarioParams::collapse();
         params.start_year = 1900.0;
         params.end_year = 1910.0;
         let initial = WorldState::initial_1900();

@@ -49,7 +49,7 @@ pub fn agriculture_derivatives(
     // Uses smoothed FPC / IFPC(IOPC) to determine allocation. The smooth FPC is an
     // ODE stock (preserved by from_vec across RK4 stages), while IFPC scales with
     // industrialization to prevent zero-allocation traps at high food levels.
-    // At low IOPC (BAU), IFPC ≈ SFPC so this matches the original allocation.
+    // At low IOPC (Collapse), IFPC ≈ SFPC so this matches the original allocation.
     // At high IOPC (Tech/Stabilized), IFPC rises, keeping food_ratio moderate.
     let iopc = state.capital.industrial_output_per_capita;
     let ifpc = tables.indicated_food_per_capita.eval(iopc).max(1.0);
@@ -184,7 +184,7 @@ mod tests {
 
     fn setup() -> (WorldState, ScenarioParams, WorldLookupTables) {
         let mut s = WorldState::initial_1900();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         let tables = WorldLookupTables::load();
         // Pre-populate capital auxiliaries
         s.capital.industrial_output = 2.1e11 / 3.0; // IC / ICOR
@@ -241,13 +241,13 @@ mod tests {
     #[test]
     fn test_agricultural_technology_doubles_yield() {
         let (mut s1, _, tables) = setup();
-        let mut params1 = ScenarioParams::bau();
+        let mut params1 = ScenarioParams::collapse();
         params1.agricultural_technology = 1.0;
         agriculture_derivatives(&mut s1, &params1, &tables);
         let yield1 = s1.agriculture.land_yield;
 
         let (mut s2, _, _) = setup();
-        let mut params2 = ScenarioParams::bau();
+        let mut params2 = ScenarioParams::collapse();
         params2.agricultural_technology = 2.0;
         agriculture_derivatives(&mut s2, &params2, &tables);
         let yield2 = s2.agriculture.land_yield;
@@ -258,12 +258,12 @@ mod tests {
     #[test]
     fn test_land_protection_reduces_erosion() {
         let (mut s1, _, tables) = setup();
-        let mut params_no = ScenarioParams::bau();
+        let mut params_no = ScenarioParams::collapse();
         params_no.land_protection_fraction = 0.0;
         let d1 = agriculture_derivatives(&mut s1, &params_no, &tables);
 
         let (mut s2, _, _) = setup();
-        let mut params_prot = ScenarioParams::bau();
+        let mut params_prot = ScenarioParams::collapse();
         params_prot.land_protection_fraction = 0.3;
         let d2 = agriculture_derivatives(&mut s2, &params_prot, &tables);
 
@@ -354,7 +354,7 @@ mod tests {
     #[test]
     fn test_agricultural_technology_growth_at_2000() {
         let (mut s1, _, tables) = setup();
-        let params = ScenarioParams::bau();
+        let params = ScenarioParams::collapse();
         s1.time = 1900.0;
         agriculture_derivatives(&mut s1, &params, &tables);
         let yield_1900 = s1.agriculture.land_yield;
@@ -371,14 +371,14 @@ mod tests {
     #[test]
     fn test_agricultural_technology_growth_zero_rate() {
         let (mut s1, _, tables) = setup();
-        let mut params = ScenarioParams::bau();
+        let mut params = ScenarioParams::collapse();
         params.agricultural_technology_growth_rate = 0.0;
         s1.time = 2050.0;
         agriculture_derivatives(&mut s1, &params, &tables);
         let yield_no_growth = s1.agriculture.land_yield;
 
         let (mut s2, _, _) = setup();
-        let mut params2 = ScenarioParams::bau();
+        let mut params2 = ScenarioParams::collapse();
         params2.agricultural_technology_growth_rate = 0.0;
         params2.agricultural_technology = 1.0;
         s2.time = 1900.0;
