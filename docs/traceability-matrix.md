@@ -45,7 +45,7 @@
 | REQ-039 | CLI — Simulation debugging | Done (exempt: Organizational requirement; diagnose tested via agent workflow tests) | — |
 | REQ-040 | CLI — Reproducibility | Done (exempt: Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests) | — |
 | REQ-041 | Click/tap chart lines to open info panel | Done (exempt: D3 SVG interaction; not testable with jsdom (no SVG pointer events)) | — |
-| REQ-042 | Sidebar-centric layout principle | In Progress | — |
+| REQ-042 | Sidebar-centric layout principle | Done (exempt: Layout/positioning concern; not testable with jsdom) | — |
 
 ## Reverse: Test -> REQs
 
@@ -88,7 +88,7 @@
 
 ## Summary
 
-- **Done requirements:** 28
+- **Done requirements:** 29
 - **Covered by tests:** 16
-- **Exempt:** 12
+- **Exempt:** 13
 - **Uncovered:** 0

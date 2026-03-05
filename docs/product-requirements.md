@@ -193,6 +193,13 @@
   - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (Collapse, Technology, Stabilized).
   - *Exempt:* Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests
 
+- [x] **REQ-042: Sidebar-centric layout principle**
+  - *Milestone:* M2
+  - *Context:* The chart area is the primary display and should be maximized. All controls that change what the chart shows (scenario selection, parameter sliders, simulation settings, compare mode) belong in the sidebar. Info panels on the right provide context. On mobile, the sidebar becomes a slide-out drawer — all controls follow this pattern. The "Compare scenarios" toggle was previously in a dedicated toolbar row above the charts, wasting vertical space for a secondary feature. Moved to the sidebar, inline with the "Presets" header.
+  - *Components:* `frontend/src/components/ScenarioSelector.svelte`, `frontend/src/components/ChartGrid.svelte`
+  - *Done:* Compare toggle moved from ChartGrid toolbar to ScenarioSelector sidebar. ChartGrid toolbar removed.
+  - *Exempt:* Layout/positioning concern; not testable with jsdom
+
 - [x] **REQ-041: Click/tap chart lines to open info panel**
   - *Milestone:* M1
   - *Context:* Chart lines are not clickable — the only way to open a variable's info panel is via the legend. On desktop, clicking a line should open its info panel. On mobile, tapping a line opens the info panel; tapping the background shows the tooltip.
@@ -226,12 +233,6 @@
   - *Context:* Non-Collapse scenarios must produce meaningfully divergent futures compared to Collapse. Technology should show extended resource availability and delayed decline; Stabilized should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
   - *Components:* `world3-cli`: validate subcommand or dedicated test
   - *Priority:* high
-
-- [ ] **REQ-042: Sidebar-centric layout principle**
-  - *Milestone:* M1
-  - *Context:* The chart area is the primary display and should be maximized. All controls that change what the chart shows (scenario selection, parameter sliders, simulation settings, compare mode) belong in the sidebar. Info panels on the right provide context. On mobile, the sidebar becomes a slide-out drawer — all controls follow this pattern. The "Compare scenarios" toggle was previously in a dedicated toolbar row above the charts, wasting vertical space for a secondary feature. Moved to the sidebar, inline with the "Presets" header.
-  - *Components:* `frontend/src/components/ScenarioSelector.svelte`, `frontend/src/components/ChartGrid.svelte`
-  - *Priority:* medium
 
 ---
 
