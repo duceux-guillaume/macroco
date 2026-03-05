@@ -542,6 +542,27 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		},
 		docPath: 'docs/model/parameters/pollution-control.md'
 	},
+	resource_efficiency_growth_rate: {
+		name: 'Resource Efficiency Growth Rate',
+		unit: 'per year',
+		sector: 'Resources',
+		beginner:
+			'Annual improvement in extraction technology from 1970. Real-world mining and drilling have gotten steadily more efficient. Collapse uses 0.35%/yr.',
+		expert:
+			'Macroco extension: effective_efficiency = resource_efficiency × (1 + growth_rate)^max(year-1970, 0). Conservative vs net real-world rate (~0.5-0.6%/yr) because FCAOR captures some extraction cost.',
+		feedbackLoops: ['resource-collapse', 'population-resource'],
+		relatedVariables: [
+			'resources.nonrenewable_resources',
+			'resources.fraction_remaining',
+			'capital.industrial_output_per_capita'
+		],
+		impact: {
+			increase: 'Resources depleted more slowly -- delays industrial collapse',
+			decrease: 'No extraction improvement -- earlier resource scarcity',
+			sparklineVariable: 'resources.fraction_remaining'
+		},
+		docPath: 'docs/model/parameters/resource-efficiency-growth-rate.md'
+	},
 	resource_efficiency: {
 		name: 'Resource Efficiency',
 		unit: 'multiplier',
