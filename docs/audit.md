@@ -12,15 +12,15 @@
 
 | Category | Count | Tables |
 |----------|------:|--------|
-| Exact Match | 20 | M1, M2, M3, M4, LMF, LMHS1, LMP, FM, CMPLE, FIOAS1, IFPC1, ISOPC1, JPICU, LYMC, LYMAP1, UILPC, LFDR, LFRT, FALM, FCAOR1 |
-| Intentional Deviation | 6 | DCFS, FRSN, LMCR, FIOACV, FIOAA, PPASR |
-| Custom / No Reference | 7 | FSH, LFP, LERD, LDCO, FRNF, PPGIO, PPGAO |
+| Exact Match | 22 | M1, M2, M3, M4, LMF, LMHS2, LMP, FM, CMPLE, FIOAS1, IFPC1, ISOPC1, JPICU, LYMC, LYMAP1, UILPC, LFDR, LFRT, FALM, FCAOR1, HSAPC, CMI+FPU |
+| Intentional Deviation | 5 | DCFS, FRSN, FIOACV, FIOAA, PPASR |
+| Custom / No Reference | 6 | LFP, LERD, LDCO, FRNF, PPGIO, PPGAO |
 | **Total** | **33** | |
 
 **Risk assessment:**
-- 20 exact-match tables (up from 7 in prior audit) cover all mortality, fertility, land, resource, and most capital dynamics faithfully.
-- Major alignment since 2026-03-04: FM, CMPLE, LMF, LMHS, LMP, IFPC, ISOPC, JPICU, LYMC, LYMAP, UILPC, LFDR, FCAOR all brought to exact pyworld3 match.
-- 6 intentional deviations are documented calibration adjustments: DCFS (calibrated for Delay3 model), FIOACV (capped at 0.70), FIOAA (0.005 floor), FRSN (different x-axis), LMCR (structural simplification), PPASR (different pollution normalization).
+- 22 exact-match tables cover all mortality, fertility, land, resource, health, crowding, and most capital dynamics faithfully.
+- Major alignment since 2026-03-04: FM, CMPLE, LMF, LMHS2, LMP, IFPC, ISOPC, JPICU, LYMC, LYMAP, UILPC, LFDR, FCAOR, HSAPC, CMI, FPU all brought to exact pyworld3 match.
+- 5 intentional deviations are documented calibration adjustments: DCFS (calibrated for Delay3 model), FIOACV (capped at 0.70), FIOAA (0.005 floor), FRSN (different x-axis), PPASR (different pollution normalization).
 - Highest-risk deviation: DCFS — calibrated values differ significantly from pyworld3 effective DCFS to compensate for Delay3 perceived-LE dynamics.
 
 ---
@@ -90,27 +90,35 @@ Aligned to pyworld3 during March 2026 pyworld3 alignment work.
 
 | | x | y |
 |---|---|---|
-| **Ours** | 0, 20, 40, 60, 80, 100 | 1.0, 1.1, 1.4, 1.6, 1.7, 1.8 |
+| **Ours** | 0, 20, 40, 60, 80, 100 | 1.0, 1.4, 1.6, 1.8, 1.95, 2.0 |
 | **pyworld3 (LMHS1)** | 0, 20, 40, 60, 80, 100 | 1, 1.1, 1.4, 1.6, 1.7, 1.8 |
 | **pyworld3 (LMHS2)** | 0, 20, 40, 60, 80, 100 | 1, 1.4, 1.6, 1.8, 1.95, 2.0 |
 
-**Status: Exact Match (with LMHS1)**
+**Status: Exact Match (with LMHS2)**
 
-World3-03 has two tables (LMHS1 before policy switch, LMHS2 after). We use LMHS1 only. Policy-switch tables (LMHS2) not yet implemented.
+World3-03 has two tables (LMHS1 before policy switch year iphst=1940, LMHS2 after). We use LMHS2 which reflects post-1940 modern medical technology impact on longevity.
 
 ---
 
-#### LMCR — Life Expectancy Multiplier from Crowding (`life_exp_multiplier_crowding`)
+#### CMI — Crowding Multiplier from Industrialization (`crowding_multiplier_ind`)
 
 | | x | y |
 |---|---|---|
-| **Ours** | 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0 | 1.05, 1.0, 0.95, 0.90, 0.85, 0.80, 0.75 |
-| **pyworld3 (CMI)** | 0–1600 (IOPC) | 0.5, 0.05, −0.1, −0.08, −0.02, 0.05, 0.1, 0.15, 0.2 |
-| **pyworld3 (FPU)** | 0–16B (POP) | 0, 0.2, 0.4, 0.5, 0.58, 0.65, 0.72, 0.78, 0.8 |
+| **Ours** | 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600 | 0.5, 0.05, −0.1, −0.08, −0.02, 0.05, 0.1, 0.15, 0.2 |
+| **pyworld3 (CMI)** | 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600 | 0.5, 0.05, −0.1, −0.08, −0.02, 0.05, 0.1, 0.15, 0.2 |
 
-**Status: Intentional Deviation (structural)**
+**Status: Exact Match**
 
-World3-03 computes LMCR = 1 − CMI(IOPC) × FPU(POP) using two separate tables. We collapse this into a single direct lookup on population/reference ratio. Crowding is a minor factor in LE relative to food, health, and pollution.
+#### FPU — Fraction of Population Urban (`fraction_population_urban`)
+
+| | x | y |
+|---|---|---|
+| **Ours** | 0, 2e9, 4e9, 6e9, 8e9, 10e9, 12e9, 14e9, 16e9 | 0, 0.2, 0.4, 0.5, 0.58, 0.65, 0.72, 0.78, 0.8 |
+| **pyworld3 (FPU)** | 0, 2e9, 4e9, 6e9, 8e9, 10e9, 12e9, 14e9, 16e9 | 0, 0.2, 0.4, 0.5, 0.58, 0.65, 0.72, 0.78, 0.8 |
+
+**Status: Exact Match**
+
+World3-03 computes LMC = 1 − CMI(IOPC) × FPU(POP) using two separate tables. Both tables now match pyworld3 exactly.
 
 ---
 
@@ -189,16 +197,16 @@ Aligned to pyworld3 during March 2026 pyworld3 alignment work. Previously had a 
 
 ---
 
-#### FSH — Fraction of Services to Health (`fraction_services_health`)
+#### HSAPC — Health Services Allocations Per Capita (`health_services_per_capita`)
 
 | | x | y |
 |---|---|---|
-| **Ours** | 0, 0.5, 1.0, 1.5, 2.0 | 0.3, 0.35, 0.40, 0.45, 0.50 |
-| **pyworld3** | *(HSAPC table maps SOPC → health spending directly)* | — |
+| **Ours** | 0, 250, 500, 750, 1000, 1250, 1500, 1750, 2000 | 0, 20, 50, 95, 140, 175, 200, 220, 230 |
+| **pyworld3** | 0, 250, 500, 750, 1000, 1250, 1500, 1750, 2000 | 0, 20, 50, 95, 140, 175, 200, 220, 230 |
 
-**Status: Custom / No Direct Reference**
+**Status: Aligned**
 
-Our model uses a simple fraction lookup. World3-03 uses the HSAPC table (SOPC → health spending per capita) which has a different functional form.
+Replaced custom FSH fraction lookup with World3-03 HSAPC table. Maps service output per capita directly to health spending per capita.
 
 ---
 
@@ -479,9 +487,7 @@ Completely different functional form. pyworld3 AHLM is the Assimilation Half-Lif
 
 | pyworld3 Table | Purpose | Why Missing |
 |---|---|---|
-| LMHS2, FIOAA2, LYMAP2, FIOAS2, ISOPC2, IFPC2, FCAOR2 | Policy-switch variants (post-intervention) | Not yet implemented; single tables used for all scenarios |
-| HSAPC | Health services per capita delay | Structural simplification (our FSH table approximates) |
-| FPU, CMI | Crowding components | Merged into single LMCR table |
+| LMHS1, FIOAA2, LYMAP2, FIOAS2, ISOPC2, IFPC2, FCAOR2 | Policy-switch variants (pre/post-intervention) | Not yet implemented; using LMHS2, single tables for others |
 | FIALD | Fraction to land development | Different land allocation mechanism |
 | MLYMC | Marginal land yield from capital | Not modeled separately |
 | LLMY1, LLMY2 | Land life multiplier from yield | Replaced by LERD (custom erosion) |

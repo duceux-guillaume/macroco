@@ -50,15 +50,10 @@ pub fn population_derivatives(
     // ---- Life expectancy ----
     let food_ratio = state.agriculture.food_per_capita / params.subsistence_food_per_capita;
 
-    // Effective health services per capita.
-    // In World3-03, EHSPC = delayed(HSAPC) where HSAPC = SOPC × health_fraction.
-    // Simplified: use fraction of service output allocated to health.
-    let health_fraction = tables.fraction_services_health.eval(
-        state.capital.service_output_per_capita / 100.0, // normalize
-    );
-    let health_services = state.capital.service_output_per_capita
-        * health_fraction
-        * params.health_investment_multiplier;
+    // World3-03: HSAPC table maps SOPC → health spending per capita directly.
+    let health_services = tables.health_services_per_capita.eval(
+        state.capital.service_output_per_capita,
+    ) * params.health_investment_multiplier;
 
     let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
     let lem_health = tables.life_exp_multiplier_health.eval(health_services);
@@ -225,11 +220,9 @@ mod tests {
         population_derivatives(&mut s, &params, &tables);
         // LE = 28 × LEM_food × LEM_health × LEM_crowding × LEM_pollution
         let food_ratio = s.agriculture.food_per_capita / params.subsistence_food_per_capita;
-        let health_fraction = tables.fraction_services_health.eval(
-            s.capital.service_output_per_capita / 100.0,
-        );
-        let health_services = s.capital.service_output_per_capita
-            * health_fraction * params.health_investment_multiplier;
+        let health_services = tables.health_services_per_capita.eval(
+            s.capital.service_output_per_capita,
+        ) * params.health_investment_multiplier;
         let cmi = tables.crowding_multiplier_ind.eval(s.capital.industrial_output_per_capita);
         let fpu = tables.fraction_population_urban.eval(s.population.population.max(1.0));
         let lem_crowding = 1.0 - cmi * fpu;
