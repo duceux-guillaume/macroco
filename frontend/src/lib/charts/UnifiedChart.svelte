@@ -12,6 +12,7 @@
 	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
 	import { unifiedVariables, type UnifiedVariableConfig } from './unified-config';
+	import { constrainToXAxis, isTransformZoomed, isTap, computeTrend, computeVisibleYExtent } from './zoom-helpers';
 	import type { WorldState } from '../types';
 
 	const NOW_YEAR = 2026;
@@ -35,10 +36,11 @@
 	let tooltipItems = $state<Array<{ label: string; color: string; rawValue: string; unit: string; trend: string }>>([]);
 
 	let currentTransform = $state(d3.zoomIdentity);
-	let isZoomed = $derived(currentTransform.k > 1.01);
+	let isZoomed = $derived(isTransformZoomed(currentTransform));
 	let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, null> | null = null;
 
 	const isTouchDevice = browser && window.matchMedia('(pointer: coarse)').matches;
+	const clipId = `chart-clip-${Math.random().toString(36).slice(2, 9)}`;
 
 	let margin = $derived(
 		width < 500
@@ -304,12 +306,9 @@
 		} else {
 			// Auto-fit Y to visible year window when zoomed
 			const [visibleYearStart, visibleYearEnd] = zoomedX.domain();
-			const allVals = linesData.flatMap((l) =>
-				l.points.filter((p) => p.year >= visibleYearStart && p.year <= visibleYearEnd).map((p) => p.y)
-			);
-			const yExtent = d3.extent(allVals) as [number, number];
-			const yPad = (yExtent[1] - yExtent[0]) * 0.05 || 1;
-			yScale = d3.scaleLinear().domain([Math.max(0, yExtent[0] - yPad), yExtent[1] + yPad]).range([innerH, 0]);
+			const allPts = linesData.flatMap((l) => l.points);
+			const yDomain = computeVisibleYExtent(allPts, visibleYearStart, visibleYearEnd) ?? [0, 1];
+			yScale = d3.scaleLinear().domain(yDomain).range([innerH, 0]);
 			const varConfig = unifiedVariables.find((v) => v.fieldPath === _compareVariable) ?? unifiedVariables[0];
 			compareVarFmt = getFormatter(varConfig.format);
 			yTickFormat = (d) => compareVarFmt!(d as number);
@@ -328,7 +327,6 @@
 			.attr('height', height);
 
 		// Clip path so lines don't overflow chart area when zoomed
-		const clipId = 'chart-clip';
 		const defs = svg.selectAll<SVGDefsElement, null>('defs').data([null]).join('defs');
 		defs.selectAll<SVGClipPathElement, null>(`clipPath#${clipId}`).data([null]).join('clipPath')
 			.attr('id', clipId)
@@ -714,13 +712,10 @@
 			let ys = yScale;
 			if (!useNormalizedY) {
 				const [visStart, visEnd] = zx.domain();
-				const visVals = linesData.flatMap((l) =>
-					l.points.filter((p) => p.year >= visStart && p.year <= visEnd).map((p) => p.y)
-				);
-				if (visVals.length > 0) {
-					const yExt = d3.extent(visVals) as [number, number];
-					const yP = (yExt[1] - yExt[0]) * 0.05 || 1;
-					ys = d3.scaleLinear().domain([Math.max(0, yExt[0] - yP), yExt[1] + yP]).range([innerH, 0]);
+				const allPts = linesData.flatMap((l) => l.points);
+				const extent = computeVisibleYExtent(allPts, visStart, visEnd);
+				if (extent) {
+					ys = d3.scaleLinear().domain(extent).range([innerH, 0]);
 					g.select<SVGGElement>('g.y-axis')
 						.call(d3.axisLeft(ys).ticks(5).tickFormat(yTickFormat) as any);
 				}
@@ -774,20 +769,19 @@
 		};
 
 		// Zoom behavior (X-axis only)
+		function handleZoom(event: d3.D3ZoomEvent<SVGSVGElement, null>) {
+			const constrainedT = constrainToXAxis(event.transform);
+			currentTransform = constrainedT;
+			if (applyZoomTransform) applyZoomTransform(constrainedT);
+			dismissTooltip();
+		}
+
 		const zoom = d3.zoom<SVGSVGElement, null>()
 			.scaleExtent([1, 20])
 			.translateExtent([[0, 0], [innerW, innerH]])
 			.extent([[0, 0], [innerW, innerH]])
 			.filter((event: Event) => event.type !== 'dblclick')
-			.on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, null>) => {
-				const t = event.transform;
-				const constrainedT = d3.zoomIdentity.translate(t.x, 0).scale(t.k);
-				// Update state for isZoomed button reactivity
-				currentTransform = constrainedT;
-				// Directly update D3 elements (no $effect re-run)
-				if (applyZoomTransform) applyZoomTransform(constrainedT);
-				dismissTooltip();
-			});
+			.on('zoom', handleZoom);
 
 		svg.call(zoom);
 		zoomBehavior = zoom;
@@ -796,13 +790,7 @@
 		if (transform !== d3.zoomIdentity) {
 			zoom.on('zoom', null);
 			svg.call(zoom.transform, transform);
-			zoom.on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, null>) => {
-				const t = event.transform;
-				const constrainedT = d3.zoomIdentity.translate(t.x, 0).scale(t.k);
-				currentTransform = constrainedT;
-				if (applyZoomTransform) applyZoomTransform(constrainedT);
-				dismissTooltip();
-			});
+			zoom.on('zoom', handleZoom);
 		}
 
 		// Double-click/double-tap to reset zoom
@@ -848,21 +836,13 @@
 				const idx = ld.rawPoints.findIndex((p) => Math.round(p.year) === year);
 				if (idx >= 0) {
 					const pt = ld.rawPoints[idx];
-					let trend = '';
-					if (idx > 0) {
-						const prev = ld.rawPoints[idx - 1].value;
-						const diff = pt.value - prev;
-						const pct = prev !== 0 ? Math.abs(diff / prev) : 0;
-						if (pct < 0.001) trend = '\u2192';
-						else if (diff > 0) trend = '\u2191';
-						else trend = '\u2193';
-					}
+					const prev = idx > 0 ? ld.rawPoints[idx - 1].value : undefined;
 					items.push({
 						label: ld.label,
 						color: ld.color,
 						rawValue: fmt(pt.value),
 						unit: '',
-						trend
+						trend: computeTrend(pt.value, prev)
 					});
 				}
 			}
@@ -910,12 +890,9 @@
 			}, { passive: true } as any);
 
 			svg.on('touchend.tooltip', (event: TouchEvent) => {
-				const elapsed = Date.now() - touchStartTime;
-				if (elapsed > 300) return;
 				if (event.changedTouches.length !== 1) return;
 				const endPos = event.changedTouches[0];
-				const dist = Math.hypot(endPos.clientX - touchStartPos.x, endPos.clientY - touchStartPos.y);
-				if (dist > 10) return;
+				if (!isTap(Date.now() - touchStartTime, touchStartPos.x, touchStartPos.y, endPos.clientX, endPos.clientY)) return;
 
 				const svgNode = svg.node()!;
 				const rect = svgNode.getBoundingClientRect();
