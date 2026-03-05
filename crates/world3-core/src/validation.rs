@@ -1,5 +1,6 @@
 //! BAU validation against World3 reference dynamics (Meadows 1972/2004).
 
+use crate::model::state::WorldState;
 use crate::output::SimulationOutput;
 
 /// Result of a single validation check.
@@ -8,6 +9,20 @@ pub struct CheckResult {
     pub label: String,
     pub passed: bool,
     pub detail: String,
+}
+
+/// Find the peak (max value and its year) of a field across simulation states.
+fn find_peak(sim: &SimulationOutput, extract: fn(&WorldState) -> f64) -> (f64, f64) {
+    sim.states
+        .iter()
+        .fold((0.0_f64, 0.0_f64), |(max_val, max_year), s| {
+            let v = extract(s);
+            if v > max_val {
+                (v, s.time)
+            } else {
+                (max_val, max_year)
+            }
+        })
 }
 
 /// Run all BAU qualitative validation checks against a simulation output.
@@ -33,16 +48,7 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
     }
 
     // Population peak
-    let (peak_pop, peak_year) = sim
-        .states
-        .iter()
-        .fold((0.0_f64, 0.0_f64), |(mp, my), s| {
-            if s.population.population > mp {
-                (s.population.population, s.time)
-            } else {
-                (mp, my)
-            }
-        });
+    let (peak_pop, peak_year) = find_peak(sim, |s| s.population.population);
     let peak_ok = (5.0e9..=12.0e9).contains(&peak_pop) && (1990.0..=2080.0).contains(&peak_year);
     results.push(CheckResult {
         label: "Population peak".into(),
@@ -79,37 +85,39 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
         });
     }
 
-    // NNR monotonic
+    // NNR monotonic — fail if any checkpoint year is missing
     let checkpoints = [
         1920.0, 1940.0, 1960.0, 1980.0, 2000.0, 2020.0, 2040.0, 2060.0, 2080.0, 2100.0,
     ];
-    let nnr_monotonic = checkpoints.windows(2).all(|pair| {
-        let a = sim
-            .state_at_year(pair[0])
-            .map(|s| s.resources.fraction_remaining)
-            .unwrap_or(1.0);
-        let b = sim
-            .state_at_year(pair[1])
-            .map(|s| s.resources.fraction_remaining)
-            .unwrap_or(0.0);
-        b <= a + 0.001
-    });
+    let nnr_values: Vec<Option<f64>> = checkpoints
+        .iter()
+        .map(|&y| sim.state_at_year(y).map(|s| s.resources.fraction_remaining))
+        .collect();
+    let any_missing = nnr_values.iter().any(|v| v.is_none());
+    let nnr_monotonic = if any_missing {
+        false
+    } else {
+        nnr_values.windows(2).all(|pair| {
+            let a = pair[0].unwrap();
+            let b = pair[1].unwrap();
+            b <= a + 0.001
+        })
+    };
+    let detail = if any_missing {
+        "Missing checkpoint year(s) in simulation".into()
+    } else if nnr_monotonic {
+        "OK".into()
+    } else {
+        "Non-monotonic NNR detected".into()
+    };
     results.push(CheckResult {
         label: "NNR monotonically decreasing".into(),
         passed: nnr_monotonic,
-        detail: if nnr_monotonic {
-            "OK".into()
-        } else {
-            "Non-monotonic NNR detected".into()
-        },
+        detail,
     });
 
     // Pollution peak
-    let max_pollution = sim
-        .states
-        .iter()
-        .map(|s| s.pollution.pollution_index)
-        .fold(0.0_f64, f64::max);
+    let (max_pollution, _) = find_peak(sim, |s| s.pollution.pollution_index);
     let poll_ok = (1.0..=100.0).contains(&max_pollution);
     results.push(CheckResult {
         label: "Peak pollution index".into(),
@@ -118,16 +126,8 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
     });
 
     // IOPC collapse
-    let (peak_iopc, peak_iopc_year) = sim
-        .states
-        .iter()
-        .fold((0.0_f64, 0.0_f64), |(mp, my), s| {
-            if s.capital.industrial_output_per_capita > mp {
-                (s.capital.industrial_output_per_capita, s.time)
-            } else {
-                (mp, my)
-            }
-        });
+    let (peak_iopc, peak_iopc_year) =
+        find_peak(sim, |s| s.capital.industrial_output_per_capita);
     let iopc_2100 = sim
         .state_at_year(2100.0)
         .map(|s| s.capital.industrial_output_per_capita)
@@ -142,7 +142,7 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
         ),
     });
 
-    // Life expectancy peak
+    // Life expectancy peak (skip initial year before recomputation)
     let (peak_le, peak_le_year) = sim
         .states
         .iter()
