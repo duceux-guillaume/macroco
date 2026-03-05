@@ -54,7 +54,7 @@ Resource efficiency interacts with the FCAOR table to determine when capital div
 
 The base efficiency is combined with a time-varying growth rate. See [Resource Efficiency Growth Rate](resource-efficiency-growth-rate.md) for full details: formula, scientific motivation, calibration data, and sensitivity analysis.
 
-**Summary:** `resource_efficiency_growth_rate` = 0.0035 (0.35%/yr from 1970). Effective efficiency = $$r_e \times (1 + 0.0035)^{\max(\text{year} - 1970, 0)}$$, reaching 1.24 by 2020 and 1.56 by 2100. Improved IOPC RMSE from 16.5% to 14.9%.
+**Summary:** `resource_efficiency_growth_rate` = 0.0035 (0.35%/yr from 1970). Effective efficiency = $$r_e \times (1 + 0.0035)^{\max(\text{year} - 1970, 0)}$$, reaching 1.25 by 2020 and 1.65 by 2100. Improved IOPC RMSE from 16.5% to 14.9%.
 
 ## References
 

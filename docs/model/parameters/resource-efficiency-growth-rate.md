@@ -36,9 +36,9 @@ Declining ore grades offset roughly half these gains. Our 0.35%/yr is conservati
 |------|---------------------|
 | 1900-1970 | 1.05 (base, no growth) |
 | 2000 | 1.17 |
-| 2020 | 1.24 |
-| 2050 | 1.36 |
-| 2100 | 1.56 |
+| 2020 | 1.25 |
+| 2050 | 1.39 |
+| 2100 | 1.65 |
 
 ### Calibration Impact
 
@@ -49,7 +49,7 @@ Adding the growth rate improved IOPC RMSE from 16.5% to 14.9% and NNR RMSE from 
 - At 0.0%/yr: baseline (no improvement). IOPC collapses earlier, NNR depletes faster.
 - At 0.35%/yr (Collapse default): modest delay to resource-driven collapse. Qualitative trajectory preserved.
 - At 0.4%/yr: NNR max-year error exceeds 7% threshold. Too aggressive.
-- The parameter interacts with `resource_efficiency` multiplicatively. Technology/Stabilized presets use 0.0 because their static `resource_efficiency=4.0` already represents the policy intervention.
+- The parameter interacts with `resource_efficiency` multiplicatively. Technotopia/Ecotopia presets use 0.0 because their static `resource_efficiency=4.0` already represents the policy intervention.
 
 ## Info Panel
 
