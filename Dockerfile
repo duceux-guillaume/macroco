@@ -64,6 +64,9 @@ COPY --from=frontend-builder /app/frontend/build ./static
 # Data files (presets, lookup tables)
 COPY data/ ./data/
 
+# License files
+COPY LICENSE THIRD_PARTY_LICENSES ./
+
 RUN chown -R appuser:appuser /app
 USER appuser
 

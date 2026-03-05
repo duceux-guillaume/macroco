@@ -258,4 +258,4 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoo
 6. **M6 — Deep Exploration**: Advanced charting, benchmarks, sensitivity analysis.
 
 ## License
-GPL v3 — see LICENSE file.
+AGPL-3.0-or-later — see LICENSE file. Run `python3 scripts/generate-third-party-licenses.py` to regenerate THIRD_PARTY_LICENSES.
