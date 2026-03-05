@@ -82,9 +82,11 @@ Update `docs/architecture.md` CLI section to:
 | `Cargo.toml` (workspace) | Remove plotters from workspace deps |
 | `docs/traceability-matrix.md` | Regenerate via `python3 scripts/traceability.py` |
 
-### Step 2: Validate Re-architecture (after validate PR merges)
+### Step 2: Validate Re-architecture + Test Migration
 
 **Prerequisite:** Rebase onto main after the validate-removal PR lands.
+
+**Principle:** `world3-cli` should only have tests about the CLI itself. All simulation/scenario tests belong in `world3-core`.
 
 #### 2a. Shared Validation Module
 
@@ -92,26 +94,38 @@ Create `world3-core::validation` — a public module with reusable validation lo
 
 ```rust
 // world3-core/src/validation.rs
-pub struct ValidationCheck {
+pub struct CheckResult {
     pub label: String,
     pub passed: bool,
     pub detail: String,
 }
 
-pub fn validate_bau(sim: &SimulationOutput) -> Vec<ValidationCheck> { ... }
+pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> { ... }
 ```
 
-#### 2b. Integration Tests
+Contains the 6 qualitative checks from `main.rs` `validate()`: population trajectory (1900/1950/1970 ranges, peak, decline), NNR monotonic depletion, pollution peak range, IOPC collapse, life expectancy decline. Returns structured results — no printing, no exit codes.
 
-Create `world3-core/tests/validation.rs` — integration tests that call `validate_bau()` and assert all checks pass. These run via `cargo test -p world3-core`.
+#### 2b. Integration Tests (Validation)
 
-#### 2c. CLI Thin Wrapper
+Create `crates/world3-core/tests/qualitative_dynamics.rs` — calls `validate_bau()` and asserts all checks pass. Uses shared `bau_sim()` helper in `crates/world3-core/tests/common/mod.rs`.
 
-Reintroduce `Commands::Validate` in the CLI as a thin wrapper that calls `world3_core::validation::validate_bau()` and prints human-readable PASS/FAIL output. No inline logic.
+#### 2c. Move Historical Calibration Tests
 
-#### 2d. Documentation
+Move `crates/world3-cli/tests/historical_calibration.rs` → `crates/world3-core/tests/historical_calibration.rs`. Path resolution uses `CARGO_MANIFEST_DIR` + `../../data/historical` which works from any workspace crate. Uses shared `bau_sim()` from `common/mod.rs`.
 
-Update `docs/architecture.md` to document the `world3-core::validation` module and the CLI thin-wrapper pattern.
+#### 2d. CLI Thin Wrapper
+
+Replace the inline `validate()` function (~200 lines) in `main.rs` with a thin wrapper that:
+1. Runs BAU simulation
+2. Calls `world3_core::validation::validate_bau(&sim)`
+3. Prints each `CheckResult` as PASS/FAIL
+4. Exits 1 if any check failed
+
+#### 2e. Documentation
+
+- `docs/architecture.md`: Add `world3-core::validation` module, update historical calibration test location
+- `docs/cli.md`: Verify `validate` docs are accurate
+- `CLAUDE.md`: Update test commands to reference `world3-core`
 
 #### Step 2 File Impact
 
@@ -119,12 +133,15 @@ Update `docs/architecture.md` to document the `world3-core::validation` module a
 |------|--------|
 | `crates/world3-core/src/lib.rs` | Add `pub mod validation` |
 | `crates/world3-core/src/validation.rs` | New: shared validation logic |
-| `crates/world3-core/tests/validation.rs` | New: integration tests |
-| `crates/world3-cli/src/main.rs` | Add thin `validate` wrapper |
-| `docs/architecture.md` | Add validation module docs |
+| `crates/world3-core/tests/common/mod.rs` | New: shared `bau_sim()` helper |
+| `crates/world3-core/tests/qualitative_dynamics.rs` | New: validation integration tests |
+| `crates/world3-core/tests/historical_calibration.rs` | Moved from world3-cli, uses shared `bau_sim()` |
+| `crates/world3-cli/src/main.rs` | Replace inline `validate()` with thin wrapper |
+| `crates/world3-cli/tests/historical_calibration.rs` | Delete |
+| `docs/architecture.md` | Add validation module docs, update test locations |
+| `CLAUDE.md` | Update test commands |
 | `docs/traceability-matrix.md` | Regenerate |
 
 ## Out of Scope
 
-- Moving `historical_calibration.rs` tests (REQ-026) — these already work fine in `world3-cli`
 - Changing `diagnose` implementation — it stays as-is
