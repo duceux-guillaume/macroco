@@ -14,7 +14,6 @@
 //!   REQ-026 (Life expect.) -> bau_life_expectancy_tracks_historical
 
 mod common;
-use common::bau_sim;
 
 use std::path::Path;
 use world3_core::model::state::WorldState;
