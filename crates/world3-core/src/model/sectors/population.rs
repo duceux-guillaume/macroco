@@ -30,7 +30,6 @@ const LIFETIME_PERCEPTION_DELAY: f64 = 20.0;
 /// Health services impact delay [years] — World3-03: HSID = 20
 const HEALTH_SERVICES_IMPACT_DELAY: f64 = 20.0;
 
-
 pub struct PopulationDerivatives {
     pub d_cohort_0_14: f64,
     pub d_cohort_15_44: f64,
@@ -68,7 +67,7 @@ pub fn population_derivatives(
     // World3-03: LMC = 1 - CMI(IOPC) × FPU(POP)
     let cmi = tables.crowding_multiplier_ind.eval(state.capital.industrial_output_per_capita);
     let fpu = tables.fraction_population_urban.eval(pop);
-    let lem_crowding = 1.0 - cmi * fpu;
+    let lem_crowding = (1.0 - cmi * fpu).max(0.0);
     let lem_pollution = tables
         .life_exp_multiplier_pollution
         .eval(state.pollution.pollution_index);
