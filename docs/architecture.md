@@ -50,7 +50,7 @@ Implements: REQ-007, REQ-008, REQ-012
 
 ## Frontend (`frontend`)
 
-Implements: REQ-009, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-037
+Implements: REQ-009, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-037, REQ-042
 
 - SvelteKit 2 with Svelte 5 runes (`$state`, `$derived`, `$effect`) for all reactivity. D3 v7 used directly (no chart library wrapper) for custom multi-axis, phase-plane, and animated transition patterns.
 - `frontend/src/lib/env.ts` provides `getApiBase()` / `getWsBase()` -- returns relative URLs in production (empty `PUBLIC_*` vars), absolute URLs in dev mode.
@@ -58,6 +58,10 @@ Implements: REQ-009, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-0
 - Content single source of truth: `frontend/src/lib/content/variable-descriptions.ts` (variable and parameter descriptions).
 - Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
 - Info panels use composition: `InfoPanelShell` (chrome + Escape handler + expert toggle) wraps panel-specific content, which includes shared `FeedbackLoops` and `RelatedVars` sub-components.
+
+### Layout Principle (REQ-042)
+
+**Sidebar = controls, Center = chart (primary display), Right = info panels.** The chart area is maximized for data display. All controls that change what the chart shows belong in the sidebar (scenario selection, parameter sliders, simulation settings, compare mode). Info panels on the right provide context about what's displayed. On mobile, the sidebar becomes a slide-out drawer (hamburger menu) — all controls follow this same pattern, no exceptions.
 
 ### Chart Zoom (REQ-037)
 
