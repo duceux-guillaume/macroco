@@ -15,7 +15,7 @@ This table is the primary pathway through which pollution destroys agricultural 
 
 ## Breakpoints
 
-| $$x$$ (pollution index) | $$y$$ (degradation rate, yr$$^{-1}$$) |
+| $x$ (pollution index) | $y$ (degradation rate, yr$^{-1}$) |
 |---|---|
 | 0 | 0.0 |
 | 10 | 0.1 |
@@ -26,7 +26,7 @@ This table is the primary pathway through which pollution destroys agricultural 
 
 ## Equation Context
 
-$$\text{degradation} = LFERT \times \mathrm{LFDR}(\text{pollution\_index})$$
+$$\text{degradation} = LFERT \times \mathrm{LFDR}(\text{pollution\\_index})$$
 
 $$\frac{dLFERT}{dt} = \text{regeneration} - \text{degradation}$$
 

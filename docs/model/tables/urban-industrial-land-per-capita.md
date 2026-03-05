@@ -21,7 +21,7 @@ $$UIL_{\text{desired}} = \mathrm{UILPC}(\mathrm{IOPC}) \times \text{population}$
 
 ## Breakpoints
 
-| $$x$$ (IOPC, $/person/yr) | $$y$$ (ha/person) |
+| $x$ (IOPC, $/person/yr) | $y$ (ha/person) |
 |---|---|
 | 0 | 0.005 |
 | 200 | 0.008 |

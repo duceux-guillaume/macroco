@@ -8,7 +8,7 @@
 
 The subsistence food per capita anchors the food ratio used throughout the model:
 
-$$\text{food\_ratio} = \frac{FPC}{\text{SFPC}}$$
+$$\text{food\\_ratio} = \frac{FPC}{\text{SFPC}}$$
 
 A food ratio of 1.0 means the population is at subsistence. The ratio enters the FIOAA allocation table, the LMF life expectancy table, and the FALM land maintenance table.
 
@@ -20,7 +20,7 @@ The value of 230 kg/person/yr matches World3-03 exactly (SFPC = 230). This repre
 
 The subsistence food level appears in three places:
 
-1. **FIOAA allocation** (via FALM food ratio): $$\text{food\_ratio}_{\text{FALM}} = FPC_s / \text{SFPC}$$. When food is below subsistence, agricultural allocation increases.
+1. **FIOAA allocation** (via FALM food ratio): $$\text{food\\_ratio}_{\text{FALM}} = FPC_s / \text{SFPC}$$. When food is below subsistence, agricultural allocation increases.
 
 2. **Life expectancy** (via LMF table in population sector): food ratio below 1.0 reduces life expectancy, increasing death rates.
 

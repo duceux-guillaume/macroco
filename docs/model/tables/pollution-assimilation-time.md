@@ -10,7 +10,7 @@
 Maps the pollution index to the time required for the environment to assimilate persistent pollution, in years. Higher pollution levels overwhelm natural assimilation capacity, causing the time to grow steeply.
 
 $$
-T_{\text{assim}} = f_{\text{PPASR}}(\text{pollution\_index}) \quad [\text{years}]
+T_{\text{assim}} = f_{\text{PPASR}}(\text{pollution\\_index}) \quad [\text{years}]
 $$
 
 ## Breakpoints
@@ -54,7 +54,7 @@ The differences are:
 ## Equation Context
 
 $$
-A_{\text{assim}} = \frac{\text{persistent\_pollution}}{f_{\text{PPASR}}(\text{pollution\_index})}
+A_{\text{assim}} = \frac{\text{persistent\\_pollution}}{f_{\text{PPASR}}(\text{pollution\\_index})}
 $$
 
 This is the only sink term for persistent pollution. When $T_{\text{assim}}$ is small (low pollution), the environment cleans up quickly. When $T_{\text{assim}}$ is large (high pollution), assimilation effectively stalls and pollution accumulates without bound until generation declines (typically through industrial collapse).

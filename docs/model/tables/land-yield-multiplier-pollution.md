@@ -13,7 +13,7 @@ In the Collapse scenario, pollution index remains below 10 until the mid-21st ce
 
 ## Breakpoints
 
-| $$x$$ (pollution index) | $$y$$ (multiplier) |
+| $x$ (pollution index) | $y$ (multiplier) |
 |---|---|
 | 0 | 1.0 |
 | 10 | 1.0 |
@@ -24,7 +24,7 @@ In the Collapse scenario, pollution index remains below 10 until the mid-21st ce
 
 ## Equation Context
 
-$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology}$$
+$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\\_index}) \times \text{agricultural\\_technology}$$
 
 ## Audit Notes
 

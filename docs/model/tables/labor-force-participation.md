@@ -10,7 +10,7 @@ The fraction of the total population that participates in the labor force, as a 
 
 LFP maps the fraction of population aged 15-64 to an aggregate labor force participation rate:
 
-$$LFP = \text{LFP\_table}(\text{frac\_working\_age})$$
+$$LFP = \text{LFP\\_table}(\text{frac\\_working\\_age})$$
 
 This table is used for display and employment diagnostics rather than as a driver of core model dynamics.
 

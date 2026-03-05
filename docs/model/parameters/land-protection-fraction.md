@@ -8,7 +8,7 @@
 
 The land protection fraction enters the erosion equation as a multiplicative reduction:
 
-$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\_ratio}) \times (1 - \text{land\_protection\_fraction})$$
+$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\\_ratio}) \times (1 - \text{land\\_protection\\_fraction})$$
 
 At 0.0, all land erodes at the full rate determined by the [LERD](../tables/land-erosion-multiplier.md) table. At the maximum of 0.5, erosion is halved.
 

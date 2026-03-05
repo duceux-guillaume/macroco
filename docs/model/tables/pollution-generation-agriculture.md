@@ -10,7 +10,7 @@
 Maps normalized agricultural inputs per hectare to a pollution generation multiplier. The normalization base is 40 USD/ha/yr (approximate 1970 level).
 
 $$
-f_{\text{PPGAO}}\!\left(\frac{\text{agri\_inputs\_per\_ha}}{40}\right) \;\longrightarrow\; \text{generation multiplier}
+f_{\text{PPGAO}}\!\left(\frac{\text{agri\\_inputs\\_per\\_ha}}{40}\right) \;\longrightarrow\; \text{generation multiplier}
 $$
 
 ## Breakpoints
@@ -38,7 +38,7 @@ pyworld3 does not use a lookup table for PPGAO. It applies PPGAO as a constant m
 Agricultural pollution generation:
 
 $$
-G_{\text{agr}} = \text{arable\_land} \times \text{agri\_inputs\_per\_ha} \times 1.0 \times 10^{-13} \times f_{\text{PPGAO}}\!\left(\frac{\text{agri\_inputs\_per\_ha}}{40}\right)
+G_{\text{agr}} = \text{arable\\_land} \times \text{agri\\_inputs\\_per\\_ha} \times 1.0 \times 10^{-13} \times f_{\text{PPGAO}}\!\left(\frac{\text{agri\\_inputs\\_per\\_ha}}{40}\right)
 $$
 
 Agricultural generation is typically two orders of magnitude smaller than industrial generation ($\approx 0.005$ vs. $\approx 0.30$ index units/yr at 1970 conditions), but it becomes significant as industrial output declines in collapse scenarios.

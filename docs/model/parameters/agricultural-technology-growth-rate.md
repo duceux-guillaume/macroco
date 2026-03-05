@@ -12,7 +12,7 @@ The growth rate compounds from 1960 to produce a time-varying multiplier on land
 
 $$T_{ag} = (1 + g_{ag})^{\max(t - 1960,\; 0)}$$
 
-$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology} \times T_{ag}$$
+$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\\_index}) \times \text{agricultural\\_technology} \times T_{ag}$$
 
 Before 1960, the multiplier is 1.0. The Collapse preset uses $$g_{ag} = 0.005$$, giving a multiplier of ~1.37 by 2020 and ~2.03 by 2100. Technotopia uses 0.006 (slightly faster agricultural improvement). Ecotopia uses 0.0 (relying on the static `agricultural_technology = 2.0` multiplier instead).
 

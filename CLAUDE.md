@@ -161,6 +161,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - When modifying sector code, lookup tables, or parameters, update the corresponding file in `docs/model/`. The `/audit-model-doc --diff` gate in `/refine-pr` will catch missed updates.
 - Parameter doc files (`docs/model/parameters/*.md`) must follow the template: H1 title, `**Sector:**`, `**Source code:**`, `**BAU value:**` metadata lines, then `## Equation Context`, `## Calibration`, `## Info Panel`, `## References` sections. The audit enforces this structure.
 - When changing scenario preset params, check `docs/model/parameters/*.md` for preset value tables that reference the old values. `/audit-model-doc --diff` only checks files corresponding to changed code, not all docs mentioning a preset.
+- GitHub KaTeX math: use `\\_` (double backslash) for literal underscores inside `\text{}`, `\texttt{}`, `\mathrm{}` in math expressions. GitHub's markdown preprocessor consumes one `\` before KaTeX sees it. Use `$...$` (not `$$...$$`) for inline math in table cells.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 - `world3_core::validation::validate_collapse()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.

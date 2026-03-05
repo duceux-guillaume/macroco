@@ -10,9 +10,9 @@ The fraction of industrial output allocated to agricultural investment, as a fun
 
 The food ratio is computed from smoothed food per capita and the [indicated food per capita](indicated-food-per-capita.md):
 
-$$\text{food\_ratio} = \frac{FPC_{smooth}}{IFPC(IOPC)}$$
+$$\text{food\\_ratio} = \frac{FPC_{smooth}}{IFPC(IOPC)}$$
 
-$$f_{agr} = \text{FIOAA}(\text{food\_ratio})$$
+$$f_{agr} = \text{FIOAA}(\text{food\\_ratio})$$
 
 The smoothed FPC is an ODE stock (preserved across RK4 solver stages), while IFPC scales with industrialization to prevent zero-allocation traps at high food levels. At low IOPC (Collapse scenario), IFPC approximates subsistence food (230 kg/person/yr), so the allocation behaves like the original World3-03 formulation.
 

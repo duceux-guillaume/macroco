@@ -10,9 +10,9 @@ The fraction of industrial output allocated to building service capital (hospita
 
 The service allocation uses a normalized measure of service adequacy:
 
-$$\text{spc\_ratio} = \frac{SOPC}{ISOPC(IOPC)}$$
+$$\text{spc\\_ratio} = \frac{SOPC}{ISOPC(IOPC)}$$
 
-$$f_{srv} = \text{FIOAS}(\text{spc\_ratio})$$
+$$f_{srv} = \text{FIOAS}(\text{spc\\_ratio})$$
 
 where $$SOPC$$ is actual service output per capita and [$$ISOPC$$](indicated-service-per-capita.md) is the indicated (desired) level, which itself scales with IOPC. This means that as the economy grows, service demand rises, preventing premature disinvestment in services.
 

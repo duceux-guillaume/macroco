@@ -20,7 +20,7 @@ When resources are abundant ($$f_r > 0.6$$), only 5% of capital is needed for ex
 
 ## Breakpoints
 
-| $$f_r$$ (fraction remaining) | FCAOR (fraction of capital to extraction) |
+| $f_r$ (fraction remaining) | FCAOR (fraction of capital to extraction) |
 |---|---|
 | 0.0 | 1.00 |
 | 0.1 | 0.90 |

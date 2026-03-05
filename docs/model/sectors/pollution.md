@@ -23,7 +23,7 @@ The three pipeline stages are initialized to their steady-state values: at 1900 
 
 Two auxiliary fields are also computed each time step:
 
-- `pollution_index` -- equal to $\max(\text{persistent\_pollution},\, 0)$, used as input to the assimilation time lookup and by cross-sector tables (LYMAP, LMP).
+- `pollution_index` -- equal to $\max(\text{persistent\\_pollution},\, 0)$, used as input to the assimilation time lookup and by cross-sector tables (LYMAP, LMP).
 - `generation_rate` and `assimilation_rate` -- diagnostic outputs.
 
 ## Governing Equations
@@ -33,19 +33,19 @@ Two auxiliary fields are also computed each time step:
 Industrial and agricultural activity each contribute to pollution generation through separate channels. Both are modulated by a pollution control parameter $c \in [0, 1]$.
 
 $$
-\text{iopc\_norm} = \frac{\text{industrial\_output\_per\_capita}}{220}
+\text{iopc\\_norm} = \frac{\text{industrial\\_output\\_per\\_capita}}{220}
 $$
 
 $$
-\text{agri\_norm} = \frac{\text{agricultural\_inputs\_per\_hectare}}{40}
+\text{agri\\_norm} = \frac{\text{agricultural\\_inputs\\_per\\_hectare}}{40}
 $$
 
 $$
-G_{\text{ind}} = \text{industrial\_output} \times \text{PPGIO} \times f_{\text{PPGIO}}(\text{iopc\_norm})
+G_{\text{ind}} = \text{industrial\\_output} \times \text{PPGIO} \times f_{\text{PPGIO}}(\text{iopc\\_norm})
 $$
 
 $$
-G_{\text{agr}} = \text{arable\_land} \times \text{agri\_inputs\_per\_ha} \times \text{PPGAO} \times f_{\text{PPGAO}}(\text{agri\_norm})
+G_{\text{agr}} = \text{arable\\_land} \times \text{agri\\_inputs\\_per\\_ha} \times \text{PPGAO} \times f_{\text{PPGAO}}(\text{agri\\_norm})
 $$
 
 $$
@@ -88,11 +88,11 @@ The Delay3 structure produces a more uniform transit-time distribution than a si
 The environment absorbs persistent pollution at a rate that depends on the current pollution level through a nonlinear lookup table:
 
 $$
-T_{\text{assim}} = f_{\text{PPASR}}(\text{pollution\_index})
+T_{\text{assim}} = f_{\text{PPASR}}(\text{pollution\\_index})
 $$
 
 $$
-A_{\text{assim}} = \frac{\text{persistent\_pollution}}{T_{\text{assim}}}
+A_{\text{assim}} = \frac{\text{persistent\\_pollution}}{T_{\text{assim}}}
 $$
 
 The assimilation time $T_{\text{assim}}$ ranges from 1.5 years at zero pollution to 160 years at pollution index 100. This steep nonlinearity is the mechanism behind the pollution tipping point: once pollution exceeds roughly index 10, assimilation slows so much that the stock accumulates faster than the environment can process it.
@@ -102,7 +102,7 @@ The assimilation time $T_{\text{assim}}$ ranges from 1.5 years at zero pollution
 The pollution index is a direct pass-through of the persistent pollution stock, floored at zero:
 
 $$
-\text{pollution\_index} = \max(\text{persistent\_pollution},\, 0)
+\text{pollution\\_index} = \max(\text{persistent\\_pollution},\, 0)
 $$
 
 The stock is pre-normalized so that 1.0 corresponds approximately to the 1970 pollution level (calibrated through the PPGIO/PPGAO coefficients rather than an explicit PPOL70 constant).
@@ -110,7 +110,7 @@ The stock is pre-normalized so that 1.0 corresponds approximately to the 1970 po
 ### Net Derivative
 
 $$
-\frac{d(\text{persistent\_pollution})}{dt} = A_{\text{appear}} - A_{\text{assim}}
+\frac{d(\text{persistent\\_pollution})}{dt} = A_{\text{appear}} - A_{\text{assim}}
 $$
 
 ## Feedback Loops
