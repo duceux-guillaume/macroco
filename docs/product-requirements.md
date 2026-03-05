@@ -150,7 +150,6 @@
   - *Model changes:* ISOPC dynamic service demand reference (lookup table replaces hardcoded 200.0), technology_growth_rate=0.014 (was 0.002, compensates for real-world TFP ~1.5%/yr), resource_efficiency=1.05, FIOAC consumption fraction capped at 0.70 (was 0.83), Delay3 for perceived life expectancy and pollution appearance (replacing Delay1), DCFS table calibrated for our model structure, HSAPC table + LMHS2 + EHSPC 20-year smooth for health services allocation, CMI(IOPC)×FPU(POP) crowding multiplier (replaces single crowding lookup), alic1=13yr (was 14yr).
   - *Structural limitations:* Population 1960s overshoot (31.7% max error -- model birth/death rates lag real demographic transition), IOPC post-2010 collapse (35.9% max error -- BAU overshoot-collapse starts earlier than real world).
   - *Done:* All 5 RMSE + 5 max-year-error thresholds pass. 10 tests run in CI without `#[ignore]`.
-  - *Design:* `docs/plans/2026-03-04-better-bau-calibration-design.md`
 
 - [x] **REQ-027: Bi-directional traceability**
   - *Milestone:* M1
@@ -165,7 +164,12 @@
   - *Components:* `frontend/src/components/Sidebar.svelte`, `frontend/src/lib/utils/feedback-url.ts`, `.github/ISSUE_TEMPLATE/`
   - *Done:* Sidebar footer with "Report a bug" and "Request a feature" links that open pre-filled GitHub Issues. Includes bug report and feature request issue templates.
   - *Exempt:* UI-only feature with unit tests on URL builder; no backend logic to test.
-  - *Design:* `docs/plans/2026-03-04-user-feedback-design.md`
+
+- [x] **REQ-037: Chart zoom and mobile touch UX**
+  - *Milestone:* M1
+  - *Context:* Mobile charts were unreadable (6 variables in ~300px, no zoom, broken touch). Desktop also benefits from zoom to inspect specific time periods.
+  - *Components:* `frontend/src/lib/charts/UnifiedChart.svelte`, `frontend/src/lib/charts/zoom-helpers.ts`
+  - *Done:* Replaced no-op `d3.brushX` with `d3.zoom()`. X-axis zoom/pan on all devices (wheel, pinch, drag). SVG clip path prevents overflow. Tap-to-pin tooltip on mobile (pointer: coarse). Hover tooltip on desktop. Reset zoom button + double-click/tap + Escape key. Y-axis auto-fits visible window in compare mode. Extracted pure zoom helpers with 30 unit tests.
 
 ---
 

@@ -40,6 +40,7 @@
 | REQ-034 | Biodiversity and inequality extension sectors | Planned | — |
 | REQ-035 | Technology scenario historical calibration | Planned | — |
 | REQ-036 | Stabilized scenario historical calibration | Planned | — |
+| REQ-037 | Chart zoom and mobile touch UX | Done | `frontend/src/lib/charts/zoom-helpers.test.ts` |
 
 ## Reverse: Test -> REQs
 
@@ -68,6 +69,7 @@
 | `frontend/src/lib/api.test.ts` | REQ-007, REQ-009 |
 | `frontend/src/lib/charts/chart-config.test.ts` | REQ-009 |
 | `frontend/src/lib/charts/unified-config.test.ts` | REQ-009 |
+| `frontend/src/lib/charts/zoom-helpers.test.ts` | REQ-037 |
 | `frontend/src/lib/content/chart-annotations.test.ts` | REQ-024 |
 | `frontend/src/lib/content/variable-descriptions.test.ts` | REQ-020 |
 | `frontend/src/lib/stores/historical.test.ts` | REQ-012 |
@@ -81,8 +83,8 @@
 
 ## Summary
 
-- **Done requirements:** 24
-- **Covered by tests:** 16
+- **Done requirements:** 25
+- **Covered by tests:** 17
 - **Exempt:** 7
 - **Uncovered:** 1
 
