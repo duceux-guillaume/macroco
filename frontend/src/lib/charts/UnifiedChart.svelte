@@ -76,7 +76,15 @@
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
-			// Deselect variable first
+			// Deselect historical highlight first
+			let currentHist: string | null = null;
+			const unsubHist = selectedHistoricalId.subscribe((v) => (currentHist = v));
+			unsubHist();
+			if (currentHist) {
+				selectedHistoricalId.set(null);
+				return;
+			}
+			// Deselect variable
 			let currentVar: string | null = null;
 			const unsub = selectedVariableId.subscribe((v) => (currentVar = v));
 			unsub();
@@ -562,7 +570,10 @@
 
 		function handleItemClick(_: MouseEvent, d: typeof legendData[number]) {
 			if (d.fieldPath === '__historical__') {
-				handleLegendSelect('__historical__');
+				let currentHist: string | null = null;
+				const unsub = selectedHistoricalId.subscribe((v) => (currentHist = v));
+				unsub();
+				selectedHistoricalId.set(currentHist ? null : 'historical');
 			} else if (!_compareMode) {
 				handleLegendSelect(d.fieldPath);
 			}
