@@ -207,6 +207,12 @@
   - *Done:* Invisible 20px-wide hit-area SVG paths on top of chart lines. Desktop click opens info panel with hover feedback. Mobile tap on line opens panel, tap on background shows tooltip. Hit-lines render above overlay with individual clip-path, handlers refreshed on D3 update selection.
   - *Exempt:* D3 SVG interaction; not testable with jsdom (no SVG pointer events)
 
+- [x] **REQ-035: Technology scenario historical calibration**
+  - *Milestone:* M3
+  - *Context:* Technology (Technotopia) preset must track real-world historical data over 1960-2023. Uses approach B (param tuning only): `resource_efficiency_growth_rate=0.007`, `technology_growth_rate=0.017`, `pollution_control=0.15`. RMSE thresholds comparable to Collapse. Qualitative divergence: no industrial collapse (IOPC >120 post-2050).
+  - *Components:* `world3-core`: `tests/technotopia_historical_calibration.rs`; `data/presets/technotopia.json`
+  - *Priority:* high
+
 ---
 
 ## Abandoned
@@ -248,12 +254,6 @@
   - *Milestone:* M4
   - *Context:* Adds LPI biodiversity index and Gini/HDI inequality model to `world3-core`. Required for the Ecotopia scenario to model justice and moderation dynamics.
   - *Components:* `world3-core`: biodiversity sector, inequality sector
-  - *Priority:* high
-
-- [ ] **REQ-035: Technology scenario historical calibration**
-  - *Milestone:* M3
-  - *Context:* Technology (Technotopia) preset must track real-world historical data over 1960-2023. Shared history with Collapse before policy switch years, then divergent future trajectory.
-  - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Priority:* high
 
 - [ ] **REQ-036: Ecotopia scenario historical calibration**

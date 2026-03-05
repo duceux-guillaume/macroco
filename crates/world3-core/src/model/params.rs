@@ -117,19 +117,19 @@ impl ScenarioParams {
         p
     }
 
-    /// Technotopia scenario — aggressive efficiency gains.
+    /// Technotopia scenario — technology-optimistic trajectory.
+    /// Params are close to Collapse for historical fit, but slightly higher growth
+    /// rates compound to meaningful divergence by mid-century. No collapse.
     pub fn technotopia() -> Self {
         let mut p = Self::default();
         p.meta.name = "Technotopia".into();
         p.meta.description =
             "Technology solves resource and pollution problems, but no social changes.".into();
         p.meta.color_hex = "#2a9d8f".into();
-        p.resource_efficiency = 4.0;
-        p.resource_efficiency_growth_rate = 0.0;
-        p.pollution_control = 0.8;
-        p.agricultural_technology = 2.0;
-        p.agricultural_technology_growth_rate = 0.0;
-        p.technology_growth_rate = 0.02;
+        p.technology_growth_rate = 0.017;
+        p.resource_efficiency_growth_rate = 0.007;
+        p.pollution_control = 0.15;
+        p.agricultural_technology_growth_rate = 0.006;
         p
     }
 
