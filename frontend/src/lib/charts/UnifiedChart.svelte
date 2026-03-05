@@ -124,6 +124,7 @@
 		label: string;
 		format: string;
 		historical?: boolean;
+		fieldPath?: string;
 	}
 
 	// Lightweight zoom render function — updated by main effect, called by zoom handler.
@@ -164,7 +165,8 @@
 					points: rawPoints.map((p) => ({ year: p.year, y: p.value })),
 					rawPoints,
 					label: scenarioId.slice(0, 8),
-					format: varConfig.format
+					format: varConfig.format,
+					fieldPath: varConfig.fieldPath
 				});
 			}
 
@@ -179,7 +181,8 @@
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: 'Historical',
 						format: varConfig.format,
-						historical: true
+						historical: true,
+						fieldPath: varConfig.fieldPath
 					});
 				}
 			}
@@ -240,7 +243,8 @@
 					points: rawPoints.map((p) => ({ year: p.year, y: normalize(p.value) })),
 					rawPoints,
 					label: varConfig.shortLabel,
-					format: varConfig.format
+					format: varConfig.format,
+					fieldPath: varConfig.fieldPath
 				});
 
 				// Add historical overlay line
@@ -252,7 +256,8 @@
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
 						label: `${varConfig.shortLabel} hist.`,
 						format: varConfig.format,
-						historical: true
+						historical: true,
+						fieldPath: varConfig.fieldPath
 					});
 				}
 			}
@@ -598,6 +603,16 @@
 			}
 		}
 
+		function handleLineClick(event: MouseEvent, d: LineDatum) {
+			event.stopPropagation();
+			dismissTooltip();
+			if (d.historical) {
+				selectedHistoricalId.set(get(selectedHistoricalId) ? null : 'historical');
+			} else if (!_compareMode && d.fieldPath) {
+				handleLegendSelect(d.fieldPath);
+			}
+		}
+
 		function getEyePath(d: typeof legendData[number]): string {
 			const vis = d.fieldPath === '__historical__' ? _showHistorical : _visibleVars.has(d.fieldPath);
 			return vis ? EYE_OPEN : EYE_CLOSED;
@@ -733,6 +748,8 @@
 				.y((d) => ys(d.y));
 			clipped.selectAll<SVGPathElement, LineDatum>('path.var-line')
 				.attr('d', (d) => zLine(d.points));
+			g.selectAll<SVGPathElement, LineDatum>('path.hit-line')
+				.attr('d', (d) => zLine(d.points));
 
 			// Update X axis (no transition during continuous zoom)
 			g.select<SVGGElement>('g.x-axis')
@@ -821,6 +838,52 @@
 			.attr('height', innerH)
 			.attr('fill', 'none')
 			.attr('pointer-events', 'all');
+
+		// Invisible hit-area paths for click/tap on lines.
+		// Rendered after overlay so they sit on top in DOM order and receive pointer events.
+		const hitLineHandlers = (sel: d3.Selection<SVGPathElement, LineDatum, SVGGElement, null>) => {
+			sel
+				.on('click', handleLineClick)
+				.on('mouseenter', function (_event: MouseEvent, d: LineDatum) {
+					if (isTouchDevice) return;
+					clipped.selectAll<SVGPathElement, LineDatum>('path.var-line')
+						.filter((ld) => ld.id === d.id)
+						.attr('stroke-width', (ld) => getLineWidth(ld) + 1.5);
+				})
+				.on('mouseleave', function (_event: MouseEvent, _d: LineDatum) {
+					if (isTouchDevice) return;
+					clipped.selectAll<SVGPathElement, LineDatum>('path.var-line')
+						.attr('stroke-width', (ld) => getLineWidth(ld));
+				});
+		};
+
+		const hitLines = g.selectAll<SVGPathElement, LineDatum>('path.hit-line')
+			.data(linesData, (d) => d.id);
+
+		hitLines.join(
+			(enter) => {
+				const sel = enter
+					.append('path')
+					.attr('class', 'hit-line')
+					.attr('clip-path', `url(#${clipId})`)
+					.attr('fill', 'none')
+					.attr('stroke', 'transparent')
+					.attr('stroke-width', 20)
+					.attr('pointer-events', 'stroke')
+					.attr('cursor', (d) => (_compareMode && !d.historical) ? 'default' : 'pointer')
+					.attr('d', (d) => line(d.points));
+				hitLineHandlers(sel);
+				return sel;
+			},
+			(update) => {
+				update
+					.attr('d', (d) => line(d.points))
+					.attr('cursor', (d) => (_compareMode && !d.historical) ? 'default' : 'pointer');
+				hitLineHandlers(update);
+				return update;
+			},
+			(exit) => exit.remove()
+		);
 
 		// Vertical tooltip line (clipped so it doesn't extend beyond chart)
 		const tooltipLine = clipped.selectAll<SVGLineElement, null>('line.tooltip-line')
