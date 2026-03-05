@@ -47,9 +47,7 @@ docs/
   simulation-engine.md     # World 3 model architecture, sectors, solver
   cli.md                   # CLI commands and flags reference
   api-server.md            # REST + WebSocket API documentation
-  chart-output.md          # PNG chart rendering feature
   deployment.md            # Fly.io deployment guide
-  examples/                # Generated example charts
 Dockerfile            # Multi-stage build (Rust + Node + slim runtime)
 fly.toml              # Fly.io app configuration
 .claude/commands/      # Project-local Claude Code slash commands (/audit-tables)
@@ -180,7 +178,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - `diagnose --preset <name>` outputs a structured text report: peaks, troughs, phases, growth rates, anomalies.
 - `diagnose --preset <name> --compare <other>` shows side-by-side deltas between two scenarios.
 - `diagnose --format json` produces machine-readable output for programmatic assertions.
-- Prefer `diagnose` over `simulate --chart` when debugging model behavior — the text output contains all the information needed to reason about trajectory shape without reading a PNG.
+- Prefer `diagnose` over visual chart inspection when debugging model behavior — the text output contains all the information needed to reason about trajectory shape.
 - When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
 - `diagnose` auto-detects oscillations (rapid alternating phase reversals) — check the Anomalies section for `Oscillation` entries.
 - `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >3% between halvings is flagged UNSTABLE. Pollution peak is the most dt-sensitive variable (~2.4% drift).
