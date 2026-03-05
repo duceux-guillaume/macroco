@@ -83,7 +83,7 @@ jobs:
   deploy:
     name: Deploy to Fly.io
     runs-on: ubuntu-latest
-    needs: [clippy, test, frontend-test, traceability]
+    needs: [clippy, test, frontend-test, traceability, license-audit]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     concurrency:
