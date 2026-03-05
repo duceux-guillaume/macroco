@@ -71,13 +71,13 @@ The population sector tracks four age groups (0–14, 15–44, 45–64, 65+). Pe
 **Life expectancy** is computed as a product of four lookup-table multipliers on a base value:
 
 ```
-life_expectancy = 20.0 × LEM_food × LEM_health × LEM_crowding × LEM_pollution
+life_expectancy = 28.0 × LEM_food × LEM_health × LMC × LEM_pollution
 ```
 
 where:
-- `LEM_food` = `life_exp_multiplier_food(food_per_capita / subsistence_food)` — ranges 0→0 to 2→1.43 to 5→1.50
-- `LEM_health` = `life_exp_multiplier_health(service_output_per_capita × health_fraction)` — ranges 0→0.50 to 1000→2.00
-- `LEM_crowding` = `life_exp_multiplier_crowding(population / 3.6e9)` — ranges 0→1.50 to 5→0.50
+- `LEM_food` = `life_exp_multiplier_food(food_per_capita / subsistence_food)` — ranges 0→0 to 2→1.2 to 5→1.4
+- `LEM_health` = `life_exp_multiplier_health(EHSPC)` — ranges 0→1.0 to 100→2.0. EHSPC is a 20-year first-order smooth of HSAPC (health services allocations per capita, from SOPC via lookup table).
+- `LMC` = `1 - CMI(IOPC) × FPU(POP)` — World3-03 crowding multiplier. CMI goes negative at mid-IOPC (sanitation/infrastructure reduce crowding mortality), so LMC can exceed 1.0.
 - `LEM_pollution` = `life_exp_multiplier_pollution(pollution_index)` — ranges 0→1.0 to 80→0.55
 
 **Fertility** is the product of three factors:
@@ -95,14 +95,13 @@ fertile_women = cohort_15_44 × 0.5
 births_per_year = fertile_women × total_fertility_rate / 30.0
 ```
 
-**Mortality** uses age-weighted rates based on life expectancy:
+**Mortality** uses World3-03 M1–M4 lookup tables (cohort-specific annual mortality rates indexed by life expectancy):
 
 ```
-base_mortality = 1 / life_expectancy
-deaths_0_14  = cohort_0_14  × base_mortality × 0.8
-deaths_15_44 = cohort_15_44 × base_mortality × 0.5
-deaths_45_64 = cohort_45_64 × base_mortality × 1.0
-deaths_65+   = cohort_65+   × base_mortality × 3.0
+deaths_0_14  = cohort_0_14  × M1(life_expectancy)
+deaths_15_44 = cohort_15_44 × M2(life_expectancy)
+deaths_45_64 = cohort_45_64 × M3(life_expectancy)
+deaths_65+   = cohort_65+   × M4(life_expectancy)
 ```
 
 **Cohort derivatives:**
@@ -416,7 +415,7 @@ Adequate food → Lower mortality, higher fertility → Population grows
 
 ### Plain English
 
-The simulation is a set of 10 quantities (population cohorts, capital stocks, arable land, resources, pollution) that change over time. At each time step, the model calculates how fast each quantity is changing, then advances them forward.
+The simulation is a set of 21 quantities (population cohorts, delay stages, capital stocks, arable land, resources, pollution) that change over time. At each time step, the model calculates how fast each quantity is changing, then advances them forward.
 
 Think of it like an accountant updating a ledger: at the end of each "year," you check the births, deaths, investment, depreciation, extraction, and pollution, then update all the balances.
 
@@ -424,13 +423,13 @@ Think of it like an accountant updating a ledger: at the end of each "year," you
 
 The model uses a **4th-order Runge-Kutta (RK4)** solver. RK4 is a standard numerical method that evaluates the derivatives at four points within each time step to get an accurate estimate of the change.
 
-The 10 ODE stock variables are packed into a vector via `WorldState::to_vec()`, the RK4 step is computed, and the result is unpacked via `WorldState::from_vec()`. This avoids manual derivative arithmetic on the typed struct.
+The 21 ODE stock variables are packed into a vector via `WorldState::to_vec()`, the RK4 step is computed, and the result is unpacked via `WorldState::from_vec()`. This avoids manual derivative arithmetic on the typed struct.
 
 **Sector evaluation order matters:** resources → capital → agriculture → population → pollution. Each sector uses the latest values from previously computed sectors within the same step.
 
 ### Lookup Tables
 
-Non-linear relationships (like "how does pollution affect crop yields?") are encoded as **piecewise-linear lookup tables** — a series of (x, y) breakpoints with linear interpolation between them. There are 21 tables in total, loaded from JSON files at startup.
+Non-linear relationships (like "how does pollution affect crop yields?") are encoded as **piecewise-linear lookup tables** — a series of (x, y) breakpoints with linear interpolation between them. There are 33 tables in total, loaded at startup.
 
 Lookup tables come directly from the published World 3 model documentation. They encode empirical relationships that aren't easily expressed as simple equations.
 

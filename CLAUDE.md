@@ -232,11 +232,11 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoo
 
 ### Historical Calibration (REQ-026)
 - BAU simulation must track real-world historical data within RMSE% and max-year-error thresholds over ~1960-2023.
-- RMSE% thresholds: Population (<14%), Food/capita (<19%), IOPC (<21%), NNR fraction (<10%), Life expectancy (<12%).
-- Max-year-error thresholds: Population (<35%), Food/capita (<26%), IOPC (<36%), NNR fraction (<20%), Life expectancy (<19%).
-- Test: `cargo test -p world3-cli --test historical_calibration` (10 tests: 5 RMSE + 5 max-year-error)
+- RMSE% thresholds: Population (<11%), Food/capita (<21%), IOPC (<19%), NNR fraction (<4%), Life expectancy (<12%).
+- Max-year-error thresholds: Population (<15%), Food/capita (<28%), IOPC (<38%), NNR fraction (<6%), Life expectancy (<19%).
+- Test: `cargo test -p world3-cli --test historical_calibration` (11 tests: 5 RMSE + 5 max-year-error + 1 summary)
 - Design: `docs/plans/2026-03-04-better-bau-calibration-design.md`
-- All 10 thresholds PASS (Pop RMSE=13.2%, Food=17.9%, IOPC=20.5%, NNR=4.8%, LE=9.4%; Max-year: Pop 31.7%, Food 25.0%, IOPC 35.9%, NNR 19.8%, LE=15.6%).
+- All 10 thresholds PASS (Pop RMSE=8.1%, Food=18.6%, IOPC=16.2%, NNR=0.9%, LE=9.4%; Max-year: Pop 11.3%, Food 25.5%, IOPC 35.4%, NNR 2.6%, LE=15.6%).
 
 ## CI/CD
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
