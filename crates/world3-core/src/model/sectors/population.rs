@@ -383,4 +383,19 @@ mod tests {
         assert!(fert_low_ple > fert_high_ple,
             "fertility at low perceived LE ({fert_low_ple}) should exceed high perceived LE ({fert_high_ple})");
     }
+
+    #[test]
+    fn test_dcfs_matches_pyworld3() {
+        let tables = WorldLookupTables::load();
+        // pyworld3 effective DCFS = dcfsn(3.8) × SFSN(DIOPC)
+        let dcfs_0 = tables.desired_family_size.eval(0.0);
+        assert!((dcfs_0 - 4.75).abs() < 0.01,
+            "DCFS(0) = {} should be ~4.75 (pyworld3)", dcfs_0);
+        let dcfs_200 = tables.desired_family_size.eval(200.0);
+        assert!((dcfs_200 - 3.80).abs() < 0.01,
+            "DCFS(200) = {} should be ~3.80 (pyworld3)", dcfs_200);
+        let dcfs_800 = tables.desired_family_size.eval(800.0);
+        assert!((dcfs_800 - 2.85).abs() < 0.01,
+            "DCFS(800) = {} should be ~2.85 (pyworld3)", dcfs_800);
+    }
 }

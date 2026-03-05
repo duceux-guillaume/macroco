@@ -260,17 +260,18 @@ impl WorldLookupTables {
 
             // Desired completed family size (DCFS)
             // World3-03: DCFS = dcfsn × SFSN(DIOPC), where dcfsn=3.8, SFSN 0.5-1.25.
-            // Simplified to direct lookup from perceived IOPC capturing dcfsn × sfsn.
-            // CMPLE (compensatory fertility from perceived LE) is now applied separately.
-            // Calibrated to match historical population RMSE <15% (REQ-026).
-            // Key calibration (before CMPLE):
-            //   IOPC=$44 (1900): 3.40 × CMPLE(33)≈1.37 → effective ~4.66
-            //   IOPC=$450 (1970s): 2.81 × CMPLE(55)≈1.15 → effective ~3.23
-            //   IOPC=$800: 1.88 × CMPLE(60)≈1.10 → effective ~2.07
+            // pyworld3 effective values: dcfsn(3.8) × SFSN(DIOPC) at each DIOPC breakpoint.
+            // CMPLE (compensatory fertility from perceived LE) is applied separately on top.
+            // Aligned to pyworld3 reference (REQ-026):
+            //   DIOPC=0:   3.8 × 1.25 = 4.75
+            //   DIOPC=200: 3.8 × 1.00 = 3.80
+            //   DIOPC=400: 3.8 × 0.90 = 3.42
+            //   DIOPC=600: 3.8 × 0.80 = 3.04
+            //   DIOPC=800: 3.8 × 0.75 = 2.85
             desired_family_size: LookupTable::new(
                 "desired_family_size",
                 vec![0.0, 200.0, 400.0, 600.0, 800.0],
-                vec![3.40, 3.39, 2.87, 2.29, 1.88],
+                vec![4.75, 3.80, 3.42, 3.04, 2.85],
             ),
 
             // Family planning multiplier on fertility
