@@ -339,7 +339,13 @@
 			.data([null])
 			.join('g')
 			.attr('class', 'chart')
-			.attr('transform', `translate(${margin.left},${margin.top})`)
+			.attr('transform', `translate(${margin.left},${margin.top})`);
+
+		// Clipped sub-group for lines, annotations, now-line (not axes)
+		const clipped = g.selectAll<SVGGElement, null>('g.clipped')
+			.data([null])
+			.join('g')
+			.attr('class', 'clipped')
 			.attr('clip-path', `url(#${clipId})`);
 
 		// X axis
@@ -399,8 +405,8 @@
 			return 1;
 		}
 
-		// Lines
-		const lines = g.selectAll<SVGPathElement, LineDatum>('path.var-line')
+		// Lines (inside clipped group)
+		const lines = clipped.selectAll<SVGPathElement, LineDatum>('path.var-line')
 			.data(linesData, (d) => d.id);
 
 		lines.join(
@@ -437,7 +443,7 @@
 		// "Now" line (year 2026)
 		const [visMinYear, visMaxYear] = zoomedX.domain();
 		const nowLineData = (NOW_YEAR >= visMinYear && NOW_YEAR <= visMaxYear) ? [NOW_YEAR] : [];
-		const nowGroup = g.selectAll<SVGGElement, number>('g.now-line')
+		const nowGroup = clipped.selectAll<SVGGElement, number>('g.now-line')
 			.data(nowLineData);
 
 		nowGroup.join(
@@ -502,7 +508,7 @@
 			labelYPositions.push(yPos);
 		}
 
-		const annotationGroup = g.selectAll<SVGGElement, null>('g.annotations')
+		const annotationGroup = clipped.selectAll<SVGGElement, null>('g.annotations')
 			.data([null])
 			.join('g')
 			.attr('class', 'annotations');
@@ -725,7 +731,7 @@
 			const zLine = d3.line<{ year: number; y: number }>()
 				.x((d) => zx(d.year))
 				.y((d) => ys(d.y));
-			g.selectAll<SVGPathElement, LineDatum>('path.var-line')
+			clipped.selectAll<SVGPathElement, LineDatum>('path.var-line')
 				.attr('d', (d) => zLine(d.points));
 
 			// Update X axis (no transition during continuous zoom)
@@ -735,7 +741,7 @@
 			// Update now-line
 			const [vMin, vMax] = zx.domain();
 			const nowVisible = NOW_YEAR >= vMin && NOW_YEAR <= vMax;
-			g.selectAll<SVGGElement, number>('g.now-line')
+			clipped.selectAll<SVGGElement, number>('g.now-line')
 				.data(nowVisible ? [NOW_YEAR] : [])
 				.join(
 					(enter) => {
@@ -761,7 +767,7 @@
 				);
 
 			// Update annotation positions
-			g.selectAll<SVGGElement, { year: number }>('g.annotation').each(function(d) {
+			clipped.selectAll<SVGGElement, { year: number }>('g.annotation').each(function(d) {
 				const el = d3.select(this);
 				el.select('line').attr('x1', zx(d.year)).attr('x2', zx(d.year));
 				el.select('text').attr('x', zx(d.year) + 3);
@@ -769,11 +775,18 @@
 		};
 
 		// Zoom behavior (X-axis only)
+		let prevTransformK = transform.k;
+		let prevTransformX = transform.x;
 		function handleZoom(event: d3.D3ZoomEvent<SVGSVGElement, null>) {
 			const constrainedT = constrainToXAxis(event.transform);
 			currentTransform = constrainedT;
 			if (applyZoomTransform) applyZoomTransform(constrainedT);
-			dismissTooltip();
+			// Only dismiss tooltip on actual pan/zoom, not on stationary taps
+			if (constrainedT.k !== prevTransformK || constrainedT.x !== prevTransformX) {
+				dismissTooltip();
+			}
+			prevTransformK = constrainedT.k;
+			prevTransformX = constrainedT.x;
 		}
 
 		const zoom = d3.zoom<SVGSVGElement, null>()
@@ -809,8 +822,8 @@
 			.attr('fill', 'none')
 			.attr('pointer-events', 'all');
 
-		// Vertical tooltip line
-		const tooltipLine = g.selectAll<SVGLineElement, null>('line.tooltip-line')
+		// Vertical tooltip line (clipped so it doesn't extend beyond chart)
+		const tooltipLine = clipped.selectAll<SVGLineElement, null>('line.tooltip-line')
 			.data([null])
 			.join('line')
 			.attr('class', 'tooltip-line')
