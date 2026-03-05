@@ -1,0 +1,43 @@
+# Industrial Capital Depreciation Rate
+
+The annual fraction of industrial capital stock that wears out and must be replaced. A higher depreciation rate means factories and machines have shorter useful lifetimes, requiring more investment just to maintain the existing capital stock.
+
+**Sector:** [Capital](../sectors/capital.md)
+**Source code:** `crates/world3-core/src/model/params.rs`, field `industrial_depreciation_rate`
+
+## Value
+
+| | Lifetime | Rate |
+|---|---|---|
+| **BAU (ours)** | 13 years | $$\delta_i = 1/13 \approx 0.0769 \;\text{yr}^{-1}$$ |
+| **World3-03** | 14 years ($$alic_1 = 14$$) | $$1/14 \approx 0.0714 \;\text{yr}^{-1}$$ |
+
+## Equation Context
+
+The depreciation rate appears in the industrial capital accumulation equation:
+
+$$\frac{d(IC)}{dt} = IO \cdot f_{inv} - IC \cdot \delta_i$$
+
+A higher $$\delta_i$$ increases the gross investment needed just to maintain the capital stock at its current level. The net effect is to slow capital accumulation and reduce the peak IOPC.
+
+## Deviation Rationale
+
+World3-03 specifies an average industrial capital lifetime of 14 years ($$alic_1 = 14$$), giving a depreciation rate of $$1/14$$. Our model uses 13 years ($$1/13$$), a modest increase of approximately 7.7% in the depreciation rate.
+
+This adjustment compensates for structural differences in our model's population dynamics. Changes to the life expectancy formulation (particularly the Delay3 perceived-LE and EHSPC smooth) produced slightly higher population growth in the early simulation period (1900-1960), which pushed IOPC too high relative to historical data. The faster depreciation dampens early capital accumulation and brings IOPC into better alignment with World Bank historical data.
+
+**Sensitivity:** Low to moderate. The 1-year lifetime reduction shifts IOPC peak by a few percent. The qualitative BAU trajectory (overshoot and collapse) is unchanged.
+
+## Calibration
+
+Our BAU value of 13 years (vs. World3-03's 14 years) was calibrated against World Bank IOPC data. The faster depreciation dampens early capital accumulation that otherwise diverges from historical data due to structural differences in population dynamics. The qualitative overshoot-and-collapse trajectory is unchanged.
+
+## Slider Range
+
+| Min | Max | Default | Step |
+|---|---|---|---|
+| 0.02 | 0.15 | 0.0769 | 0.005 |
+
+## References
+
+- Meadows et al. (2004), parameter $$alic_1 = 14$$ years

@@ -24,6 +24,9 @@ Run these checks. If ANY fail, stop and fix before proceeding.
 4. **Traceability:**
    Run `python3 scripts/traceability.py`
 
+5. **Model documentation sync:**
+   Run `/audit-model-doc --diff`
+
 If all pass, report: "Phase 1 passed. Proceeding to Phase 2." and continue.
 If any fail, report which failed and stop. Do NOT proceed to Phase 2.
 

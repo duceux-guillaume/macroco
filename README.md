@@ -2,6 +2,8 @@
 
 Explore playfully the possible trajectories of humanity. A living macroeconomic model calibrated against real-world data, built on the World 3 system dynamics model (Meadows et al., *Limits to Growth*). Three belief systems, three futures: Collapse, Technotopia, Ecotopia.
 
+[Explore the model →](docs/model/README.md)
+
 ## M1 — Foundation
 
 The platform. Simulation engine, interactive frontend, API, CLI, documentation, CI/CD. Everything needed to run and explore World 3 scenarios.
@@ -75,14 +77,13 @@ Advanced charting, sensitivity analysis, and performance benchmarks. Tools for d
 | Document | Description |
 |----------|-------------|
 | [Quick Start](docs/quick-start.md) | Install prerequisites and run locally |
-| [Model Guide](docs/model-guide.md) | World 3 sectors, feedback loops, chart interpretation |
+| [Model Documentation](docs/model/README.md) | Sectors, equations, lookup tables, deviations from World3-03 |
 | [Product Requirements](docs/product-requirements.md) | Feature requirements with stable REQ-NNN IDs |
 | [Architecture](docs/architecture.md) | System design, components, data flow |
 | [Simulation Engine](docs/simulation-engine.md) | ODE model, sectors, RK4 solver |
 | [CLI Reference](docs/cli.md) | Batch simulation commands and flags |
 | [API Server](docs/api-server.md) | REST endpoints, WebSocket streaming |
 | [Deployment](docs/deployment.md) | Fly.io deployment guide |
-| [Lookup Table Audit](docs/audit.md) | Audit against pyworld3 reference |
 
 ## Contributing
 

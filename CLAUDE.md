@@ -44,14 +44,22 @@ docs/
   product-requirements.md  # Feature requirements (REQ-NNN IDs)
   architecture.md          # System design, components, data flow
   quick-start.md           # Beginner-friendly setup guide
-  model-guide.md           # World 3 model explanation (beginner + expert tracks)
+  model/                   # Per-variable model documentation (sectors, tables, parameters)
+    README.md              # Index, deviation summary, chart guide
+    sectors/               # One file per sector (5)
+    tables/                # One file per lookup table (34)
+    parameters/            # One file per scenario parameter (15)
+    feedback-loops.md      # Cross-sector feedback loops
+    solver.md              # RK4 solver, evaluation order
   simulation-engine.md     # World 3 model architecture, sectors, solver
   cli.md                   # CLI commands and flags reference
   api-server.md            # REST + WebSocket API documentation
   deployment.md            # Fly.io deployment guide
+scripts/
+  audit-model-doc.py       # CI-enforceable model doc sync checker
 Dockerfile            # Multi-stage build (Rust + Node + slim runtime)
 fly.toml              # Fly.io app configuration
-.claude/commands/      # Project-local Claude Code slash commands (/audit-tables, /refine-pr)
+.claude/commands/      # Project-local Claude Code slash commands (/audit-model-doc, /refine-pr)
 ```
 
 ## Commands
@@ -148,7 +156,8 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Collapse `technology_growth_rate` = 0.014, `resource_efficiency` = 1.05 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
 - Collapse `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technology/Stabilized presets use 0.0 (static `agricultural_technology=2.0` instead).
 - Collapse model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
-- Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
+- Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). Each table has a doc file in `docs/model/tables/`. Run `/audit-model-doc` to re-audit after changes. Modes: default (full audit + fix), `--check` (CI, read-only), `--diff` (pre-PR, changed files only).
+- When modifying sector code, lookup tables, or parameters, update the corresponding file in `docs/model/`. The `/audit-model-doc --diff` gate in `/refine-pr` will catch missed updates.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 - `world3_core::validation::validate_collapse()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.

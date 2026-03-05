@@ -80,10 +80,20 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - run: python3 scripts/traceability.py --check --warn-only
 
+  model-doc-check:
+    name: Model Doc Sync
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(fromJSON('["opened", "synchronize", "reopened"]'), github.event.action))
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - run: python3 scripts/audit-model-doc.py --check
+
   deploy:
     name: Deploy to Fly.io
     runs-on: ubuntu-latest
-    needs: [clippy, test, frontend-test, traceability, license-audit]
+    needs: [clippy, test, frontend-test, traceability, license-audit, model-doc-check]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     concurrency:
