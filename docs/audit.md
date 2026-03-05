@@ -5,6 +5,7 @@
 **Our source:** `crates/world3-core/src/lookup/tables.rs`
 **Reference:** [pyworld3 `functions_table_world3.json`](https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json) (faithfully digitized from World3-03 Vensim model, Meadows 2004)
 **Secondary reference:** [WorldDynamics.jl World3 module](https://github.com/worlddynamics/WorldDynamics.jl)
+**Calibration reference:** [Nebel et al. 2024 — "Recalibration of limits to growth"](https://doi.org/10.1111/jiec.13442) (DOI: 10.1111/jiec.13442), [Correction 2025](https://doi.org/10.1111/jiec.70042)
 
 ---
 
@@ -96,7 +97,7 @@ Aligned to pyworld3 during March 2026 pyworld3 alignment work.
 
 **Status: Exact Match (with LMHS2)**
 
-World3-03 has two tables (LMHS1 before policy switch year iphst=1940, LMHS2 after). We use LMHS2 which reflects post-1940 modern medical technology impact on longevity.
+World3-03 has two tables (LMHS1 before policy switch year iphst=1940, LMHS2 after). We use LMHS2 which reflects post-1940 modern medical technology impact on longevity. Input is EHSPC (effective health services per capita), which is a 20-year first-order smooth of HSAPC (World3-03: HSID=20yr), implemented as an ODE stock.
 
 ---
 
@@ -503,13 +504,15 @@ Completely different functional form. pyworld3 AHLM is the Assimilation Half-Lif
 
 ## Recommendations for Future Work
 
-1. **Policy-switch tables**: World3-03 has paired tables (LMHS1/LMHS2, FIOAA1/FIOAA2, LYMAP1/LYMAP2, etc.) for pre/post policy switch. We use single tables. Consider adding policy-switch variants for Milestone 2 scenario analysis.
+1. **Policy-switch tables**: World3-03 has paired tables (FIOAA1/FIOAA2, LYMAP1/LYMAP2, etc.) for pre/post policy switch. We use single tables. Consider adding policy-switch variants for Technology/Stabilized scenarios.
 
-2. **LFH/PL factors**: Our model omits Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) from World3-03. This causes ~59% higher food production at identical parameters. Adding these factors explicitly would improve cross-model comparability.
+2. **LFH/PL factors**: Our model includes LFH=0.7 and PL=0.1 in the food equation. Lookup tables are aligned to pyworld3 reference values.
 
-3. **DCFS sensitivity**: The calibrated DCFS values are the most significant deviation from pyworld3. Monitor during future Delay3 tuning — if perceived-LE dynamics change, DCFS may need recalibration.
+3. **DCFS sensitivity**: The calibrated DCFS values are the most significant deviation from pyworld3. Monitor during future tuning — if perceived-LE dynamics change, DCFS may need recalibration.
 
 4. **PPASR reconciliation**: Our pollution assimilation mechanism differs structurally from pyworld3. Consider implementing the half-life multiplier approach for better alignment.
+
+5. **Nebel et al. fine-tuning**: BAU parameters (alic1=13yr, tech_rate=0.014) are tuned per Nebel et al. (2024) methodology — adjusting high-sensitivity parameters (industrial capital lifetime, technology growth) within plausible ranges to match historical data through 2023. Future recalibration should follow the same methodology when new empirical data becomes available.
 
 ---
 
