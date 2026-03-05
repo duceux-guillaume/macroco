@@ -13,7 +13,9 @@
       "Edit(*)",
       "Write(*)",
       "Agent(*)",
-      "WebFetch(*)"
+      "WebFetch(*)",
+      "Search(*)",
+      "Skill(*)"
     ],
     "deny": [
       "Edit(.github/workflows/*)",
