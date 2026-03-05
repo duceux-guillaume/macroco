@@ -47,11 +47,6 @@
 		compareMode.update((v) => !v);
 	}
 
-	function handleVariableChange(e: Event) {
-		const target = e.target as HTMLSelectElement;
-		compareVariable.set(target.value);
-	}
-
 	async function handleNewScenario() {
 		const defaultParams: ScenarioParams = {
 			meta: {
@@ -121,7 +116,7 @@
 			class:active={$compareMode}
 			onclick={toggleCompare}
 		>
-			{$compareMode ? 'All vars' : 'Compare'}
+			{$compareMode ? 'All vars' : 'Focus var'}
 		</button>
 	</div>
 	<div class="scenario-list">
@@ -144,7 +139,7 @@
 	</div>
 
 	{#if $compareMode}
-		<select class="variable-select" value={$compareVariable} onchange={handleVariableChange}>
+		<select class="variable-select" bind:value={$compareVariable}>
 			{#each unifiedVariables as v (v.id)}
 				<option value={v.fieldPath}>{v.label}</option>
 			{/each}

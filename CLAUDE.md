@@ -154,6 +154,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - `world3_core::validation::validate_collapse()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.
 
 ### Frontend
+- Layout principle: sidebar = controls, center = chart (primary display), right = info panels. All controls that change chart display belong in the sidebar. On mobile, sidebar becomes a drawer — same pattern for all controls.
 - Svelte components live in `frontend/src/components/`, NOT `frontend/src/lib/components/`. Utilities/stores/types live in `frontend/src/lib/`.
 - SSR guard: use `import { browser } from '$app/environment'`, not `typeof navigator !== 'undefined'`.
 - Historical CSV file stems in `data/historical/` MUST match IDs in `frontend/src/lib/charts/unified-config.ts`: `population`, `resources`, `food`, `industrial`, `pollution`, `life-expectancy`.
@@ -161,6 +162,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - `frontend/src/lib/env.ts` provides `getApiBase()` / `getWsBase()` — returns relative URLs in production (empty `PUBLIC_*` vars), absolute URLs in dev. All API/WS imports use this, not `$env/static/public` directly.
 - `frontend/.env.production` has empty `PUBLIC_API_BASE=` and `PUBLIC_WS_BASE=` to trigger same-origin fallback.
 - Svelte 5 runes (`$state`, `$derived`, `$effect`) drive all reactivity. Use `$store` auto-subscription in `.svelte` files; use manual `.subscribe()` + `onDestroy(unsub)` only when you need side effects on store change (e.g. resetting local state).
+- For `<select>` elements bound to Svelte stores, prefer `bind:value={$store}` over manual `onchange` handlers.
 - Info panels use composition: `InfoPanelShell` (shell chrome + Escape handler + expert toggle) → panel-specific content → shared `FeedbackLoops` + `RelatedVars` sub-components. Don't duplicate markup/CSS across panels.
 - To style slotted child content from a parent component, use `:global()` scoped to a parent class: `.panel-body :global(section h3) { ... }`.
 - D3 is used directly (not wrapped in a chart library) because World 3 output requires custom multi-axis, phase-plane, and animated transition patterns.
@@ -171,6 +173,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
 
 ### Frontend Testing
+- Git worktrees don't share `frontend/node_modules`. Run `cd frontend && npm install` before frontend checks in a new worktree.
 - Test stack: vitest + jsdom. Config in `vite.config.ts` (import `defineConfig` from `vitest/config`, not `vite`).
 - Test helpers in `frontend/src/lib/test-helpers.ts` — `makeWorldState()` and `makeTimeSeries()` factories.
 - Mock SvelteKit env: `vi.mock('$env/static/public', () => ({ PUBLIC_API_BASE: '...' }))` before imports.
