@@ -59,15 +59,17 @@ impl Default for ScenarioParams {
             // Default matches BAU: no family planning intervention
             family_planning_efficacy: 0.0,
             health_investment_multiplier: 1.0,
-            // World3-03: alic1 = 14 yr → depreciation = 1/14
-            industrial_depreciation_rate: 1.0 / 14.0,
+            // World3-03: alic1 = 14 yr → depreciation = 1/14.
+            // Tuned to 1/13 to reduce early IOPC overshoot (LE structural changes
+            // increased population growth, pushing IOPC too high in 1960).
+            industrial_depreciation_rate: 1.0 / 13.0,
             // World3-03: alsc1 = 20 yr → depreciation = 1/20
             service_depreciation_rate: 0.05,
             // Calibrated to match historical IOPC trajectory (World Bank 1960-2023).
             // Higher than original 0.002 because ISOPC dynamic lookup captures
             // service-capital feedback; tech rate handles remaining industrial
             // productivity growth not in World3-03 structure (~1.5%/yr TFP).
-            technology_growth_rate: 0.015,
+            technology_growth_rate: 0.014,
             agricultural_technology: 1.0,
             land_protection_fraction: 0.0,
             subsistence_food_per_capita: 230.0,
@@ -211,7 +213,7 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             field: "industrial_depreciation_rate".into(),
             label: "Industrial Capital Depreciation".into(),
             unit: "yr⁻¹".into(),
-            min: 0.02, max: 0.15, default: 1.0 / 14.0, step: 0.005,
+            min: 0.02, max: 0.15, default: 1.0 / 13.0, step: 0.005,
             sector: "capital".into(),
             description: "Annual fraction of industrial capital that wears out.".into(),
         },
