@@ -14,6 +14,7 @@
 	import type { WorldState } from '../types';
 
 	const NOW_YEAR = 2026;
+	const HIST_LINE_PREFIX = 'hist-';
 
 	interface Props {
 		data: Map<string, WorldState[]>;
@@ -155,7 +156,7 @@
 				const histVar = _historicalData.get(varConfig.id);
 				if (histVar && histVar.data.length > 0) {
 					linesData.push({
-						id: `hist-${varConfig.id}`,
+						id: `${HIST_LINE_PREFIX}${varConfig.id}`,
 						color: '#9ca3af',
 						points: histVar.data.map((d) => ({ year: d.year, y: d.value })),
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
@@ -228,7 +229,7 @@
 				// Add historical overlay line
 				if (histVar && histVar.data.length > 0) {
 					linesData.push({
-						id: `hist-${varConfig.id}`,
+						id: `${HIST_LINE_PREFIX}${varConfig.id}`,
 						color: varConfig.color,
 						points: histVar.data.map((d) => ({ year: d.year, y: normalize(d.value) })),
 						rawPoints: histVar.data.map((d) => ({ year: d.year, value: d.value })),
@@ -334,32 +335,25 @@
 		const selectedVarFieldPath = $selectedVariableId;
 		const histOnly = $highlightHistoricalOnly;
 
-		function getFieldPathForLine(d: LineDatum): string | null {
-			if (_compareMode) return null;
-			const baseId = d.id.startsWith('hist-') ? d.id.slice(5) : d.id;
+		function isLineHighlighted(d: LineDatum): boolean {
+			if (!hasHighlight) return false;
+			if (_compareMode) return false;
+			const baseId = d.id.startsWith(HIST_LINE_PREFIX) ? d.id.slice(HIST_LINE_PREFIX.length) : d.id;
 			const varConfig = unifiedVariables.find((v) => v.id === baseId);
-			return varConfig?.fieldPath ?? null;
+			if (!varConfig || !highlighted.has(varConfig.fieldPath)) return false;
+			if (histOnly && !d.historical) return false;
+			return true;
 		}
 
 		function getLineOpacity(d: LineDatum): number {
 			const base = d.historical ? 0.6 : 1;
 			if (!hasHighlight) return base;
-			const fieldPath = getFieldPathForLine(d);
-			if (fieldPath === null) return base;
-			if (!highlighted.has(fieldPath)) return 0.15;
-			// When "Historical" is selected, only highlight historical lines
-			if (histOnly && !d.historical) return 0.15;
-			// When a variable is selected, highlight both sim + historical
-			return base;
+			return isLineHighlighted(d) ? base : 0.15;
 		}
 
 		function getLineWidth(d: LineDatum): number {
 			const base = d.historical ? 1.5 : 2;
-			if (!hasHighlight) return base;
-			const fieldPath = getFieldPathForLine(d);
-			if (fieldPath === null) return base;
-			if (!highlighted.has(fieldPath)) return base;
-			if (histOnly && !d.historical) return base;
+			if (!isLineHighlighted(d)) return base;
 			return d.historical ? 2 : 2.5;
 		}
 
