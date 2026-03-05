@@ -40,6 +40,13 @@ pub struct ScenarioParams {
     // ---- Resources ----
     /// Resource extraction efficiency multiplier [1..5, default 1.0]
     pub resource_efficiency: f64,
+    /// Resource extraction efficiency growth rate [yr⁻¹, default 0.0035].
+    /// Macroco extension: represents improving extraction technology (EOR,
+    /// horizontal drilling, fracking, heap leaching, etc.). Oil recovery
+    /// factors improved from ~22% (1979) to ~39% (2020) globally (~1.2%/yr).
+    /// Set conservatively to 0.35%/yr (net of declining ore grades).
+    /// Applied from 1970: eff = resource_efficiency × (1 + rate)^max(year-1970, 0).
+    pub resource_efficiency_growth_rate: f64,
     /// Non-renewable resource initial stock [normalized, default 1.0]
     pub initial_nnr_fraction: f64,
 
@@ -83,10 +90,13 @@ impl Default for ScenarioParams {
             agricultural_technology_growth_rate: 0.005,
             land_protection_fraction: 0.0,
             subsistence_food_per_capita: 230.0,
-            // Slightly above 1.0 to account for real-world resource extraction
-            // efficiency gains not modeled in World3-03. Helps IOPC calibration
-            // (delays NNR depletion to match historical trajectory).
+            // Base resource extraction efficiency (pre-1970 level).
+            // Combined with growth rate for post-1970 tech improvements.
             resource_efficiency: 1.05,
+            // Resource extraction tech improves ~0.3%/yr from 1970 (conservative;
+            // real-world oil recovery improved ~1.2%/yr, material productivity
+            // ~0.9%/yr, but declining ore grades offset ~half the gains).
+            resource_efficiency_growth_rate: 0.0035,
             initial_nnr_fraction: 1.0,
             pollution_control: 0.0,
             start_year: 1900.0,
@@ -115,6 +125,7 @@ impl ScenarioParams {
             "Technology solves resource and pollution problems, but no social changes.".into();
         p.meta.color_hex = "#2a9d8f".into();
         p.resource_efficiency = 4.0;
+        p.resource_efficiency_growth_rate = 0.0;
         p.pollution_control = 0.8;
         p.agricultural_technology = 2.0;
         p.agricultural_technology_growth_rate = 0.0;
@@ -131,6 +142,7 @@ impl ScenarioParams {
                 .into();
         p.meta.color_hex = "#457b9d".into();
         p.resource_efficiency = 4.0;
+        p.resource_efficiency_growth_rate = 0.0;
         p.pollution_control = 0.8;
         p.agricultural_technology = 2.0;
         p.agricultural_technology_growth_rate = 0.0;
@@ -267,7 +279,15 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             unit: "multiplier".into(),
             min: 1.0, max: 5.0, default: 1.05, step: 0.25,
             sector: "resources".into(),
-            description: "Reduces resource use per unit of industrial output.".into(),
+            description: "Base resource extraction efficiency multiplier.".into(),
+        },
+        ParameterDescriptor {
+            field: "resource_efficiency_growth_rate".into(),
+            label: "Resource Efficiency Growth".into(),
+            unit: "per year".into(),
+            min: 0.0, max: 0.02, default: 0.0035, step: 0.001,
+            sector: "resources".into(),
+            description: "Annual improvement in extraction technology from 1970 (oil recovery, mining tech).".into(),
         },
         ParameterDescriptor {
             field: "pollution_control".into(),
@@ -319,6 +339,7 @@ mod tests {
         assert_eq!(d.service_depreciation_rate, b.service_depreciation_rate);
         assert_eq!(d.technology_growth_rate, b.technology_growth_rate);
         assert_eq!(d.resource_efficiency, b.resource_efficiency);
+        assert_eq!(d.resource_efficiency_growth_rate, b.resource_efficiency_growth_rate);
         assert_eq!(d.pollution_control, b.pollution_control);
         assert_eq!(d.agricultural_technology, b.agricultural_technology);
         assert_eq!(d.agricultural_technology_growth_rate, b.agricultural_technology_growth_rate);
@@ -344,6 +365,7 @@ mod tests {
                     "agricultural_technology_growth_rate" => preset.agricultural_technology_growth_rate,
                     "land_protection_fraction" => preset.land_protection_fraction,
                     "resource_efficiency" => preset.resource_efficiency,
+                    "resource_efficiency_growth_rate" => preset.resource_efficiency_growth_rate,
                     "pollution_control" => preset.pollution_control,
                     _ => continue,
                 };

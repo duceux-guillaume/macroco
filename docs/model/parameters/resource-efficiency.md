@@ -50,7 +50,13 @@ Resource efficiency interacts with the FCAOR table to determine when capital div
 
 **Sparkline variable:** resources.fraction_remaining
 
+## Resource Efficiency Growth Rate (Macroco Extension)
+
+The base efficiency is combined with a time-varying growth rate. See [Resource Efficiency Growth Rate](resource-efficiency-growth-rate.md) for full details: formula, scientific motivation, calibration data, and sensitivity analysis.
+
+**Summary:** `resource_efficiency_growth_rate` = 0.0035 (0.35%/yr from 1970). Effective efficiency = $$r_e \times (1 + 0.0035)^{\max(\text{year} - 1970, 0)}$$, reaching 1.24 by 2020 and 1.56 by 2100. Improved IOPC RMSE from 16.5% to 14.9%.
+
 ## References
 
 - Meadows et al. (2004), *Limits to Growth: The 30-Year Update*. Technology scenario parameters.
-- Historical calibration: `cargo test -p world3-core --test historical_calibration` (NNR RMSE = 0.9%).
+- Historical calibration: `cargo test -p world3-core --test historical_calibration` (IOPC RMSE = 14.9%, NNR RMSE = 1.1%).

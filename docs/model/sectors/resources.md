@@ -28,14 +28,14 @@ This fraction is consumed by the capital sector's FCAOR lookup table to determin
 
 Resource extraction is driven by two factors: population and industrial output per capita (IOPC). More people consuming more goods per person means faster depletion. A `resource_efficiency` parameter represents technology that reduces resource use per unit of output.
 
-$$\frac{d(NNR)}{dt} = -\frac{P \times IOPC \times k}{r_e}$$
+$$\frac{d(NNR)}{dt} = -\frac{P \times IOPC \times k}{r_{e,\text{eff}}}$$
 
 where:
 
 - $$P$$ is total population (persons),
 - $$IOPC$$ is industrial output per capita (1975 USD/person/year), clamped to $$\geq 0$$,
 - $$k = 3.0 \times 10^{-15}$$ is the resource depletion coefficient (NNR fraction per person per USD per year),
-- $$r_e$$ is the `resource_efficiency` parameter (dimensionless multiplier, $$\geq 1$$).
+- $$r_{e,\text{eff}} = r_e \times (1 + r_{e,\text{growth}})^{\max(\text{year} - 1970, 0)}$$ is the effective resource efficiency, combining the base `resource_efficiency` parameter with time-varying growth from `resource_efficiency_growth_rate` (Macroco extension).
 
 The depletion coefficient $$k$$ is calibrated so that at 1970 conditions ($$P = 3.6 \times 10^9$$, $$IOPC \approx 500$$ USD/yr), the extraction rate is approximately $$5.4 \times 10^{-3}$$ of total NNR per year. Cumulatively, this depletes roughly 50% of NNR by 2050 under Collapse.
 
@@ -63,6 +63,8 @@ Note that resource scarcity feeds back *only* through the FCAOR fraction in the 
 **`resource_efficiency` > 1.0 in Collapse.** The original World3-03 model uses $$r_e = 1.0$$ for the standard run (no efficiency improvement). Our Collapse preset uses $$r_e = 1.05$$ to compensate for real-world extraction efficiency gains over the 20th and early 21st centuries that the 1972 model did not anticipate. This slight increase delays NNR depletion just enough to improve historical calibration against World Bank data (NNR RMSE = 0.9%) without altering the qualitative overshoot-and-collapse trajectory.
 
 The Technology and Ecotopia presets use $$r_e = 4.0$$, representing aggressive efficiency gains that substantially delay resource depletion.
+
+**`resource_efficiency_growth_rate` = 0.0035 in Collapse.** Macroco extension (not in World3-03) representing real-world extraction technology improvement: oil recovery factor ~1.2%/yr, material productivity ~0.9%/yr, net of declining ore grades ~0.5-0.6%/yr. Set conservatively to 0.35%/yr. Applied from 1970: $$r_{e,\text{eff}} = r_e \times (1 + 0.0035)^{\max(\text{year} - 1970, 0)}$$. Technology and Stabilized presets use 0.0 (static $$r_e = 4.0$$ IS the intervention).
 
 ## Lookup Tables
 
