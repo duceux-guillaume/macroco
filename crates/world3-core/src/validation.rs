@@ -138,6 +138,13 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
         .state_at_year(2100.0)
         .map(|s| s.capital.industrial_output_per_capita)
         .unwrap_or(f64::NAN);
+    let iopc_peak_year_ok = (1990.0..=2060.0).contains(&peak_iopc_year);
+    results.push(CheckResult {
+        label: "IOPC peak year".into(),
+        passed: iopc_peak_year_ok,
+        detail: format!("{:.0} [expected 1990–2060]", peak_iopc_year),
+    });
+
     let iopc_ok = iopc_2100 <= peak_iopc * 0.5;
     results.push(CheckResult {
         label: "IOPC collapse".into(),
