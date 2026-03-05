@@ -212,10 +212,14 @@ agri_inputs_per_ha = agri_output_total / arable_land
 ```
 yield_mult_capital = land_yield_multiplier_capital(agri_inputs_per_ha)
 yield_mult_pollution = land_yield_multiplier_pollution(pollution_index)
-land_yield = 600.0 × yield_mult_capital × yield_mult_pollution × agricultural_technology
+ag_tech_years = max(year - 1960, 0)
+ag_tech = agricultural_technology × (1 + agricultural_technology_growth_rate)^ag_tech_years
+land_yield = land_fertility × yield_mult_capital × yield_mult_pollution × ag_tech
 ```
 
-Base yield is 600 kg/hectare/year (1900 level). The capital multiplier ranges from 1.0 (no inputs) to ~6.9 (maximum inputs). The pollution multiplier falls from 1.2 (pristine) to 0.50 (heavily polluted).
+Base fertility is 600 kg/hectare/year (1900 level). The capital multiplier ranges from 1.0 (no inputs) to ~10.0 (maximum inputs). The pollution multiplier falls from 1.0 (pristine) to 0.40 (heavily polluted).
+
+**Agricultural technology growth (Macroco extension):** World3-03 BAU has no time-varying agricultural technology (`lyf=1`, `LYCM=0` in both pyworld3 and Vensim). Real-world agricultural TFP grew ~1%/yr from 1960-2020 (USDA ERS). The `agricultural_technology_growth_rate` parameter (BAU default: 0.005/yr) represents Green Revolution gains -- improved cultivars, irrigation, precision farming -- not captured by the capital-driven yield multiplier (LYMC). Growth starts from 1960, the onset of semi-dwarf wheat/rice development by Norman Borlaug. This extension follows the same pattern as `technology_growth_rate` for industrial output.
 
 **Food production:**
 

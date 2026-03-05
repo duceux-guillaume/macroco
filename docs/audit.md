@@ -524,3 +524,45 @@ Use the `/audit-tables` slash command in Claude Code:
 ```
 
 This will re-fetch the pyworld3 reference, compare against current `tables.rs`, and update this document.
+
+---
+
+## Macroco Extensions (beyond World3-03)
+
+These parameters are Macroco additions not present in pyworld3 or the World3-03 Vensim model. They are documented here for transparency.
+
+### Agricultural Technology Growth Rate (`agricultural_technology_growth_rate`)
+
+| | Value |
+|---|---|
+| **Parameter** | `agricultural_technology_growth_rate` |
+| **BAU default** | 0.005 yr⁻¹ |
+| **Technology/Stabilized** | 0.0 (use static `agricultural_technology` instead) |
+| **Applied from** | 1960 (Green Revolution onset) |
+| **Formula** | `ag_tech = agricultural_technology × (1 + rate)^max(year - 1960, 0)` |
+
+**Justification:** World3-03 BAU has zero agricultural technology improvement (`lyf=1`, `LYCM=0`). Real-world agricultural TFP grew ~1%/yr from 1960-2020, causing a widening gap between modeled and historical food per capita (FAOSTAT). Without this extension, BAU food/capita RMSE was 18.6% and growing.
+
+**Calibration source:**
+- USDA ERS International Agricultural Productivity dataset (https://www.ers.usda.gov/data-products/international-agricultural-productivity/)
+- Global agricultural TFP growth: <0.1%/yr (1960s) to ~2.0%/yr (2000s) to ~1.1%/yr (2010s); weighted average ~1%/yr
+- BAU rate set to 0.005 (half the raw average) because LYMC already captures input-driven yield gains
+
+**pyworld3 equivalent:** None. pyworld3 BAU sets `lyf1 = lyf2 = 1` (no technology factor). The Vensim LYCM (`p_yield_tech_chg_mlt`) is only non-zero in technology scenarios (4%/yr in Scenario 4).
+
+**Literature:** No published World3 recalibration paper (Turner 2008, Herrington 2021, Nebel et al. 2024) has introduced this mechanism. This is a novel Macroco extension justified by empirical agricultural productivity data.
+
+**Precedent:** `technology_growth_rate` (BAU 0.014) for industrial output is the same kind of Macroco extension -- real-world TFP growth not in the original World3-03 structure.
+
+### Industrial Technology Growth Rate (`technology_growth_rate`)
+
+| | Value |
+|---|---|
+| **Parameter** | `technology_growth_rate` |
+| **BAU default** | 0.014 yr⁻¹ |
+| **Applied from** | 1970 |
+| **Formula** | `tech_multiplier = (1 + rate)^max(year - 1970, 0)` |
+
+**Justification:** World3-03 has no exogenous industrial TFP growth. Real-world industrial TFP grew ~1.5%/yr. Without this, BAU IOPC underestimates historical trajectory.
+
+**Calibration source:** World Bank industrial value added per capita (1960-2023).
