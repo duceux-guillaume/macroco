@@ -41,7 +41,7 @@ cargo run --bin world3-cli -- simulate [OPTIONS]
 **Output formats:**
 
 - **No flags**: prints a summary table to stdout (every 10th year)
-- **`--output`**: writes a 22-column CSV with all state variables
+- **`--output`**: writes a 25-column CSV with all state variables
 
 **Examples:**
 
@@ -57,13 +57,14 @@ cargo run --bin world3-cli -- simulate --preset stabilized \
   --start 1970 --end 2100 --dt 0.5 --output results.csv
 ```
 
-**CSV columns (22 fields):**
+**CSV columns (25 fields):**
 
 ```
 year, population, cohort_0_14, cohort_15_44, cohort_45_64, cohort_65_plus,
 birth_rate, death_rate, life_expectancy, fertility_rate,
 industrial_capital, service_capital, industrial_output, industrial_output_per_capita,
-service_output_per_capita, arable_land, food, food_per_capita, land_yield,
+service_output_per_capita, arable_land, potentially_arable_land, urban_industrial_land,
+land_fertility, food, food_per_capita, land_yield,
 nnr_fraction, persistent_pollution, pollution_index
 ```
 
