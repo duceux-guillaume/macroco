@@ -243,6 +243,7 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 
 ## CI/CD
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
+- PR preview deploy: add `deploy-preview` label to any PR → deploys to macroco.fly.dev; remove label / merge / close → auto-reverts to main
 - Deploy gated on `environment: production` with required status checks
 - `frontend-test` job runs: `npm run check`, `npm test`, `npm run build`
 - Ruleset on main: PR required (1 approval), rebase-only, linear history, no force push
