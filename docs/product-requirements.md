@@ -227,6 +227,12 @@
   - *Components:* `world3-cli`: validate subcommand or dedicated test
   - *Priority:* high
 
+- [ ] **REQ-042: Sidebar-centric layout principle**
+  - *Milestone:* M1
+  - *Context:* The chart area is the primary display and should be maximized. All controls that change what the chart shows (scenario selection, parameter sliders, simulation settings, compare mode) belong in the sidebar. Info panels on the right provide context. On mobile, the sidebar becomes a slide-out drawer — all controls follow this pattern. The "Compare scenarios" toggle was previously in a dedicated toolbar row above the charts, wasting vertical space for a secondary feature. Moved to the sidebar, inline with the "Presets" header.
+  - *Components:* `frontend/src/components/ScenarioSelector.svelte`, `frontend/src/components/ChartGrid.svelte`
+  - *Priority:* medium
+
 ---
 
 ## Planned
