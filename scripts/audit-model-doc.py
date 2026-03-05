@@ -85,27 +85,6 @@ def extract_lookup_values(tables_rs: str) -> dict[str, tuple[list[float], list[f
     return result
 
 
-def extract_default_values(params_rs: str) -> dict[str, str]:
-    """Parse ScenarioParams::default() to extract field = value pairs."""
-    result = {}
-    # Find the Default impl block
-    match = re.search(r"impl Default for ScenarioParams\s*\{.*?fn default\(\).*?\{.*?Self\s*\{(.*?)\}\s*\}", params_rs, re.DOTALL)
-    if not match:
-        return result
-    body = match.group(1)
-    # Match field: value patterns (handling expressions like 1.0 / 13.0)
-    for line in body.split("\n"):
-        line = line.strip()
-        if line.startswith("//") or not line or line.startswith("meta"):
-            continue
-        m = re.match(r"(\w+):\s*(.+?),?\s*(?://.*)?$", line)
-        if m:
-            field = m.group(1)
-            value = m.group(2).strip().rstrip(",")
-            result[field] = value
-    return result
-
-
 def parse_breakpoints_from_doc(doc_path: Path) -> list[float] | None:
     """Extract Macroco column values from ## Breakpoints table."""
     text = doc_path.read_text()
@@ -153,7 +132,7 @@ def check_headings(path: Path, required: list[str]) -> list[str]:
 
 # ── Phase 1: Completeness ──────────────────────────────────────────────
 
-def phase1_completeness() -> list[str]:
+def phase1_completeness() -> tuple[list[str], int, int, int]:
     issues = []
 
     # Tables
@@ -195,7 +174,7 @@ def phase1_completeness() -> list[str]:
             if doc.stem not in sector_names:
                 issues.append(f"Orphan sector doc: {doc.relative_to(REPO_ROOT)} (no sector '{doc.stem}.rs')")
 
-    return issues
+    return issues, len(lookup_fields), len(param_fields), len(sector_names)
 
 
 # ── Phase 2: Template Conformance ──────────────────────────────────────
@@ -289,16 +268,13 @@ def main():
     all_issues = []
 
     # Phase 1
-    issues = phase1_completeness()
+    issues, lookup_count, param_count, sector_count = phase1_completeness()
     all_issues.extend(issues)
     if issues:
         print(f"\nPhase 1 (Completeness): FAIL ({len(issues)} issues)")
         for i in issues:
             print(f"  - {i}")
     else:
-        lookup_count = len(extract_lookup_fields())
-        param_count = len(extract_param_fields())
-        sector_count = len(extract_sector_files())
         print(f"\nPhase 1 (Completeness): OK ({lookup_count} tables, {param_count} parameters, {sector_count} sectors)")
 
     # Phase 2
