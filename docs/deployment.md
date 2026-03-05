@@ -79,7 +79,17 @@ flyctl tokens create deploy -x 999999h
 Push to main → Clippy → Tests → Deploy to Fly.io
 ```
 
-Pull requests run clippy and tests but do not deploy.
+### PR Preview Deploy
+
+Pull requests can be deployed for live testing by adding the `deploy-preview` label:
+
+1. Open a PR and wait for CI tests to pass
+2. Add the `deploy-preview` label to the PR
+3. CI deploys the PR branch to https://macroco.fly.dev
+4. Test on the live URL
+5. Merge, close, or remove the label — CI auto-reverts to `main`
+
+Only one PR can be previewed at a time. The production URL serves the PR code during preview.
 
 ## Manual Deploy
 
