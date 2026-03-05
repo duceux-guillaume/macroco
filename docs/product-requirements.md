@@ -94,8 +94,8 @@
 - [x] **REQ-019: Model guide documentation**
   - *Milestone:* M1
   - *Context:* Users need to understand World 3 sectors, feedback loops, and how to interpret charts before exploring scenarios.
-  - *Components:* `docs/model-guide.md`
-  - *Done:* `docs/model-guide.md` with beginner + technical tracks covering all 5 sectors, 6 feedback loops, solver explanation, and preset comparison.
+  - *Components:* `docs/model/README.md`
+  - *Done:* `docs/model/README.md` with beginner + technical tracks covering all 5 sectors, 6 feedback loops, solver explanation, and preset comparison.
   - *Exempt:* Documentation only
 
 - [x] **REQ-020: Variable descriptions content module**
