@@ -21,10 +21,11 @@
 	interface Props {
 		data: Map<string, WorldState[]>;
 		colors: Map<string, string>;
+		names: Map<string, string>;
 		focusedScenarioId?: string | null;
 	}
 
-	let { data, colors, focusedScenarioId = null }: Props = $props();
+	let { data, colors, names, focusedScenarioId = null }: Props = $props();
 
 	let containerEl: HTMLDivElement;
 	let width = $state(0);
@@ -136,6 +137,7 @@
 		const _data = data;
 		const _colors = colors;
 		const _focusedId = focusedScenarioId;
+		const _names = names;
 		const _compareMode = $compareMode;
 		const _compareVariable = $compareVariable;
 		const _showHistorical = $showHistorical;
@@ -163,7 +165,7 @@
 					color,
 					points: rawPoints.map((p) => ({ year: p.year, y: p.value })),
 					rawPoints,
-					label: scenarioId.slice(0, 8),
+					label: _names.get(scenarioId) ?? scenarioId.slice(0, 8),
 					format: varConfig.format
 				});
 			}
@@ -188,8 +190,8 @@
 				const color = _colors.get(scenarioId) ?? '#888';
 				legendData.push({
 					id: scenarioId,
-					label: scenarioId.slice(0, 8),
-					shortLabel: scenarioId.slice(0, 8),
+					label: _names.get(scenarioId) ?? scenarioId.slice(0, 8),
+					shortLabel: _names.get(scenarioId) ?? scenarioId.slice(0, 8),
 					color,
 					fieldPath: varConfig.fieldPath
 				});
