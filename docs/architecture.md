@@ -30,6 +30,12 @@ Implements: REQ-001, REQ-002, REQ-004, REQ-005
 - All non-linear relationships are encoded as `LookupTable` (piecewise-linear interpolation). Tables are loaded from `data/lookup_tables/*.json` and audited against the pyworld3 reference (World3-03 Vensim).
 - Simulation is CPU-bound; must be run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 
+### Validation Module
+
+- `world3_core::validation::validate_bau()` runs qualitative dynamics checks against a `SimulationOutput` and returns `Vec<CheckResult>`.
+- Used by: `world3-core/tests/qualitative_dynamics.rs` (integration tests), CLI `validate` command (thin wrapper).
+- Checks: population trajectory, NNR depletion, pollution peak, IOPC collapse, life expectancy decline.
+
 ## API Server (`world3-api`)
 
 Implements: REQ-007, REQ-008, REQ-012
@@ -93,23 +99,24 @@ Implements: REQ-013, REQ-014
 
 ## CLI (`world3-cli`)
 
-Implements: REQ-037, REQ-038, REQ-039, REQ-040, REQ-026
+Implements: REQ-037, REQ-038, REQ-039, REQ-040
 
 The CLI serves four roles:
-1. **CI/CD validation** (REQ-037): `validate` runs headless qualitative checks against Meadows 1972.
+1. **CI/CD validation** (REQ-037): `validate` is a thin wrapper around `world3_core::validation::validate_bau()` — prints PASS/FAIL, exits 1 on failure.
 2. **Batch export** (REQ-038): `simulate --output` exports 25-column CSV for external analysis.
 3. **Simulation debugging** (REQ-039): `diagnose` produces structured text/JSON reports (peaks, phases, anomalies, oscillation detection, dt-sensitivity, preset comparison).
 4. **Reproducibility** (REQ-040): `simulate --preset` and `presets` provide deterministic named runs.
 
+All scenario tests (qualitative dynamics, historical calibration) live in `world3-core/tests/`. The CLI has no integration tests — it only contains CLI-specific code.
+
 ### Historical Calibration Tests (REQ-026)
 
-- Integration test in `crates/world3-cli/tests/historical_calibration.rs` compares BAU simulation against real-world historical CSVs.
+- Integration test in `crates/world3-core/tests/historical_calibration.rs` compares BAU simulation against real-world historical CSVs.
 - Metric: RMSE as percentage of mean historical value, computed over overlapping years (~1960-2023).
-- Four variables tested: Population (<15%), Food/capita (<25%), IOPC (<30%), NNR fraction (<20%).
-- Tests are `#[ignore]` because thresholds are aspirational — the model is not yet calibrated to historical data. A summary report test runs in CI and prints all RMSE% values.
-- Shared `OnceLock<SimulationOutput>` avoids redundant BAU simulation runs across tests.
+- Four variables tested: Population (<16%), Food/capita (<22%), IOPC (<23%), NNR fraction (<15%).
+- Shared `OnceLock<SimulationOutput>` in `tests/common/mod.rs` avoids redundant BAU simulation runs across tests.
 - Historical CSVs loaded with a minimal inline parser (no dependency on `world3-api`'s parser). Uses `CARGO_MANIFEST_DIR` to resolve `data/historical/` path.
-- Run: `cargo test -p world3-cli --test historical_calibration` (summary only); `-- --ignored` for threshold checks.
+- Run: `cargo test -p world3-core --test historical_calibration` (summary only); `-- --nocapture` for full report.
 
 ## Deployment
 
