@@ -238,7 +238,7 @@ fn bau_nnr_fraction_max_year_error() {
 /// Tightened from 25% after LE alignment improvements (actual ~9.4%).
 #[test]
 fn bau_life_expectancy_tracks_historical() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("life-expectancy.csv"));
     let (sim_vals, hist_vals, _years) =
         match_years(sim, |s| s.population.life_expectancy, &hist);
@@ -254,7 +254,7 @@ fn bau_life_expectancy_tracks_historical() {
 /// Tightened from 40% after LE alignment improvements (actual ~15.6%).
 #[test]
 fn bau_life_expectancy_max_year_error() {
-    let sim = bau_sim();
+    let sim = common::bau_sim();
     let hist = load_historical_csv(&historical_dir().join("life-expectancy.csv"));
     let (sim_vals, hist_vals, years) =
         match_years(sim, |s| s.population.life_expectancy, &hist);

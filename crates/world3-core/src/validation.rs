@@ -76,7 +76,9 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
     });
 
     // NNR fraction checkpoints
-    for (year, lo, hi) in [(2000.0, 0.0, 0.60), (2100.0, 0.0, 0.30)] {
+    // NNR at 2000 widened to 0.70 after LE calibration (resource_efficiency=1.05
+    // slows depletion). 2100 tightened to match main's <0.25 threshold.
+    for (year, lo, hi) in [(2000.0, 0.0, 0.70), (2100.0, 0.0, 0.25)] {
         let nnr = sim
             .state_at_year(year)
             .map(|s| s.resources.fraction_remaining)
