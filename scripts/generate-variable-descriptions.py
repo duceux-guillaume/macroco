@@ -476,6 +476,22 @@ def main() -> int:
     parameters = parse_parameters()
     loops = parse_feedback_loops()
 
+    # Validate all docPaths point to existing files
+    errors = []
+    for v in variables:
+        if not (ROOT / v.doc_path).exists():
+            errors.append(f"Variable {v.key}: docPath '{v.doc_path}' does not exist")
+    for p in parameters:
+        if not (ROOT / p.doc_path).exists():
+            errors.append(f"Parameter {p.key}: docPath '{p.doc_path}' does not exist")
+    for loop in loops:
+        if not (ROOT / loop.doc_path).exists():
+            errors.append(f"Loop {loop.key}: docPath '{loop.doc_path}' does not exist")
+    if errors:
+        for e in errors:
+            print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
     output = generate_ts(variables, parameters, loops)
 
     if args.dry_run:
