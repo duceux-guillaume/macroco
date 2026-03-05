@@ -14,7 +14,7 @@ Macroco is an online macroeconomic simulator based on the World 3 system dynamic
 | API Server | `crates/world3-api/` | Axum HTTP + WebSocket server, historical data API | REQ-007, REQ-008, REQ-012 |
 | CLI | `crates/world3-cli/` | Batch simulation, validation, PNG charts, historical calibration tests | REQ-003, REQ-005, REQ-006, REQ-026 |
 | Data Pipeline | `crates/world3-ingestion/` | Live data from external APIs, SQLite cache | REQ-013, REQ-014 |
-| Frontend | `frontend/` | SvelteKit + D3 interactive UI | REQ-009, REQ-020--REQ-025 |
+| Frontend | `frontend/` | SvelteKit + D3 interactive UI | REQ-009, REQ-020--REQ-025, REQ-037 |
 | Deployment | `/` (Dockerfile, fly.toml) | Containerized deployment on Fly.io | REQ-016 |
 | CI/CD | `.github/workflows/` | Automated testing and deployment | REQ-010, REQ-017 |
 
@@ -44,7 +44,7 @@ Implements: REQ-007, REQ-008, REQ-012
 
 ## Frontend (`frontend`)
 
-Implements: REQ-009, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025
+Implements: REQ-009, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-037
 
 - SvelteKit 2 with Svelte 5 runes (`$state`, `$derived`, `$effect`) for all reactivity. D3 v7 used directly (no chart library wrapper) for custom multi-axis, phase-plane, and animated transition patterns.
 - `frontend/src/lib/env.ts` provides `getApiBase()` / `getWsBase()` -- returns relative URLs in production (empty `PUBLIC_*` vars), absolute URLs in dev mode.
@@ -52,6 +52,15 @@ Implements: REQ-009, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025
 - Content single source of truth: `frontend/src/lib/content/variable-descriptions.ts` (variable and parameter descriptions).
 - Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
 - Info panels use composition: `InfoPanelShell` (chrome + Escape handler + expert toggle) wraps panel-specific content, which includes shared `FeedbackLoops` and `RelatedVars` sub-components.
+
+### Chart Zoom (REQ-037)
+
+- `UnifiedChart.svelte` uses `d3.zoom()` for X-axis zoom/pan on all devices (wheel, pinch, drag). Replaces the previous no-op brush.
+- Performance: the main `$effect` reads `currentTransform` via `untrack()` to avoid reactive re-runs on zoom. An `applyZoomTransform` closure (captured from the effect) does lightweight DOM updates at ~60Hz without rebuilding D3 joins.
+- Transform restore on effect re-run uses a feedback-loop prevention pattern: temporarily detach the zoom handler, set the transform, re-attach.
+- Mobile tooltip uses tap-to-pin (`pointer: coarse` detection) instead of hover. Tap detection: elapsed < 300ms, distance < 10px.
+- Pure helpers extracted to `frontend/src/lib/charts/zoom-helpers.ts`: `constrainToXAxis`, `isTransformZoomed`, `isTap`, `computeTrend`, `computeVisibleYExtent`.
+- SVG clip path (per-instance unique ID) prevents line overflow when zoomed.
 
 ### Historical Data Overlay
 
@@ -115,7 +124,8 @@ Implements: REQ-016
 
 Implements: REQ-010, REQ-017
 
-- GitHub Actions pipeline: clippy, test, frontend-test, deploy (on push to main).
+- GitHub Actions pipeline: clippy, test, frontend-test, traceability, deploy (on push to main).
+- PR preview deploy: add `deploy-preview` label to any PR to deploy to Fly.io; removed/merged/closed auto-reverts to main. Comment steps use `continue-on-error` to tolerate transient GitHub API failures.
 - Frontend tests: vitest + jsdom, run on every PR.
-- Deploy job gated on `environment: production` with required status checks.
+- Deploy job gated on `environment: production` with required status checks. Preview deploys use `environment: preview`.
 - Branch ruleset on main: PR required (1 approval), rebase-only merge, linear history, no force push.

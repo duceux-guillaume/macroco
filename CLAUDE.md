@@ -235,7 +235,6 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoo
 - RMSE% thresholds: Population (<11%), Food/capita (<21%), IOPC (<19%), NNR fraction (<4%), Life expectancy (<12%).
 - Max-year-error thresholds: Population (<15%), Food/capita (<28%), IOPC (<38%), NNR fraction (<6%), Life expectancy (<19%).
 - Test: `cargo test -p world3-cli --test historical_calibration` (11 tests: 5 RMSE + 5 max-year-error + 1 summary)
-- Design: `docs/plans/2026-03-04-better-bau-calibration-design.md`
 - All 10 thresholds PASS (Pop RMSE=8.1%, Food=18.6%, IOPC=16.2%, NNR=0.9%, LE=9.4%; Max-year: Pop 11.3%, Food 25.5%, IOPC 35.4%, NNR 2.6%, LE=15.6%).
 
 ## CI/CD
