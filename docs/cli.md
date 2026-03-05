@@ -73,11 +73,11 @@ nnr_fraction, persistent_pollution, pollution_index
 Validate the BAU run against Meadows 1972 reference checkpoints. Checks qualitative dynamics (not exact values):
 
 1. Population at 1900, 1950, 1970 within expected ranges
-2. Population peaks at 5B-12B between 1990-2080, then declines
+2. Population peaks at 5B–16B between 2020–2090, then declines (widened for Delay3 model)
 3. NNR fraction monotonically decreasing, significantly depleted by 2100
 4. Pollution peaks within expected range
-5. IOPC peaks then collapses before 2100
-6. Life expectancy peaks then falls
+5. IOPC peaks then collapses to <50% of peak by 2100
+6. Life expectancy peaks (45–80 yr) then declines to <80% of peak
 
 ```bash
 cargo run --bin world3-cli -- validate
