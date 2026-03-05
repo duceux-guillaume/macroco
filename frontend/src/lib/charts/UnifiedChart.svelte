@@ -2,6 +2,7 @@
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
+	import { browser } from '$app/environment';
 	import { resize } from '../utils/resize';
 	import { extractSeries } from '../utils/extract';
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
@@ -32,6 +33,14 @@
 	let tooltipY = $state(0);
 	let tooltipYear = $state(0);
 	let tooltipItems = $state<Array<{ label: string; color: string; rawValue: string; unit: string; trend: string }>>([]);
+
+	let currentTransform = $state(d3.zoomIdentity);
+	let isZoomed = $derived(currentTransform.k > 1.01);
+	let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, null> | null = null;
+
+	const isTouchDevice = $derived(
+		browser && window.matchMedia('(pointer: coarse)').matches
+	);
 
 	let margin = $derived(
 		width < 500
@@ -65,6 +74,12 @@
 		}
 	}
 
+	function resetZoom() {
+		if (!zoomBehavior || !containerEl) return;
+		const svg = d3.select(containerEl).select<SVGSVGElement>('svg');
+		svg.transition().duration(400).call(zoomBehavior.transform as any, d3.zoomIdentity);
+	}
+
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
@@ -74,6 +89,10 @@
 			}
 			if (get(selectedVariableId)) {
 				selectedVariableId.set(null);
+				return;
+			}
+			if (isZoomed) {
+				resetZoom();
 				return;
 			}
 		}
@@ -263,6 +282,8 @@
 		const xExtent = d3.extent(allYears) as [number, number];
 
 		const xScale = d3.scaleLinear().domain(xExtent).range([0, innerW]);
+		const baseXScale = xScale.copy();
+		const zoomedX = currentTransform.rescaleX(baseXScale);
 
 		let yScale: d3.ScaleLinear<number, number>;
 		let yTickFormat: (d: d3.NumberValue) => string;
@@ -271,7 +292,11 @@
 			yScale = d3.scaleLinear().domain([0, 1]).range([innerH, 0]);
 			yTickFormat = d3.format('.1f');
 		} else {
-			const allVals = linesData.flatMap((l) => l.points.map((p) => p.y));
+			// Auto-fit Y to visible year window when zoomed
+			const [visibleYearStart, visibleYearEnd] = zoomedX.domain();
+			const allVals = linesData.flatMap((l) =>
+				l.points.filter((p) => p.year >= visibleYearStart && p.year <= visibleYearEnd).map((p) => p.y)
+			);
 			const yExtent = d3.extent(allVals) as [number, number];
 			const yPad = (yExtent[1] - yExtent[0]) * 0.05 || 1;
 			yScale = d3.scaleLinear().domain([Math.max(0, yExtent[0] - yPad), yExtent[1] + yPad]).range([innerH, 0]);
@@ -281,7 +306,7 @@
 		}
 
 		const line = d3.line<{ year: number; y: number }>()
-			.x((d) => xScale(d.year))
+			.x((d) => zoomedX(d.year))
 			.y((d) => yScale(d.y));
 
 		// SVG setup
@@ -292,12 +317,22 @@
 			.attr('width', width)
 			.attr('height', height);
 
+		// Clip path so lines don't overflow chart area when zoomed
+		const clipId = 'chart-clip';
+		const defs = svg.selectAll<SVGDefsElement, null>('defs').data([null]).join('defs');
+		defs.selectAll<SVGClipPathElement, null>(`clipPath#${clipId}`).data([null]).join('clipPath')
+			.attr('id', clipId)
+			.selectAll<SVGRectElement, null>('rect').data([null]).join('rect')
+			.attr('x', 0).attr('y', 0)
+			.attr('width', innerW).attr('height', innerH);
+
 		const g = svg
 			.selectAll<SVGGElement, null>('g.chart')
 			.data([null])
 			.join('g')
 			.attr('class', 'chart')
-			.attr('transform', `translate(${margin.left},${margin.top})`);
+			.attr('transform', `translate(${margin.left},${margin.top})`)
+			.attr('clip-path', `url(#${clipId})`);
 
 		// X axis
 		g.selectAll<SVGGElement, null>('g.x-axis')
@@ -307,7 +342,7 @@
 			.attr('transform', `translate(0,${innerH})`)
 			.transition()
 			.duration(400)
-			.call(d3.axisBottom(xScale).tickFormat(d3.format('d')).ticks(Math.min(innerW / 80, 10)) as any);
+			.call(d3.axisBottom(zoomedX).tickFormat(d3.format('d')).ticks(Math.min(innerW / 80, 10)) as any);
 
 		// Y axis
 		g.selectAll<SVGGElement, null>('g.y-axis')
@@ -392,7 +427,8 @@
 		);
 
 		// "Now" line (year 2026)
-		const nowLineData = (NOW_YEAR >= xExtent[0] && NOW_YEAR <= xExtent[1]) ? [NOW_YEAR] : [];
+		const [visMinYear, visMaxYear] = zoomedX.domain();
+		const nowLineData = (NOW_YEAR >= visMinYear && NOW_YEAR <= visMaxYear) ? [NOW_YEAR] : [];
 		const nowGroup = g.selectAll<SVGGElement, number>('g.now-line')
 			.data(nowLineData);
 
@@ -400,15 +436,15 @@
 			(enter) => {
 				const ng = enter.append('g').attr('class', 'now-line');
 				ng.append('line')
-					.attr('x1', (d) => xScale(d))
-					.attr('x2', (d) => xScale(d))
+					.attr('x1', (d) => zoomedX(d))
+					.attr('x2', (d) => zoomedX(d))
 					.attr('y1', 0)
 					.attr('y2', innerH)
 					.attr('stroke', 'var(--text-secondary)')
 					.attr('stroke-width', 1)
 					.attr('opacity', 0.5);
 				ng.append('text')
-					.attr('x', (d) => xScale(d) + 3)
+					.attr('x', (d) => zoomedX(d) + 3)
 					.attr('y', innerH - 4)
 					.attr('fill', 'var(--text-secondary)')
 					.attr('font-size', '9px')
@@ -418,11 +454,11 @@
 			},
 			(update) => {
 				update.select('line')
-					.attr('x1', (d) => xScale(d))
-					.attr('x2', (d) => xScale(d))
+					.attr('x1', (d) => zoomedX(d))
+					.attr('x2', (d) => zoomedX(d))
 					.attr('y2', innerH);
 				update.select('text')
-					.attr('x', (d) => xScale(d) + 3)
+					.attr('x', (d) => zoomedX(d) + 3)
 					.attr('y', innerH - 4);
 				return update;
 			},
@@ -450,7 +486,7 @@
 			let yPos = 10;
 			// Check if close to a previous annotation (within 20px on x)
 			for (let j = 0; j < i; j++) {
-				const xDist = Math.abs(xScale(annotations[i].year) - xScale(annotations[j].year));
+				const xDist = Math.abs(zoomedX(annotations[i].year) - zoomedX(annotations[j].year));
 				if (xDist < 40) {
 					yPos = labelYPositions[j] + LABEL_SPACING;
 				}
@@ -474,8 +510,8 @@
 				const ann = enter.append('g').attr('class', 'annotation')
 					.attr('opacity', 0);
 				ann.append('line')
-					.attr('x1', (d) => xScale(d.year))
-					.attr('x2', (d) => xScale(d.year))
+					.attr('x1', (d) => zoomedX(d.year))
+					.attr('x2', (d) => zoomedX(d.year))
 					.attr('y1', 0)
 					.attr('y2', innerH)
 					.attr('stroke', (d) => d.color)
@@ -483,7 +519,7 @@
 					.attr('stroke-dasharray', '4,3')
 					.attr('opacity', 0.4);
 				ann.append('text')
-					.attr('x', (d) => xScale(d.year) + 3)
+					.attr('x', (d) => zoomedX(d.year) + 3)
 					.attr('y', (d) => d.labelY)
 					.attr('fill', (d) => d.color)
 					.attr('font-size', '9px')
@@ -495,12 +531,12 @@
 			(update) => {
 				update.transition().duration(400).attr('opacity', 1);
 				update.select('line')
-					.attr('x1', (d) => xScale(d.year))
-					.attr('x2', (d) => xScale(d.year))
+					.attr('x1', (d) => zoomedX(d.year))
+					.attr('x2', (d) => zoomedX(d.year))
 					.attr('y2', innerH)
 					.attr('stroke', (d) => d.color);
 				update.select('text')
-					.attr('x', (d) => xScale(d.year) + 3)
+					.attr('x', (d) => zoomedX(d.year) + 3)
 					.attr('y', (d) => d.labelY)
 					.attr('fill', (d) => d.color)
 					.text((d) => d.label);
@@ -658,6 +694,34 @@
 			(exit) => exit.remove()
 		);
 
+		// Zoom behavior (X-axis only)
+		const zoom = d3.zoom<SVGSVGElement, null>()
+			.scaleExtent([1, 20])
+			.translateExtent([[0, 0], [innerW, innerH]])
+			.extent([[0, 0], [innerW, innerH]])
+			.filter((event: Event) => {
+				if (event.type === 'dblclick') return false;
+				return true;
+			})
+			.on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, null>) => {
+				const t = event.transform;
+				const constrainedT = d3.zoomIdentity.translate(t.x, 0).scale(t.k);
+				currentTransform = constrainedT;
+				// Dismiss tooltip during zoom/pan
+				tooltipVisible = false;
+				hoveredYear.set(null);
+			});
+
+		svg.call(zoom);
+		svg.call(zoom.transform, currentTransform);
+		zoomBehavior = zoom;
+
+		// Double-click/double-tap to reset zoom
+		svg.on('dblclick.zoom', null);
+		svg.on('dblclick', () => {
+			svg.transition().duration(400).call(zoom.transform as any, d3.zoomIdentity);
+		});
+
 		// Tooltip overlay
 		const overlay = g.selectAll<SVGRectElement, null>('rect.overlay')
 			.data([null])
@@ -679,14 +743,13 @@
 			.attr('y2', innerH)
 			.style('display', 'none');
 
-		function handlePointerMove(event: MouseEvent | TouchEvent) {
-			const [mx] = d3.pointer(event, overlay.node()!);
-			const year = Math.round(xScale.invert(mx));
+		function showTooltipAtX(mx: number) {
+			const year = Math.round(zoomedX.invert(mx));
 
 			tooltipLine
 				.style('display', null)
-				.attr('x1', xScale(year))
-				.attr('x2', xScale(year));
+				.attr('x1', zoomedX(year))
+				.attr('x2', zoomedX(year));
 
 			const items: typeof tooltipItems = [];
 			for (const ld of linesData) {
@@ -717,7 +780,7 @@
 			tooltipItems = items;
 			hoveredYear.set(year);
 
-			const px = margin.left + xScale(year);
+			const px = margin.left + zoomedX(year);
 			tooltipX = px + 12;
 			if (tooltipX + 200 > width) {
 				tooltipX = px - 210;
@@ -726,28 +789,58 @@
 			tooltipVisible = true;
 		}
 
+		function handlePointerMove(event: MouseEvent | TouchEvent) {
+			const [mx] = d3.pointer(event, overlay.node()!);
+			showTooltipAtX(mx);
+		}
+
+		// Desktop: hover tooltip
 		overlay
-			.on('mousemove', handlePointerMove)
-			.on('mouseleave', () => {
-				tooltipLine.style('display', 'none');
-				tooltipVisible = false;
-				hoveredYear.set(null);
+			.on('mousemove', (event: MouseEvent) => {
+				if (!isTouchDevice) handlePointerMove(event);
 			})
-			.on('touchstart', (event: TouchEvent) => {
-				event.preventDefault();
-				handlePointerMove(event);
-			}, { passive: false } as any)
-			.on('touchmove', (event: TouchEvent) => {
-				event.preventDefault();
-				handlePointerMove(event);
-			}, { passive: false } as any)
-			.on('touchend', () => {
-				setTimeout(() => {
+			.on('mouseleave', () => {
+				if (!isTouchDevice) {
 					tooltipLine.style('display', 'none');
 					tooltipVisible = false;
 					hoveredYear.set(null);
-				}, 300);
+				}
 			});
+
+		// Mobile: tap to pin tooltip
+		if (isTouchDevice) {
+			let touchStartTime = 0;
+			let touchStartPos = { x: 0, y: 0 };
+
+			svg.on('touchstart.tooltip', (event: TouchEvent) => {
+				if (event.touches.length === 1) {
+					touchStartTime = Date.now();
+					touchStartPos = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+				}
+			}, { passive: true } as any);
+
+			svg.on('touchend.tooltip', (event: TouchEvent) => {
+				const elapsed = Date.now() - touchStartTime;
+				if (elapsed > 300) return;
+				if (event.changedTouches.length !== 1) return;
+				const endPos = event.changedTouches[0];
+				const dist = Math.hypot(endPos.clientX - touchStartPos.x, endPos.clientY - touchStartPos.y);
+				if (dist > 10) return;
+
+				const svgNode = svg.node()!;
+				const rect = svgNode.getBoundingClientRect();
+				const mx = endPos.clientX - rect.left - margin.left;
+				const my = endPos.clientY - rect.top - margin.top;
+
+				if (mx >= 0 && mx <= innerW && my >= 0 && my <= innerH) {
+					showTooltipAtX(mx);
+				} else {
+					tooltipLine.style('display', 'none');
+					tooltipVisible = false;
+					hoveredYear.set(null);
+				}
+			}, { passive: true } as any);
+		}
 	});
 </script>
 
@@ -769,6 +862,14 @@
 				</div>
 			{/each}
 		</div>
+	{/if}
+	{#if isZoomed}
+		<button
+			class="zoom-reset"
+			onclick={resetZoom}
+		>
+			Reset zoom
+		</button>
 	{/if}
 </div>
 
@@ -838,5 +939,23 @@
 	.tooltip-trend {
 		color: var(--text-secondary);
 		font-size: 11px;
+	}
+	.zoom-reset {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		color: var(--text-secondary);
+		padding: 4px 10px;
+		border-radius: 4px;
+		font-size: 11px;
+		cursor: pointer;
+		z-index: 5;
+		transition: color 0.15s, border-color 0.15s;
+	}
+	.zoom-reset:hover {
+		color: var(--text);
+		border-color: var(--accent);
 	}
 </style>
