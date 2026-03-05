@@ -91,6 +91,8 @@ Pull requests can be deployed for live testing by adding the `deploy-preview` la
 
 Only one PR can be previewed at a time. The production URL serves the PR code during preview.
 
+**Trade-offs:** Single-app approach means zero extra cost (reuses `macroco` app), but the production URL serves PR code during preview. Acceptable for a low-traffic educational app with no user data. The shared `deploy` concurrency group prevents parallel deploys — labeling a second PR cancels the first.
+
 ## Manual Deploy
 
 ```bash

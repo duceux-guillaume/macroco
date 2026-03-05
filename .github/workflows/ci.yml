@@ -88,6 +88,8 @@ jobs:
   preview-deploy:
     name: Preview Deploy to Fly.io
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     needs: [clippy, test, frontend-test]
     if: >-
       always() &&
@@ -111,15 +113,26 @@ jobs:
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "Preview deployed to https://macroco.fly.dev (commit \`${{ github.event.pull_request.head.sha }}\`).
+          BODY="Preview deployed to https://macroco.fly.dev (commit \`${COMMIT_SHA}\`).
 
           This will be reverted to \`main\` when the PR is merged, closed, or the \`deploy-preview\` label is removed."
+          # Update existing preview comment or create new one
+          EXISTING=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments[] | select(.body | startswith("Preview deployed")) | .url' | tail -1)
+          if [ -n "$EXISTING" ]; then
+            gh api "${EXISTING#https://api.github.com}" -X PATCH -f body="$BODY"
+          else
+            gh pr comment "$PR_NUMBER" --body "$BODY"
+          fi
 
   revert-deploy:
     name: Revert to main
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    environment: preview
     if: >-
       github.event_name == 'pull_request' &&
       (
@@ -142,6 +155,14 @@ jobs:
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "Preview reverted. Production is back on \`main\` (\`$(git rev-parse --short HEAD)\`)."
+          MAIN_SHA=$(git rev-parse --short HEAD)
+          BODY="Preview reverted. Production is back on \`main\` (\`${MAIN_SHA}\`)."
+          # Update existing preview comment or create new one
+          EXISTING=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments[] | select(.body | startswith("Preview deployed") or startswith("Preview reverted")) | .url' | tail -1)
+          if [ -n "$EXISTING" ]; then
+            gh api "${EXISTING#https://api.github.com}" -X PATCH -f body="$BODY"
+          else
+            gh pr comment "$PR_NUMBER" --body "$BODY"
+          fi

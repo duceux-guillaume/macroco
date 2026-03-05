@@ -140,6 +140,12 @@
   - *Exempt:* UI-only feature with unit tests on URL builder; no backend logic to test.
   - *Design:* `docs/plans/2026-03-04-user-feedback-design.md`
 
+- [x] **REQ-032: PR preview deployment**
+  - *Context:* Frontend and UX changes need live testing on Fly.io before merging. A `deploy-preview` GitHub label triggers deployment of the PR branch to the production app (`macroco.fly.dev`). Removing the label, merging, or closing the PR auto-reverts to the latest `main`.
+  - *Components:* `.github/workflows/ci.yml`: preview-deploy + revert-deploy jobs; GitHub label `deploy-preview`
+  - *Done:* Label-triggered PR deploy with auto-revert. Shared concurrency group prevents parallel deploys. PR comments for deploy/revert status. Uses `preview` GitHub environment.
+  - *Exempt:* CI infrastructure, validated by pipeline execution
+
 ---
 
 ## In Progress
