@@ -133,8 +133,7 @@ fn historical_dir() -> std::path::PathBuf {
 // Tests — REQ-026
 // ---------------------------------------------------------------------------
 
-/// REQ-026: BAU population must track World Bank SP.POP.TOTL within 16% RMSE.
-/// (World3 over-estimates early pop growth; 16% is the structural floor.)
+/// REQ-026: BAU population must track World Bank SP.POP.TOTL within 11% RMSE.
 #[test]
 fn bau_population_tracks_historical() {
     let sim = bau_sim();
@@ -142,13 +141,13 @@ fn bau_population_tracks_historical() {
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.population.population, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 16.0,
-        "REQ-026 Population: RMSE% = {:.1}%, threshold = 16.0%",
+        pct < 11.0,
+        "REQ-026 Population: RMSE% = {:.1}%, threshold = 11.0%",
         pct
     );
 }
 
-/// REQ-026: BAU food/capita must track FAO Food Balance data within 22% RMSE.
+/// REQ-026: BAU food/capita must track FAO Food Balance data within 17% RMSE.
 #[test]
 fn bau_food_per_capita_tracks_historical() {
     let sim = bau_sim();
@@ -156,14 +155,13 @@ fn bau_food_per_capita_tracks_historical() {
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 22.0,
-        "REQ-026 Food/capita: RMSE% = {:.1}%, threshold = 22.0%",
+        pct < 17.0,
+        "REQ-026 Food/capita: RMSE% = {:.1}%, threshold = 17.0%",
         pct
     );
 }
 
-/// REQ-026: BAU IOPC must track World Bank industrial VA data within 23% RMSE.
-/// (World3 resource-depletion collapse fires ~2010 while real IOPC grows to 2023.)
+/// REQ-026: BAU IOPC must track World Bank industrial VA data within 18% RMSE.
 #[test]
 fn bau_iopc_tracks_historical() {
     let sim = bau_sim();
@@ -172,13 +170,13 @@ fn bau_iopc_tracks_historical() {
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 23.0,
-        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 23.0%",
+        pct < 18.0,
+        "REQ-026 IOPC: RMSE% = {:.1}%, threshold = 18.0%",
         pct
     );
 }
 
-/// REQ-026: BAU NNR fraction must track OWID resource depletion within 15% RMSE.
+/// REQ-026: BAU NNR fraction must track OWID resource depletion within 10% RMSE.
 #[test]
 fn bau_nnr_fraction_tracks_historical() {
     let sim = bau_sim();
@@ -186,14 +184,13 @@ fn bau_nnr_fraction_tracks_historical() {
     let (sim_vals, hist_vals, _years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
     let pct = rmse_pct(&sim_vals, &hist_vals);
     assert!(
-        pct < 15.0,
-        "REQ-026 NNR: RMSE% = {:.1}%, threshold = 15.0%",
+        pct < 10.0,
+        "REQ-026 NNR: RMSE% = {:.1}%, threshold = 10.0%",
         pct
     );
 }
 
-/// REQ-026: BAU population max per-year error must be ≤ 42%.
-/// (World3 over-estimates early pop growth ~1960; 41.5% at 1961 is structural.)
+/// REQ-026: BAU population max per-year error must be ≤ 37%.
 #[test]
 fn bau_population_max_year_error() {
     let sim = bau_sim();
@@ -201,13 +198,13 @@ fn bau_population_max_year_error() {
     let (sim_vals, hist_vals, years) = match_years(sim, |s| s.population.population, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
     assert!(
-        max_err <= 42.0,
-        "REQ-026 Population max-year: {:.1}% in year {} (threshold 42.0%)",
+        max_err <= 37.0,
+        "REQ-026 Population max-year: {:.1}% in year {} (threshold 37.0%)",
         max_err, worst_year
     );
 }
 
-/// REQ-026: BAU food/capita max per-year error must be ≤ 30%.
+/// REQ-026: BAU food/capita max per-year error must be ≤ 25%.
 #[test]
 fn bau_food_per_capita_max_year_error() {
     let sim = bau_sim();
@@ -215,14 +212,13 @@ fn bau_food_per_capita_max_year_error() {
     let (sim_vals, hist_vals, years) = match_years(sim, |s| s.agriculture.food_per_capita, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
     assert!(
-        max_err <= 30.0,
-        "REQ-026 Food/capita max-year: {:.1}% in year {} (threshold 30.0%)",
+        max_err <= 25.0,
+        "REQ-026 Food/capita max-year: {:.1}% in year {} (threshold 25.0%)",
         max_err, worst_year
     );
 }
 
-/// REQ-026: BAU IOPC max per-year error must be ≤ 43%.
-/// (World3 resource-depletion collapse fires ~2010 while real IOPC grows to 2023.)
+/// REQ-026: BAU IOPC max per-year error must be ≤ 38%.
 #[test]
 fn bau_iopc_max_year_error() {
     let sim = bau_sim();
@@ -231,13 +227,13 @@ fn bau_iopc_max_year_error() {
         match_years(sim, |s| s.capital.industrial_output_per_capita, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
     assert!(
-        max_err <= 43.0,
-        "REQ-026 IOPC max-year: {:.1}% in year {} (threshold 43.0%)",
+        max_err <= 38.0,
+        "REQ-026 IOPC max-year: {:.1}% in year {} (threshold 38.0%)",
         max_err, worst_year
     );
 }
 
-/// REQ-026: BAU NNR fraction max per-year error must be ≤ 30%.
+/// REQ-026: BAU NNR fraction max per-year error must be ≤ 25%.
 #[test]
 fn bau_nnr_fraction_max_year_error() {
     let sim = bau_sim();
@@ -245,8 +241,8 @@ fn bau_nnr_fraction_max_year_error() {
     let (sim_vals, hist_vals, years) = match_years(sim, |s| s.resources.fraction_remaining, &hist);
     let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
     assert!(
-        max_err <= 30.0,
-        "REQ-026 NNR max-year: {:.1}% in year {} (threshold 30.0%)",
+        max_err <= 25.0,
+        "REQ-026 NNR max-year: {:.1}% in year {} (threshold 25.0%)",
         max_err, worst_year
     );
 }
@@ -257,10 +253,10 @@ fn bau_nnr_fraction_max_year_error() {
 fn calibration_summary_report() {
     let sim = bau_sim();
     let vars: Vec<(&str, &str, fn(&WorldState) -> f64, f64, f64)> = vec![
-        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 16.0, 42.0),
-        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 22.0, 30.0),
-        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 23.0, 43.0),
-        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 15.0, 30.0),
+        ("Population", "population.csv", (|s: &WorldState| s.population.population) as fn(&WorldState) -> f64, 11.0, 37.0),
+        ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 17.0, 25.0),
+        ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 18.0, 38.0),
+        ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 10.0, 25.0),
     ];
     println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
     for (name, csv, extract, rmse_threshold, max_err_threshold) in vars {
