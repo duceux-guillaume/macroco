@@ -6,7 +6,7 @@ Explore playfully the possible trajectories of humanity. A living macroeconomic 
 
 The platform. Simulation engine, interactive frontend, API, CLI, documentation, CI/CD. Everything needed to run and explore World 3 scenarios.
 
-<progress value="100" max="100"></progress> 100% (24/24)
+●●●●●●●●●● 100% (24/24)
 
 | Category | Requirements |
 |----------|-------------|
@@ -21,7 +21,7 @@ The platform. Simulation engine, interactive frontend, API, CLI, documentation, 
 
 The default trajectory: overshoot and decline. BAU scenario polished with historical calibration against real-world data (1960-2023) and validated trajectory matching Meadows 1972 dynamics.
 
-<progress value="75" max="100"></progress> 75% (3/4)
+●●●●●●●○○○ 75% (3/4)
 
 | Category | Requirements |
 |----------|-------------|
@@ -32,7 +32,7 @@ The default trajectory: overshoot and decline. BAU scenario polished with histor
 
 The belief that discovering resources and technology will allow for a Star Trek future. Technology scenario calibrated with climate and energy extension sectors.
 
-<progress value="0" max="100"></progress> 0% (0/2)
+○○○○○○○○○○ 0% (0/2)
 
 | Category | Requirements |
 |----------|-------------|
@@ -43,7 +43,7 @@ The belief that discovering resources and technology will allow for a Star Trek 
 
 The belief that humanity will progress toward justice and moderation. Stabilized scenario calibrated with biodiversity and inequality extension sectors.
 
-<progress value="0" max="100"></progress> 0% (0/2)
+○○○○○○○○○○ 0% (0/2)
 
 | Category | Requirements |
 |----------|-------------|
@@ -54,7 +54,7 @@ The belief that humanity will progress toward justice and moderation. Stabilized
 
 Auto-updating historical data pipeline. Real-time ingestion from World Bank, NOAA, FAO, UN, and BP with SQLite cache and fallback to bundled CSVs.
 
-<progress value="0" max="100"></progress> 0% (0/2)
+○○○○○○○○○○ 0% (0/2)
 
 | Category | Requirements |
 |----------|-------------|
@@ -64,7 +64,7 @@ Auto-updating historical data pipeline. Real-time ingestion from World Bank, NOA
 
 Advanced charting, sensitivity analysis, and performance benchmarks. Tools for deeper investigation of model dynamics.
 
-<progress value="0" max="100"></progress> 0% (0/1)
+○○○○○○○○○○ 0% (0/1)
 
 | Category | Requirements |
 |----------|-------------|
