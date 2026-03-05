@@ -380,7 +380,7 @@
 				: _visibleVars.has(d.fieldPath);
 			if (!isVisible) return 0.35;
 			if (histOnly) return d.fieldPath === '__historical__' ? 1 : 0.35;
-			if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath && d.fieldPath !== '__historical__') return 0.35;
+			if (selectedVarFieldPath && d.fieldPath !== selectedVarFieldPath) return 0.35;
 			return 1;
 		}
 
