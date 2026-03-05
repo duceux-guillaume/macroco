@@ -83,7 +83,7 @@ mod tests {
         let tables = WorldLookupTables::load();
         let d = resource_derivative(&s, &params, &tables);
         // pop=1.6e9, iopc=43.75, coeff=0.3e-14
-        // At 1900 (before 1970): growth_rate has no effect, effective_efficiency = resource_efficiency = 1.0
+        // At 1900 (before 1970): growth_rate has no effect, effective_efficiency = resource_efficiency = 1.05
         let effective_eff = params.resource_efficiency;
         let expected = -(1.6e9 * 43.75 * RESOURCE_DEPLETION_COEFF / effective_eff);
         assert_relative_eq!(d, expected, epsilon = 1e-10);
