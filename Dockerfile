@@ -61,10 +61,8 @@ COPY --from=rust-builder /app/target/release/world3-api .
 # Static frontend
 COPY --from=frontend-builder /app/frontend/build ./static
 
-# Data files (presets, lookup tables)
+# Data files (presets, lookup tables) and license notices
 COPY data/ ./data/
-
-# License files
 COPY LICENSE THIRD_PARTY_LICENSES ./
 
 RUN chown -R appuser:appuser /app

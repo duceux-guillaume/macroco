@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate THIRD_PARTY_LICENSES from Rust and Node dependencies."""
 
+import argparse
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,21 +24,16 @@ def rust_licenses():
         return []
 
     meta = json.loads(result.stdout)
-    workspace_members = set()
-    for pkg_id in meta.get("workspace_members", []):
-        # Extract package name from the ID string
-        name = pkg_id.split("#")[0].split("/")[-1] if "#" in pkg_id else pkg_id.split()[0]
-        workspace_members.add(name)
 
     entries = []
     for pkg in sorted(meta["packages"], key=lambda p: p["name"]):
-        # Skip our own workspace crates
-        if pkg["name"] in workspace_members:
-            continue
-        # Also skip by checking manifest path
+        # Skip workspace crates by checking manifest path
         manifest = Path(pkg.get("manifest_path", ""))
-        if str(REPO_ROOT) in str(manifest) and "/crates/" in str(manifest):
-            continue
+        try:
+            manifest.relative_to(REPO_ROOT)
+            continue  # It's a workspace crate
+        except ValueError:
+            pass  # External dependency
 
         license_text = pkg.get("license", "UNKNOWN") or "UNKNOWN"
         authors = ", ".join(pkg.get("authors", [])) or "see package repository"
@@ -91,7 +86,6 @@ def node_licenses():
     for name, ver in sorted(all_deps):
         pkg_json_path = node_modules / name / "package.json"
         if not pkg_json_path.exists():
-            # Try scoped package
             continue
 
         with open(pkg_json_path) as f:
@@ -177,6 +171,14 @@ def format_output(rust_entries, node_entries):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Generate THIRD_PARTY_LICENSES")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check that committed file is up to date (exit 1 if stale)",
+    )
+    args = parser.parse_args()
+
     rust = rust_licenses()
     node = node_licenses()
 
@@ -185,6 +187,18 @@ def main():
         sys.exit(1)
 
     output = format_output(rust, node)
+
+    if args.check:
+        if not OUTPUT.exists():
+            print(f"FAIL: {OUTPUT} does not exist. Run without --check to generate.", file=sys.stderr)
+            sys.exit(1)
+        existing = OUTPUT.read_text()
+        if existing != output:
+            print(f"FAIL: {OUTPUT} is stale. Run `python3 scripts/generate-third-party-licenses.py` to update.", file=sys.stderr)
+            sys.exit(1)
+        print(f"OK: {OUTPUT} is up to date ({len(rust)} Rust + {len(node)} Node packages)")
+        return
+
     OUTPUT.write_text(output)
     print(f"Written {OUTPUT} ({len(rust)} Rust + {len(node)} Node packages)")
 

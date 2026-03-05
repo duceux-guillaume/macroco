@@ -61,6 +61,17 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  license-audit:
+    name: License Audit
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(fromJSON('["opened", "synchronize", "reopened"]'), github.event.action))
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+      - run: python3 scripts/generate-third-party-licenses.py --check
+
   traceability:
     name: Traceability
     runs-on: ubuntu-latest
