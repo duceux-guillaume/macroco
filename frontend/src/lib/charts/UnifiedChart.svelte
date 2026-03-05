@@ -8,6 +8,7 @@
 	import { formatBillions, formatPercent, formatDecimal, formatInteger } from '../utils/format';
 	import { selectedVariableId, selectedHistoricalId, highlightedVariables, highlightHistoricalOnly } from '../stores/info';
 	import { hoveredYear } from '../stores/simulation';
+	import { focusedScenarioId as focusedScenarioIdStore } from '../stores/scenarios';
 	import { compareMode, compareVariable, showHistorical, visibleVariables } from '../stores/chart-ui';
 	import { historicalData } from '../stores/historical';
 	import { getAnnotations } from '../content/chart-annotations';
@@ -22,10 +23,11 @@
 		data: Map<string, WorldState[]>;
 		colors: Map<string, string>;
 		names: Map<string, string>;
+		activeScenarioIds: string[];
 		focusedScenarioId?: string | null;
 	}
 
-	let { data, colors, names, focusedScenarioId = null }: Props = $props();
+	let { data, colors, names, activeScenarioIds, focusedScenarioId = null }: Props = $props();
 
 	let containerEl: HTMLDivElement;
 	let width = $state(0);
@@ -143,6 +145,7 @@
 		const _showHistorical = $showHistorical;
 		const _historicalData = $historicalData;
 		const _visibleVars = $visibleVariables;
+		const _activeIds = activeScenarioIds;
 
 		const innerW = width - margin.left - margin.right;
 		const innerH = height - margin.top - margin.bottom;
@@ -151,6 +154,7 @@
 		let linesData: LineDatum[] = [];
 		let legendData: Array<{ id: string; label: string; shortLabel: string; color: string; fieldPath: string }> = [];
 		let useNormalizedY = true;
+		let focusScenarioId: string | undefined;
 
 		if (_compareMode) {
 			const varConfig = unifiedVariables.find((v) => v.fieldPath === _compareVariable) ?? unifiedVariables[0];
@@ -210,6 +214,7 @@
 		} else {
 			const scenarioId = _focusedId ?? _data.keys().next().value;
 			if (!scenarioId) return;
+			focusScenarioId = scenarioId;
 			const states = _data.get(scenarioId);
 			if (!states || states.length === 0) return;
 
@@ -578,6 +583,63 @@
 			legendGroup.attr('transform', `translate(${margin.left + innerW + 16}, ${margin.top + 8})`);
 		}
 
+		// Scenario header (focus mode only — shows "● ScenarioName", click to cycle)
+		const headerData = !_compareMode && focusScenarioId ? [{
+			name: _names.get(focusScenarioId) ?? 'Scenario',
+			color: _colors.get(focusScenarioId) ?? '#888'
+		}] : [];
+
+		legendGroup.selectAll<SVGGElement, typeof headerData[number]>('g.scenario-header')
+			.data(headerData, () => 'header')
+			.join(
+				(enter) => {
+					const hg = enter.append('g')
+						.attr('class', 'scenario-header')
+						.attr('cursor', _activeIds.length > 1 ? 'pointer' : 'default')
+						.attr('transform', 'translate(0, -4)');
+
+					hg.append('circle')
+						.attr('cx', 5)
+						.attr('cy', -4)
+						.attr('r', 4)
+						.attr('fill', (d) => d.color);
+
+					hg.append('text')
+						.attr('x', 14)
+						.attr('y', 0)
+						.attr('fill', 'var(--text)')
+						.attr('font-size', isNarrow ? '11px' : '13px')
+						.attr('font-weight', '500')
+						.text((d) => d.name);
+
+					hg.on('click', () => {
+						if (_activeIds.length < 2) return;
+						const currentIdx = _activeIds.indexOf(_focusedId ?? '');
+						const nextIdx = (currentIdx + 1) % _activeIds.length;
+						focusedScenarioIdStore.set(_activeIds[nextIdx]);
+					});
+
+					return hg;
+				},
+				(update) => {
+					update.attr('cursor', _activeIds.length > 1 ? 'pointer' : 'default');
+					update.select('circle').attr('fill', (d) => d.color);
+					update.select('text')
+						.attr('font-size', isNarrow ? '11px' : '13px')
+						.text((d) => d.name);
+					update.on('click', () => {
+						if (_activeIds.length < 2) return;
+						const currentIdx = _activeIds.indexOf(_focusedId ?? '');
+						const nextIdx = (currentIdx + 1) % _activeIds.length;
+						focusedScenarioIdStore.set(_activeIds[nextIdx]);
+					});
+					return update;
+				},
+				(exit) => exit.remove()
+			);
+
+		const legendYOffset = headerData.length > 0 ? 16 : 0;
+
 		const legendItems = legendGroup
 			.selectAll<SVGGElement, typeof legendData[number]>('g.legend-item')
 			.data(legendData, (d) => d.id);
@@ -632,9 +694,9 @@
 						if (isNarrow) {
 							const col = i % 3;
 							const row = Math.floor(i / 3);
-							return `translate(${col * Math.floor(innerW / 3)}, ${row * 18})`;
+							return `translate(${col * Math.floor(innerW / 3)}, ${row * 18 + legendYOffset})`;
 						}
-						return `translate(0, ${i * 28})`;
+						return `translate(0, ${i * 28 + legendYOffset})`;
 					})
 					.attr('cursor', 'pointer')
 					.attr('opacity', getLegendOpacity)
@@ -702,9 +764,9 @@
 						if (isNarrow) {
 							const col = i % 3;
 							const row = Math.floor(i / 3);
-							return `translate(${col * Math.floor(innerW / 3)}, ${row * 18})`;
+							return `translate(${col * Math.floor(innerW / 3)}, ${row * 18 + legendYOffset})`;
 						}
-						return `translate(0, ${i * 28})`;
+						return `translate(0, ${i * 28 + legendYOffset})`;
 					})
 					.attr('opacity', getLegendOpacity);
 				update.select('text').text((d) => isNarrow ? d.shortLabel : d.label);
