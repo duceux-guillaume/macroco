@@ -66,7 +66,8 @@ pub fn derivatives(
 
     // --- Step 5: Pollution ---
     // (pollution_index must be updated before population uses it)
-    let (d_pollution, d_pollution_buffer) = pollution::pollution_derivatives(&mut s, params, tables);
+    let (d_pollution, d_poll_stage1, d_poll_stage2, d_poll_stage3) =
+        pollution::pollution_derivatives(&mut s, params, tables);
 
     // --- Step 6: Population ---
     let pop_deriv = population::population_derivatives(&mut s, params, tables);
@@ -95,7 +96,9 @@ pub fn derivatives(
     d.resources.nonrenewable_resources = d_nnr;
 
     d.pollution.persistent_pollution = d_pollution;
-    d.pollution.pollution_appearance_buffer = d_pollution_buffer;
+    d.pollution.pollution_appearance_stage1 = d_poll_stage1;
+    d.pollution.pollution_appearance_stage2 = d_poll_stage2;
+    d.pollution.pollution_appearance_buffer = d_poll_stage3;
 
     d
 }
@@ -228,7 +231,7 @@ mod tests {
         let cap = capital::capital_derivatives(&mut s_manual, &params, &tables);
         let d_nnr = resources::resource_derivative(&s_manual, &params, &tables);
         let agri = agriculture::agriculture_derivatives(&mut s_manual, &params, &tables);
-        let (d_poll, d_poll_buf) = pollution::pollution_derivatives(&mut s_manual, &params, &tables);
+        let (d_poll, d_poll_s1, d_poll_s2, d_poll_s3) = pollution::pollution_derivatives(&mut s_manual, &params, &tables);
         let pop_d = population::population_derivatives(&mut s_manual, &params, &tables);
 
         // Compare
@@ -237,7 +240,9 @@ mod tests {
         assert_relative_eq!(d_full.resources.nonrenewable_resources, d_nnr, epsilon = 1e-10);
         assert_relative_eq!(d_full.agriculture.arable_land, agri.d_arable_land, epsilon = 1e-10);
         assert_relative_eq!(d_full.pollution.persistent_pollution, d_poll, epsilon = 1e-10);
-        assert_relative_eq!(d_full.pollution.pollution_appearance_buffer, d_poll_buf, epsilon = 1e-10);
+        assert_relative_eq!(d_full.pollution.pollution_appearance_stage1, d_poll_s1, epsilon = 1e-10);
+        assert_relative_eq!(d_full.pollution.pollution_appearance_stage2, d_poll_s2, epsilon = 1e-10);
+        assert_relative_eq!(d_full.pollution.pollution_appearance_buffer, d_poll_s3, epsilon = 1e-10);
         assert_relative_eq!(d_full.population.cohort_0_14, pop_d.d_cohort_0_14, epsilon = 1e-10);
         assert_relative_eq!(d_full.population.cohort_65_plus, pop_d.d_cohort_65_plus, epsilon = 1e-10);
     }
