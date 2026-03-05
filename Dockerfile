@@ -3,9 +3,9 @@ FROM rust:1.85-bookworm AS rust-builder
 
 WORKDIR /app
 
-# Install system deps for plotters (fontconfig)
+# Install system deps for Rust build
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libfontconfig1-dev pkg-config \
+    pkg-config libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy manifests first for dependency caching
@@ -48,7 +48,7 @@ RUN npm run build
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libfontconfig1 ca-certificates \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --no-create-home --shell /sbin/nologin appuser
