@@ -49,9 +49,6 @@ clap = { version = "4", features = ["derive"] }
 # CSV parsing
 csv = "1"
 
-# Charting
-plotters = "0.3"
-
 [profile.release]
 strip = true
 
