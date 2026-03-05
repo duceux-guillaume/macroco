@@ -271,7 +271,7 @@ export const variableDescriptions: Record<string, VariableInfo> = {
 		beginner:
 			'How much food each hectare of farmland produces. Increases with more fertilizer and machinery, decreases when pollution damages crops.',
 		expert:
-			'LY = 600 × LYMC(agri_inputs/ha) × LYMAP(pollution_index) × agricultural_technology. Base yield 600 kg/ha/yr (1900). LYMC ranges 1.0→6.9. LYMAP ranges 1.2→0.50.',
+			'LY = land_fertility × LYMC(agri_inputs/ha) × LYMAP(pollution_index) × ag_tech, where ag_tech = agricultural_technology × (1 + ag_tech_growth_rate)^max(year-1960, 0). Base fertility 600 kg/ha/yr (1900). LYMC ranges 1.0→10.0. LYMAP ranges 1.0→0.40.',
 		feedbackLoops: ['pollution-food'],
 		relatedVariables: ['agriculture.food', 'pollution.pollution_index']
 	},
@@ -470,6 +470,22 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		impact: {
 			increase: 'More food per hectare — delays food crisis, supports larger population',
 			decrease: 'Lower yields — food shortages arrive earlier',
+			sparklineVariable: 'agriculture.food_per_capita'
+		}
+	},
+	agricultural_technology_growth_rate: {
+		name: 'Agricultural Tech Growth Rate',
+		unit: 'yr⁻¹',
+		sector: 'Agriculture',
+		beginner:
+			'How fast farming technology improves each year — representing the Green Revolution, better seeds, and modern techniques that World3 did not originally model.',
+		expert:
+			'Macroco extension: annual agricultural TFP growth rate, applied from 1960. ag_tech = agricultural_technology × (1 + rate)^max(year-1960, 0). Calibrated against USDA ERS international agricultural productivity data (~1%/yr, 1960-2020). Set to 0.005 for BAU (residual TFP not captured by LYMC capital-driven yield).',
+		feedbackLoops: ['food-population', 'pollution-food'],
+		relatedVariables: ['agriculture.food_per_capita', 'agriculture.land_yield'],
+		impact: {
+			increase: 'Higher crop yields over time — more food but eventually constrained by land degradation and pollution',
+			decrease: 'Slower yield improvement — food per capita peaks lower and earlier',
 			sparklineVariable: 'agriculture.food_per_capita'
 		}
 	},
