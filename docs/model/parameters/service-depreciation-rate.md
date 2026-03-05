@@ -4,15 +4,7 @@ The annual fraction of service capital stock (hospitals, schools, government bui
 
 **Sector:** [Capital](../sectors/capital.md)
 **Source code:** `crates/world3-core/src/model/params.rs`, field `service_depreciation_rate`
-
-## Value
-
-| | Lifetime | Rate |
-|---|---|---|
-| **BAU (ours)** | 20 years | $$\delta_s = 1/20 = 0.05 \;\text{yr}^{-1}$$ |
-| **World3-03** | 20 years ($$alsc_1 = 20$$) | $$1/20 = 0.05 \;\text{yr}^{-1}$$ |
-
-This parameter matches World3-03 exactly.
+**BAU value:** `0.05` (1/20 yr⁻¹, 20-year lifetime; matches World3-03 exactly)
 
 ## Equation Context
 

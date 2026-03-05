@@ -2,27 +2,7 @@
 
 **Sector:** [Agriculture](../sectors/agriculture.md)
 **Source code:** `crates/world3-core/src/model/params.rs` (`land_protection_fraction`)
-**Unit:** dimensionless fraction
-**Range:** 0.0 -- 0.5
-**Step:** 0.05
-
-## Purpose
-
-The fraction of arable land under active protection from degradation and overuse. Protected land erodes at a reduced rate, preserving soil quality for future production. This parameter represents policy interventions such as conservation tillage mandates, soil erosion controls, wetland buffers, and protected agricultural zones.
-
-The protection fraction enters the erosion equation as a multiplicative reduction:
-
-$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\_ratio}) \times (1 - \text{land\_protection\_fraction})$$
-
-At 0.0, all land erodes at the full rate. At 0.3, erosion is reduced by 30%. The maximum of 0.5 (50% reduction) reflects the practical limit of protection --- some erosion is unavoidable under any farming system.
-
-## Scenario Values
-
-| Scenario | Value | Rationale |
-|----------|-------|-----------|
-| BAU (Collapse) | 0.0 | No systematic soil conservation policy |
-| Technology (Technotopia) | 0.0 | Technology scenario focuses on efficiency, not conservation |
-| Stabilized (Ecotopia) | 0.3 | Active soil conservation as part of sustainability policy |
+**BAU value:** `0.0` (no soil conservation policy; matches World3-03 standard run)
 
 ## Equation Context
 

@@ -4,13 +4,7 @@ The annual fraction of industrial capital stock that wears out and must be repla
 
 **Sector:** [Capital](../sectors/capital.md)
 **Source code:** `crates/world3-core/src/model/params.rs`, field `industrial_depreciation_rate`
-
-## Value
-
-| | Lifetime | Rate |
-|---|---|---|
-| **BAU (ours)** | 13 years | $$\delta_i = 1/13 \approx 0.0769 \;\text{yr}^{-1}$$ |
-| **World3-03** | 14 years ($$alic_1 = 14$$) | $$1/14 \approx 0.0714 \;\text{yr}^{-1}$$ |
+**BAU value:** `1.0 / 13.0` (≈ 0.0769 yr⁻¹, corresponding to 13-year lifetime; World3-03 uses 14 years)
 
 ## Equation Context
 

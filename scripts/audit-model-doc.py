@@ -5,10 +5,14 @@ Model documentation audit script.
 Verifies that docs/model/ is complete, correctly templated, and in sync
 with the Rust source code. Designed to run in CI (--check mode).
 
+Implements phases 1-3 of the audit. Phases 4 (reference integrity via
+pyworld3 JSON) and 5 (worktree diff awareness) require interactive Claude
+sessions — use the /audit-model-doc slash command for the full 5-phase audit.
+
 Phases:
   1. Completeness — every code entity has a doc file, no orphans
   2. Template conformance — required headings present
-  3. Code-doc sync — breakpoint values and BAU defaults match
+  3. Code-doc sync — breakpoint values, BAU defaults, source paths
 
 Usage:
   python3 scripts/audit-model-doc.py          # full report
@@ -180,8 +184,9 @@ def phase1_completeness() -> tuple[list[str], int, int, int]:
 # ── Phase 2: Template Conformance ──────────────────────────────────────
 
 TABLE_HEADINGS = ["## Equation Context", "## Breakpoints", "## References"]
-SECTOR_HEADINGS = ["## Overview", "## State Variables", "## Governing Equations", "## Lookup Tables", "## References"]
+SECTOR_HEADINGS = ["## Overview", "## State Variables", "## Governing Equations", "## Feedback Loops", "## Lookup Tables", "## References"]
 PARAM_HEADINGS = ["## Equation Context", "## Calibration", "## References"]
+PARAM_BAU_REQUIRED = "**BAU value:**"
 VALID_STATUSES = ["Exact match", "Intentional deviation", "Custom / no reference"]
 
 
@@ -213,6 +218,9 @@ def phase2_template() -> list[str]:
             missing = check_headings(doc, PARAM_HEADINGS)
             if missing:
                 issues.append(f"{doc.relative_to(REPO_ROOT)}: missing headings {missing}")
+            text = doc.read_text()
+            if PARAM_BAU_REQUIRED not in text:
+                issues.append(f"{doc.relative_to(REPO_ROOT)}: missing {PARAM_BAU_REQUIRED} metadata line")
 
     return issues
 
