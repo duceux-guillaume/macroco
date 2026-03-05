@@ -138,7 +138,7 @@ Output:
 ```
 Available presets:
   collapse     Collapse (original World 3 standard run)
-  technology   Comprehensive Technology scenario
+  technology   Technotopia scenario
   stabilized   Stabilized World scenario
 ```
 

@@ -57,7 +57,7 @@ fn tracked_variables() -> Vec<TrackedVar> {
 pub fn preset_params(name: &str) -> Result<ScenarioParams> {
     match name {
         "collapse" => Ok(ScenarioParams::collapse()),
-        "technology" => Ok(ScenarioParams::comprehensive_technology()),
+        "technology" => Ok(ScenarioParams::technotopia()),
         "stabilized" => Ok(ScenarioParams::stabilized_world()),
         other => anyhow::bail!("Unknown preset '{}'", other),
     }

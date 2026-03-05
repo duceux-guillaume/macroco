@@ -31,7 +31,7 @@
   - *Milestone:* M1
   - *Context:* Named parameter sets allow reproducible runs and comparison against canonical scenarios.
   - *Components:* `world3-core`: ScenarioParams, `data/presets/`
-  - *Done:* Three presets (Collapse, Comprehensive Technology, Stabilized World) constructed in Rust code; JSON copies in `data/presets/`.
+  - *Done:* Three presets (Collapse, Technotopia, Stabilized World) constructed in Rust code; JSON copies in `data/presets/`.
 
 - [x] **REQ-005: Validation against Meadows 1972**
   - *Milestone:* M2

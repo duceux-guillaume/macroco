@@ -24,7 +24,7 @@ pub fn init_app_state() -> AppState {
     // 2. Pre-populate with 3 preset scenarios
     let presets: Vec<ScenarioParams> = vec![
         ScenarioParams::collapse(),
-        ScenarioParams::comprehensive_technology(),
+        ScenarioParams::technotopia(),
         ScenarioParams::stabilized_world(),
     ];
 
