@@ -9,9 +9,10 @@
 		expert: string;
 		onclose: () => void;
 		children: Snippet;
+		docPath?: string;
 	}
 
-	let { title, meta, ariaLabel, beginner, expert, onclose, children }: Props = $props();
+	let { title, meta, ariaLabel, beginner, expert, onclose, children, docPath }: Props = $props();
 
 	let showExpert = $state(false);
 
@@ -49,6 +50,17 @@
 		</section>
 
 		{@render children()}
+
+		{#if docPath}
+			<a
+				class="doc-link"
+				href="https://github.com/guillaumegilles/macroco/blob/main/{docPath}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				Read full documentation
+			</a>
+		{/if}
 	</div>
 </div>
 
@@ -150,6 +162,19 @@
 		margin-top: 8px;
 		font-family: 'SF Mono', 'Fira Code', monospace;
 		white-space: pre-wrap;
+	}
+
+	.doc-link {
+		display: block;
+		margin-top: 1.5rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--border, #333);
+		color: var(--accent, #88c0d0);
+		font-size: 0.85rem;
+		text-decoration: none;
+	}
+	.doc-link:hover {
+		text-decoration: underline;
 	}
 
 	@media (max-width: 767px) {

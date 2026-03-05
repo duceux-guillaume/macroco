@@ -63,6 +63,7 @@
 		beginner={info.beginner}
 		expert={info.expert}
 		onclose={close}
+		docPath={info?.docPath}
 	>
 		<FeedbackLoops loops={relatedLoops} />
 		<RelatedVars vars={relatedVars} onselect={selectVariable} />
