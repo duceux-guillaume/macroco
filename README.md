@@ -87,4 +87,3 @@ Advanced charting, sensitivity analysis, and performance benchmarks. Tools for d
 ## Contributing
 
 See the [Quick Start guide](docs/quick-start.md) to set up a local development environment. Requirements are tracked in [Product Requirements](docs/product-requirements.md) with stable REQ-NNN IDs.
-
