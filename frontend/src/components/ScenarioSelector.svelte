@@ -57,6 +57,7 @@
 			service_depreciation_rate: 0.05,
 			technology_growth_rate: 0.002,
 			agricultural_technology: 1.0,
+			agricultural_technology_growth_rate: 0.005,
 			land_protection_fraction: 0.0,
 			subsistence_food_per_capita: 230.0,
 			resource_efficiency: 1.0,
