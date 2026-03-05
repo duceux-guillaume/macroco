@@ -108,6 +108,8 @@ cd frontend && npm run test:watch          # vitest in watch mode
 
 > System architecture is in `docs/architecture.md`. Below are conventions and gotchas for working in this codebase.
 
+- `docs/plans/` contains internal design/implementation plans. Exclude them from PRs (they're working documents, not deliverables).
+
 ### Permission & Autonomy Guidelines
 
 Claude has broad tool permissions in this project. The deny-list in `.claude/settings.json` blocks dangerous shell commands. In addition, ALWAYS ask the user before:
@@ -137,6 +139,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
+- `world3_core::validation::validate_bau()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.
 
 ### Frontend
 - Svelte components live in `frontend/src/components/`, NOT `frontend/src/lib/components/`. Utilities/stores/types live in `frontend/src/lib/`.
@@ -245,6 +248,7 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoo
 - GitHub `unlabeled` event: `github.event.pull_request.labels` is post-removal. Check `github.event.label.name` for the removed label.
 - `frontend-test` job runs: `npm run check`, `npm test`, `npm run build`
 - Ruleset on main: PR required (1 approval), rebase-only, linear history, no force push
+- `THIRD_PARTY_LICENSES` must be generated without `node_modules` present (CI doesn't install it). Temporarily rename `frontend/node_modules` before running `python3 scripts/generate-third-party-licenses.py`, then restore it.
 
 ## Product Milestones
 1. **M1 — Foundation** (complete): Engine, UX, API, CLI, docs, CI/CD.
