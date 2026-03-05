@@ -144,12 +144,12 @@
   - *Milestone:* M2
   - *Context:* The BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023. Quantitative comparison against World Bank, FAO, and OWID data exposes calibration gaps.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
-  - *RMSE% thresholds:* Population (<14%), Food/capita (<19%), IOPC (<21%), NNR fraction (<10%)
-  - *Max-year-error thresholds:* Population (<35%), Food/capita (<26%), IOPC (<36%), NNR fraction (<20%)
-  - *Current metrics:* Pop RMSE=13.2%, Food RMSE=17.9%, IOPC RMSE=20.5%, NNR RMSE=4.8%. Max-year: Pop 31.7%, Food 25.0%, IOPC 35.9%, NNR 19.8%.
-  - *Model changes:* ISOPC dynamic service demand reference (lookup table replaces hardcoded 200.0), technology_growth_rate=0.015 (was 0.002, compensates for real-world TFP ~1.5%/yr), resource_efficiency=1.05, FIOAC consumption fraction capped at 0.70 (was 0.83), Delay3 for perceived life expectancy and pollution appearance (replacing Delay1), DCFS table calibrated for our model structure.
+  - *RMSE% thresholds:* Population (<14%), Food/capita (<19%), IOPC (<21%), NNR fraction (<10%), Life expectancy (<12%)
+  - *Max-year-error thresholds:* Population (<35%), Food/capita (<26%), IOPC (<36%), NNR fraction (<20%), Life expectancy (<19%)
+  - *Current metrics:* Pop RMSE=13.2%, Food RMSE=17.9%, IOPC RMSE=20.5%, NNR RMSE=4.8%, LE RMSE=9.4%. Max-year: Pop 31.7%, Food 25.0%, IOPC 35.9%, NNR 19.8%, LE 15.6%.
+  - *Model changes:* ISOPC dynamic service demand reference (lookup table replaces hardcoded 200.0), technology_growth_rate=0.014 (was 0.002, compensates for real-world TFP ~1.5%/yr), resource_efficiency=1.05, FIOAC consumption fraction capped at 0.70 (was 0.83), Delay3 for perceived life expectancy and pollution appearance (replacing Delay1), DCFS table calibrated for our model structure, HSAPC table + LMHS2 + EHSPC 20-year smooth for health services allocation, CMI(IOPC)×FPU(POP) crowding multiplier (replaces single crowding lookup), alic1=13yr (was 14yr).
   - *Structural limitations:* Population 1960s overshoot (31.7% max error -- model birth/death rates lag real demographic transition), IOPC post-2010 collapse (35.9% max error -- BAU overshoot-collapse starts earlier than real world).
-  - *Done:* All 4 RMSE + 4 max-year-error thresholds pass. 8 tests run in CI without `#[ignore]`.
+  - *Done:* All 5 RMSE + 5 max-year-error thresholds pass. 10 tests run in CI without `#[ignore]`.
   - *Design:* `docs/plans/2026-03-04-better-bau-calibration-design.md`
 
 - [x] **REQ-027: Bi-directional traceability**
