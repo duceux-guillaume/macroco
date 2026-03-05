@@ -54,7 +54,7 @@
 		{#if docPath}
 			<a
 				class="doc-link"
-				href="https://github.com/guillaumegilles/macroco/blob/main/{docPath}"
+				href="https://github.com/duceux-guillaume/macroco/blob/main/{docPath}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>

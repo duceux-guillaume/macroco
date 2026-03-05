@@ -142,6 +142,33 @@ describe('parameterDescriptions', () => {
 	});
 });
 
+describe('docPaths', () => {
+	it('all variable docPaths are present and well-formed', () => {
+		for (const [key, info] of Object.entries(variableDescriptions)) {
+			expect(info.docPath, `${key} missing docPath`).toBeDefined();
+			expect(info.docPath, `${key} docPath should start with docs/model/sectors/`).toMatch(
+				/^docs\/model\/sectors\/\w+\.md$/
+			);
+		}
+	});
+
+	it('all parameter docPaths are present and well-formed', () => {
+		for (const [key, info] of Object.entries(parameterDescriptions)) {
+			expect(info.docPath, `${key} missing docPath`).toBeDefined();
+			expect(info.docPath, `${key} docPath should start with docs/model/parameters/`).toMatch(
+				/^docs\/model\/parameters\/[\w-]+\.md$/
+			);
+		}
+	});
+
+	it('all feedback loop docPaths are present and well-formed', () => {
+		for (const [key, loop] of Object.entries(feedbackLoops)) {
+			expect(loop.docPath, `${key} missing docPath`).toBeDefined();
+			expect(loop.docPath).toBe('docs/model/feedback-loops.md');
+		}
+	});
+});
+
 describe('feedbackLoops', () => {
 	it.each(Object.entries(feedbackLoops))(
 		'"%s" chain entries reference valid variable paths',
