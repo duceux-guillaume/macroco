@@ -8,7 +8,6 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "generate": "cd .. && python3 scripts/generate-variable-descriptions.py",
-    "prebuild": "npm run generate",
     "test": "vitest run",
     "test:watch": "vitest"
   },
