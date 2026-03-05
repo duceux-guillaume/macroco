@@ -7,7 +7,7 @@
 
 ## Equation Context
 
-$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\_ratio}) \times (1 - \text{land\_protection\_fraction})$$
+$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\\_ratio}) \times (1 - \text{land\\_protection\\_fraction})$$
 
 LERD maps the yield ratio (actual yield / inherent fertility of 600 kg/ha/yr) to an erosion rate multiplier. Evaluated in the agriculture sector (`crates/world3-core/src/model/sectors/agriculture.rs`).
 
@@ -17,11 +17,11 @@ Maps the land yield ratio (actual yield divided by inherent land fertility of 60
 
 This captures the empirical observation that high-input industrial agriculture degrades soil faster than low-input traditional farming. The multiplier enters the erosion equation:
 
-$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\_ratio}) \times (1 - \text{land\_protection\_fraction})$$
+$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\\_ratio}) \times (1 - \text{land\\_protection\\_fraction})$$
 
 ## Breakpoints
 
-| $$x$$ (yield ratio) | $$y$$ (erosion multiplier) |
+| $x$ (yield ratio) | $y$ (erosion multiplier) |
 |---|---|
 | 0.00 | 0.0 |
 | 0.25 | 0.1 |

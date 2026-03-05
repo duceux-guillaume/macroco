@@ -10,7 +10,7 @@ The initial fraction of non-renewable resources available at the start of the si
 
 The initial NNR fraction sets the starting value of the non-renewable resources ODE stock at year 1900:
 
-$$NNR(1900) = \texttt{initial\_nnr\_fraction}$$
+$$NNR(1900) = \texttt{initial\\_nnr\\_fraction}$$
 
 The stock then evolves according to the depletion equation: $$\frac{d(NNR)}{dt} = -\frac{P \times IOPC \times k}{r_e}$$. The fraction remaining ($$f_r = NNR / NNR_0$$) drives the [FCAOR](../tables/capital-fraction-resource-extraction.md) table.
 

@@ -58,7 +58,7 @@ The computed life expectancy is clamped to the range [5, 90] years.
 Health services per capita is mapped from service output per capita through the [HSAPC](../tables/health-services-per-capita.md) lookup table, then scaled by the [health investment multiplier](../parameters/health-investment-multiplier.md):
 
 $$
-\text{HSAPC} = \text{HSAPC\_table}(\text{SOPC}) \times h_{\text{mult}}
+\text{HSAPC} = \text{HSAPC\\_table}(\text{SOPC}) \times h_{\text{mult}}
 $$
 
 The effective value is a 20-year first-order exponential smooth (World3-03 HSID = 20 years):

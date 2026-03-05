@@ -15,7 +15,7 @@ e_{\text{fp}} = e_{\text{max}} \times \min\!\left(1,\; \frac{t - 1900}{t_{\text{
 $$
 
 $$
-\text{FRSN} = \text{FRSN\_table}(e_{\text{fp}})
+\text{FRSN} = \text{FRSN\\_table}(e_{\text{fp}})
 $$
 
 where $e_{\text{max}}$ is this parameter and $t_{\text{fp}}$ is the [family planning year](family-planning-year.md). FRSN then multiplies desired fertility:

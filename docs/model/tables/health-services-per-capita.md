@@ -11,7 +11,7 @@ Maps service output per capita to health spending per capita. As a society's ser
 This table provides the raw health services input that is then smoothed and passed to the life expectancy multiplier:
 
 $$
-\text{HSAPC} = \text{HSAPC\_table}(\text{SOPC}) \times h_{\text{mult}}
+\text{HSAPC} = \text{HSAPC\\_table}(\text{SOPC}) \times h_{\text{mult}}
 $$
 
 $$

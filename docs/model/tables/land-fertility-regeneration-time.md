@@ -25,7 +25,7 @@ When $$LFERT = 600$$, regeneration is zero regardless of LFRT.
 
 ## Breakpoints
 
-| $$x$$ (FALM fraction) | $$y$$ (regeneration time, years) |
+| $x$ (FALM fraction) | $y$ (regeneration time, years) |
 |---|---|
 | 0.00 | 20 |
 | 0.02 | 13 |

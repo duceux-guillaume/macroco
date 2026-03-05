@@ -13,7 +13,7 @@ This table is the primary mechanism through which industrial investment increase
 
 ## Breakpoints
 
-| $$x$$ (AIPH, $/ha/yr) | $$y$$ (multiplier) |
+| $x$ (AIPH, $/ha/yr) | $y$ (multiplier) |
 |---|---|
 | 0 | 1.0 |
 | 40 | 3.0 |
@@ -46,7 +46,7 @@ This table is the primary mechanism through which industrial investment increase
 
 ## Equation Context
 
-$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology}$$
+$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\\_index}) \times \text{agricultural\\_technology}$$
 
 ## Audit Notes
 

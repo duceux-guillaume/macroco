@@ -7,7 +7,7 @@
 
 ## Equation Context
 
-$$TFR = TFR_{\text{base}} \times \mathrm{FRNF}(\text{food\_ratio}) \times \ldots$$
+$$TFR = TFR_{\text{base}} \times \mathrm{FRNF}(\text{food\\_ratio}) \times \ldots$$
 
 The food fertility multiplier (FRNF) modulates total fertility rate based on the food ratio (food per capita / subsistence food per capita). Evaluated in the population sector (`crates/world3-core/src/model/sectors/population.rs`).
 
@@ -21,7 +21,7 @@ This table creates a weak balancing feedback: declining food slightly reduces bi
 
 ## Breakpoints
 
-| $$x$$ (food ratio) | $$y$$ (fertility multiplier) |
+| $x$ (food ratio) | $y$ (fertility multiplier) |
 |---|---|
 | 0.0 | 0.0 |
 | 0.5 | 0.6 |

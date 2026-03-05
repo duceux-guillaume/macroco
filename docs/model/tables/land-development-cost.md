@@ -7,9 +7,9 @@
 
 ## Equation Context
 
-$$\text{land\_fraction\_developed} = 1 - \frac{PAL}{3.2 \times 10^9}$$
+$$\text{land\\_fraction\\_developed} = 1 - \frac{PAL}{3.2 \times 10^9}$$
 
-$$\text{dev\_cost} = \mathrm{LDCO}(\text{land\_fraction\_developed})$$
+$$\text{dev\\_cost} = \mathrm{LDCO}(\text{land\\_fraction\\_developed})$$
 
 LDCO maps the fraction of potential arable land already developed to a cost multiplier for developing additional land. Evaluated in the agriculture sector (`crates/world3-core/src/model/sectors/agriculture.rs`).
 
@@ -19,13 +19,13 @@ Maps the fraction of total potential arable land already developed to a cost mul
 
 The table follows an approximately exponential growth curve, rising from 100 (when no land is developed) to 616 (when all land is developed). This means the last 10% of potential arable land costs over 6 times more to develop than the first 10%.
 
-$$\text{land\_fraction\_developed} = 1 - \frac{PAL}{3.2 \times 10^9}$$
+$$\text{land\\_fraction\\_developed} = 1 - \frac{PAL}{3.2 \times 10^9}$$
 
-$$\text{dev\_cost} = \mathrm{LDCO}(\text{land\_fraction\_developed})$$
+$$\text{dev\\_cost} = \mathrm{LDCO}(\text{land\\_fraction\\_developed})$$
 
 ## Breakpoints
 
-| $$x$$ (fraction developed) | $$y$$ (cost multiplier) |
+| $x$ (fraction developed) | $y$ (cost multiplier) |
 |---|---|
 | 0.0 | 100 |
 | 0.1 | 117 |

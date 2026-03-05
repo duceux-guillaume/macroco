@@ -10,9 +10,9 @@ The level of service output per capita that a society demands given its industri
 
 ISOPC enters the service allocation fraction as the denominator of the service adequacy ratio:
 
-$$\text{spc\_ratio} = \frac{SOPC}{ISOPC(IOPC)}$$
+$$\text{spc\\_ratio} = \frac{SOPC}{ISOPC(IOPC)}$$
 
-$$f_{srv} = \text{FIOAS}(\text{spc\_ratio})$$
+$$f_{srv} = \text{FIOAS}(\text{spc\\_ratio})$$
 
 By making the reference level dynamic rather than a fixed constant, ISOPC ensures that service demand scales with economic development. Without this, a growing economy would quickly satisfy a static service target and stop investing in service capital — an unrealistic outcome.
 

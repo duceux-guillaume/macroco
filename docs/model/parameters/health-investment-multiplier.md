@@ -11,7 +11,7 @@ Scales the health services spending derived from service output per capita. A va
 This parameter scales the output of the [HSAPC](../tables/health-services-per-capita.md) lookup table before it enters the EHSPC smoothing delay:
 
 $$
-\text{HSAPC}_{\text{effective}} = \text{HSAPC\_table}(\text{SOPC}) \times h_{\text{mult}}
+\text{HSAPC}_{\text{effective}} = \text{HSAPC\\_table}(\text{SOPC}) \times h_{\text{mult}}
 $$
 
 $$

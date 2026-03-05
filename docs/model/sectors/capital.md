@@ -16,9 +16,9 @@ The sector maintains three ODE stocks:
 
 | Variable | Symbol | Initial value (1900) | Units |
 |---|---|---|---|
-| Industrial capital | $$IC$$ | $$2.1 \times 10^{11}$$ | 1975 USD |
-| Service capital | $$SC$$ | $$1.44 \times 10^{11}$$ | 1975 USD |
-| Perceived IOPC | $$DIOPC$$ | 43.75 | 1975 USD / person / yr |
+| Industrial capital | $IC$ | $2.1 \times 10^{11}$ | 1975 USD |
+| Service capital | $SC$ | $1.44 \times 10^{11}$ | 1975 USD |
+| Perceived IOPC | $DIOPC$ | 43.75 | 1975 USD / person / yr |
 
 Industrial and service capital are the physical stocks. Perceived IOPC (delayed industrial output per capita) is a first-order exponential smooth of actual IOPC with a 20-year social adjustment delay, representing the lag between changes in material living standards and shifts in social norms — particularly desired family size.
 

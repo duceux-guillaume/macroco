@@ -16,11 +16,11 @@ The agriculture sector maintains five ODE stocks:
 
 | Variable | Symbol | Initial (1900) | Unit | Description |
 |----------|--------|-----------------|------|-------------|
-| `arable_land` | $$AL$$ | $$0.9 \times 10^9$$ | hectares | Land currently under cultivation |
-| `potentially_arable_land` | $$PAL$$ | $$2.3 \times 10^9$$ | hectares | Land that could be developed for agriculture |
-| `urban_industrial_land` | $$UIL$$ | $$8.2 \times 10^6$$ | hectares | Land used for cities and industry |
-| `land_fertility` | $$LFERT$$ | 600.0 | kg/ha/yr | Inherent soil productivity |
-| `food_per_capita_smooth` | $$FPC_s$$ | 230.0 | kg/person/yr | Smoothed food per capita (2-year perception delay) |
+| `arable_land` | $AL$ | $0.9 \times 10^9$ | hectares | Land currently under cultivation |
+| `potentially_arable_land` | $PAL$ | $2.3 \times 10^9$ | hectares | Land that could be developed for agriculture |
+| `urban_industrial_land` | $UIL$ | $8.2 \times 10^6$ | hectares | Land used for cities and industry |
+| `land_fertility` | $LFERT$ | 600.0 | kg/ha/yr | Inherent soil productivity |
+| `food_per_capita_smooth` | $FPC_s$ | 230.0 | kg/person/yr | Smoothed food per capita (2-year perception delay) |
 
 The total potential arable land is $$AL + PAL = 3.2 \times 10^9$$ hectares (FAO estimate). Food per capita ($$FPC$$), food production ($$F$$), land yield ($$LY$$), and agricultural inputs per hectare ($$AIPH$$) are auxiliary variables recomputed each time step.
 
@@ -30,21 +30,21 @@ The total potential arable land is $$AL + PAL = 3.2 \times 10^9$$ hectares (FAO 
 
 Industrial output is allocated to agriculture based on food pressure. The allocation fraction uses the ratio of smoothed food per capita to indicated food per capita:
 
-$$\text{food\_ratio} = \frac{FPC_s}{\mathrm{IFPC}(\mathrm{IOPC})}$$
+$$\text{food\\_ratio} = \frac{FPC_s}{\mathrm{IFPC}(\mathrm{IOPC})}$$
 
-$$\text{frac\_to\_agri} = \mathrm{FIOAA}(\text{food\_ratio})$$
+$$\text{frac\\_to\\_agri} = \mathrm{FIOAA}(\text{food\\_ratio})$$
 
-$$\text{agri\_output} = IO \times \text{frac\_to\_agri}$$
+$$\text{agri\\_output} = IO \times \text{frac\\_to\\_agri}$$
 
-$$AIPH = \frac{\text{agri\_output}}{AL}$$
+$$AIPH = \frac{\text{agri\\_output}}{AL}$$
 
-The indicated food per capita table ([IFPC](../tables/indicated-food-per-capita.md)) scales food demand with industrialization: at low IOPC, $$\mathrm{IFPC} \approx 230$$ (subsistence); at high IOPC, $$\mathrm{IFPC}$$ rises to 1250 kg/person/yr. This prevents the zero-allocation trap where high food output drives $$\text{food\_ratio}$$ so high that agricultural investment collapses.
+The indicated food per capita table ([IFPC](../tables/indicated-food-per-capita.md)) scales food demand with industrialization: at low IOPC, $$\mathrm{IFPC} \approx 230$$ (subsistence); at high IOPC, $$\mathrm{IFPC}$$ rises to 1250 kg/person/yr. This prevents the zero-allocation trap where high food output drives $$\text{food\\_ratio}$$ so high that agricultural investment collapses.
 
 ### Land yield
 
 Land yield is the product of soil fertility and three multipliers:
 
-$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology}$$
+$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\\_index}) \times \text{agricultural\\_technology}$$
 
 where:
 
@@ -66,13 +66,13 @@ With $$\mathrm{LFH} = 0.7$$ and $$\mathrm{PL} = 0.1$$, effective food is 63% of 
 
 New arable land is developed from the potentially arable reserve. Development cost rises exponentially as the fraction already developed increases:
 
-$$\text{land\_fraction\_developed} = 1 - \frac{PAL}{3.2 \times 10^9}$$
+$$\text{land\\_fraction\\_developed} = 1 - \frac{PAL}{3.2 \times 10^9}$$
 
-$$\text{dev\_cost} = \mathrm{LDCO}(\text{land\_fraction\_developed})$$
+$$\text{dev\\_cost} = \mathrm{LDCO}(\text{land\\_fraction\\_developed})$$
 
-$$\text{desired\_development} = \frac{IO \times \text{frac\_to\_agri} \times 0.1}{\text{dev\_cost}}$$
+$$\text{desired\\_development} = \frac{IO \times \text{frac\\_to\\_agri} \times 0.1}{\text{dev\\_cost}}$$
 
-$$\text{development\_rate} = \min\!\left(\frac{\text{desired\_development}}{T_d},\; \frac{PAL}{T_d}\right)$$
+$$\text{development\\_rate} = \min\!\left(\frac{\text{desired\\_development}}{T_d},\; \frac{PAL}{T_d}\right)$$
 
 where $$T_d = 10$$ years is the land development time. The [LDCO](../tables/land-development-cost.md) table gives costs from 100 (no land developed) to 616 (all land developed).
 
@@ -88,9 +88,9 @@ where $$T_u = 10$$ years. Growth is constrained to at most 10% of current arable
 
 ### Erosion
 
-$$\text{yield\_ratio} = \frac{LY}{600}$$
+$$\text{yield\\_ratio} = \frac{LY}{600}$$
 
-$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\_ratio}) \times (1 - \text{land\_protection\_fraction})$$
+$$\text{erosion} = AL \times 0.001 \times \mathrm{LERD}(\text{yield\\_ratio}) \times (1 - \text{land\\_protection\\_fraction})$$
 
 The base erosion rate is 0.001/yr (corresponding to a 1000-year land lifetime). The [LERD](../tables/land-erosion-multiplier.md) multiplier amplifies erosion when yield intensity exceeds the inherent level. The `land_protection_fraction` parameter (0--0.5) can reduce erosion.
 
@@ -98,11 +98,11 @@ The base erosion rate is 0.001/yr (corresponding to a 1000-year land lifetime). 
 
 Land fertility changes through degradation (pollution-driven) and regeneration (maintenance-driven):
 
-$$\text{degradation} = LFERT \times \mathrm{LFDR}(\text{pollution\_index})$$
+$$\text{degradation} = LFERT \times \mathrm{LFDR}(\text{pollution\\_index})$$
 
-$$\text{food\_ratio}_{\text{FALM}} = \frac{FPC_s}{\text{SFPC}}$$
+$$\text{food\\_ratio}_{\text{FALM}} = \frac{FPC_s}{\text{SFPC}}$$
 
-$$\text{FALM} = \mathrm{FALM}(\text{food\_ratio}_{\text{FALM}})$$
+$$\text{FALM} = \mathrm{FALM}(\text{food\\_ratio}_{\text{FALM}})$$
 
 $$\text{regeneration} = \frac{600 - LFERT}{\mathrm{LFRT}(\text{FALM})}$$
 
@@ -120,9 +120,9 @@ This smoothed value is used for allocation decisions (FIOAA, FALM), preventing i
 
 ### Derivative summary
 
-$$\frac{dAL}{dt} = \text{development\_rate} - \text{erosion} - \max(dUIL/dt,\; 0)$$
+$$\frac{dAL}{dt} = \text{development\\_rate} - \text{erosion} - \max(dUIL/dt,\; 0)$$
 
-$$\frac{dPAL}{dt} = -\text{development\_rate}$$
+$$\frac{dPAL}{dt} = -\text{development\\_rate}$$
 
 $$\frac{dUIL}{dt} = \frac{UIL_{\text{desired}} - UIL}{T_u} \quad \text{(constrained)}$$
 
@@ -165,7 +165,7 @@ $$\frac{dFPC_s}{dt} = \frac{FPC - FPC_s}{2}$$
 | LERD | Land Erosion Multiplier | yield ratio | erosion multiplier | Custom | [link](../tables/land-erosion-multiplier.md) |
 | LDCO | Land Development Cost | fraction developed | cost multiplier | Custom | [link](../tables/land-development-cost.md) |
 | UILPC | Urban-Industrial Land Per Capita | IOPC [$/person/yr] | ha/person | Exact | [link](../tables/urban-industrial-land-per-capita.md) |
-| LFDR | Land Fertility Degradation | pollution index | degradation rate [yr$$^{-1}$$] | Exact | [link](../tables/land-fertility-degradation.md) |
+| LFDR | Land Fertility Degradation | pollution index | degradation rate [yr$^{-1}$] | Exact | [link](../tables/land-fertility-degradation.md) |
 | LFRT | Land Fertility Regeneration Time | FALM fraction | time [years] | Exact | [link](../tables/land-fertility-regeneration-time.md) |
 | FALM | Fraction Land Maintenance | food ratio | maintenance fraction | Exact | [link](../tables/fraction-land-maintenance.md) |
 | FRNF | Food Fertility Multiplier | food ratio | fertility fraction | Custom | [link](../tables/food-fertility-multiplier.md) |

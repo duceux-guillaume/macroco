@@ -8,7 +8,7 @@
 
 The agricultural technology multiplier enters the land yield equation:
 
-$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology}$$
+$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\\_index}) \times \text{agricultural\\_technology}$$
 
 At 1.0, yield depends solely on fertility, capital inputs, and pollution. Values above 1.0 uniformly scale yield at all input levels.
 

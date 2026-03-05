@@ -14,7 +14,7 @@ The sector contains a single ODE stock:
 
 | Variable | Symbol | Units | Initial value (1900) |
 |---|---|---|---|
-| `nonrenewable_resources` | $$NNR$$ | dimensionless (normalized) | 1.0 |
+| `nonrenewable_resources` | $NNR$ | dimensionless (normalized) | 1.0 |
 
 The stock is normalized so that $$NNR = 1.0$$ represents the full initial endowment. This normalization avoids the need to specify absolute resource quantities in physical units — all dynamics depend on the *fraction remaining*, not the absolute level.
 
@@ -72,7 +72,7 @@ The sector itself contains no lookup tables — extraction depends only on popul
 
 | Table | World3-03 name | Input | Output | Status |
 |---|---|---|---|---|
-| [`capital_fraction_resource_extraction`](../tables/capital-fraction-resource-extraction.md) | FCAOR1 | $$f_r$$ (fraction remaining) | fraction of capital diverted to extraction | Exact match |
+| [`capital_fraction_resource_extraction`](../tables/capital-fraction-resource-extraction.md) | FCAOR1 | $f_r$ (fraction remaining) | fraction of capital diverted to extraction | Exact match |
 
 See the [FCAOR table documentation](../tables/capital-fraction-resource-extraction.md) for breakpoints and interpretation.
 
