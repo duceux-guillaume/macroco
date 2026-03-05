@@ -45,7 +45,7 @@
 	let margin = $derived(
 		width < 500
 			? { top: 24, right: 16, bottom: 80, left: 36 }
-			: { top: 32, right: 200, bottom: 32, left: 48 }
+			: { top: 32, right: 240, bottom: 32, left: 48 }
 	);
 	// Eye icon SVG paths (16x16 viewBox)
 	const EYE_OPEN = 'M1.3,8 C4,2.7 12,2.7 14.7,8 C12,13.3 4,13.3 1.3,8 Z M8,6 a2,2 0 1,0 0.01,0';
