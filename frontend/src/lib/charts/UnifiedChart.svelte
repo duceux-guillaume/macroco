@@ -38,15 +38,9 @@
 			? { top: 24, right: 16, bottom: 80, left: 36 }
 			: { top: 32, right: 200, bottom: 32, left: 48 }
 	);
-	let isBrushing = false;
-
 	// Eye icon SVG paths (16x16 viewBox)
 	const EYE_OPEN = 'M1.3,8 C4,2.7 12,2.7 14.7,8 C12,13.3 4,13.3 1.3,8 Z M8,6 a2,2 0 1,0 0.01,0';
 	const EYE_CLOSED = 'M1.3,8 C4,2.7 12,2.7 14.7,8 C12,13.3 4,13.3 1.3,8 Z M2.7,2.7 L13.3,13.3';
-
-	// Store brush reference for keyboard clear
-	let activeBrushGroup: d3.Selection<SVGGElement, null, null, undefined> | null = null;
-	let activeBrush: d3.BrushBehavior<null> | null = null;
 
 	function getFormatter(format: string): (v: number) => string {
 		switch (format) {
@@ -80,11 +74,6 @@
 			}
 			if (get(selectedVariableId)) {
 				selectedVariableId.set(null);
-				return;
-			}
-			// Then clear brush
-			if (activeBrushGroup && activeBrush) {
-				activeBrushGroup.call(activeBrush.move, null);
 				return;
 			}
 		}
@@ -669,41 +658,7 @@
 			(exit) => exit.remove()
 		);
 
-		// Brush (below tooltip overlay)
-		const brushGroup = g.selectAll<SVGGElement, null>('g.brush')
-			.data([null])
-			.join('g')
-			.attr('class', 'brush');
-
-		const brush = d3.brushX<null>()
-			.extent([[0, 0], [innerW, innerH]])
-			.on('start', () => {
-				isBrushing = true;
-			})
-			.on('end', (event: d3.D3BrushEvent<null>) => {
-				isBrushing = false;
-				if (!event.selection) return;
-				const [x0, x1] = event.selection as [number, number];
-				const yearStart = Math.round(xScale.invert(x0));
-				const yearEnd = Math.round(xScale.invert(x1));
-				if (yearEnd - yearStart < 5) {
-					brushGroup.call(brush.move, null);
-				}
-			});
-
-		brushGroup.call(brush);
-
-		// Store refs for keyboard shortcut
-		activeBrushGroup = brushGroup as any;
-		activeBrush = brush;
-
-		brushGroup.select('.selection')
-			.attr('fill', 'var(--accent)')
-			.attr('fill-opacity', 0.15)
-			.attr('stroke', 'var(--accent)')
-			.attr('stroke-opacity', 0.4);
-
-		// Tooltip overlay (above brush so mousemove still works)
+		// Tooltip overlay
 		const overlay = g.selectAll<SVGRectElement, null>('rect.overlay')
 			.data([null])
 			.join('rect')
@@ -725,8 +680,6 @@
 			.style('display', 'none');
 
 		function handlePointerMove(event: MouseEvent | TouchEvent) {
-			if (isBrushing) return;
-
 			const [mx] = d3.pointer(event, overlay.node()!);
 			const year = Math.round(xScale.invert(mx));
 
