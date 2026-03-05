@@ -5,14 +5,15 @@ Model documentation audit script.
 Verifies that docs/model/ is complete, correctly templated, and in sync
 with the Rust source code. Designed to run in CI (--check mode).
 
-Implements phases 1-3 of the audit. Phases 4 (reference integrity via
-pyworld3 JSON) and 5 (worktree diff awareness) require interactive Claude
-sessions — use the /audit-model-doc slash command for the full 5-phase audit.
+Implements phases 1-4 of the audit. Phase 5 (worktree diff awareness)
+requires interactive Claude sessions — use the /audit-model-doc slash
+command for the full 5-phase audit.
 
 Phases:
   1. Completeness — every code entity has a doc file, no orphans
-  2. Template conformance — required headings present
+  2. Template conformance — required headings, Info Panel sections, feedback loop metadata
   3. Code-doc sync — breakpoint values, BAU defaults, source paths
+  4. Codegen freshness (--check only) — variable-descriptions.ts matches docs
 
 Usage:
   python3 scripts/audit-model-doc.py          # full report
@@ -20,6 +21,7 @@ Usage:
 """
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -30,6 +32,7 @@ SECTORS_DIR = REPO_ROOT / "crates" / "world3-core" / "src" / "model" / "sectors"
 DOC_TABLES = REPO_ROOT / "docs" / "model" / "tables"
 DOC_PARAMS = REPO_ROOT / "docs" / "model" / "parameters"
 DOC_SECTORS = REPO_ROOT / "docs" / "model" / "sectors"
+DOC_FEEDBACK = REPO_ROOT / "docs" / "model" / "feedback-loops.md"
 
 
 def to_kebab(name: str) -> str:
@@ -192,6 +195,20 @@ PARAM_HEADINGS = ["## Equation Context", "## Calibration", "## References"]
 PARAM_BAU_REQUIRED = "**BAU value:**"
 VALID_STATUSES = ["Exact match", "Intentional deviation", "Custom / no reference"]
 
+# Info Panel enforcement
+SOLVER_PARAMS = {"start-year", "end-year", "time-step"}
+PARAM_INFO_PANEL_FIELDS = [
+    "**Unit:**", "**Beginner:**", "**Expert:**",
+    "**Feedback loops:**", "**Related variables:**",
+    "**Impact increase:**", "**Impact decrease:**",
+    "**Sparkline variable:**",
+]
+SECTOR_INFO_PANEL_VAR_FIELDS = [
+    "**Name:**", "**Unit:**", "**Stock:**",
+    "**Beginner:**", "**Expert:**",
+    "**Feedback loops:**", "**Related variables:**",
+]
+
 
 def phase2_template() -> list[str]:
     issues = []
@@ -215,6 +232,8 @@ def phase2_template() -> list[str]:
             missing = check_headings(doc, SECTOR_HEADINGS)
             if missing:
                 issues.append(f"{doc.relative_to(REPO_ROOT)}: missing headings {missing}")
+            # Info Panel check for sector docs
+            issues.extend(_check_sector_info_panel(doc))
 
     if DOC_PARAMS.exists():
         for doc in DOC_PARAMS.glob("*.md"):
@@ -224,7 +243,81 @@ def phase2_template() -> list[str]:
             text = doc.read_text()
             if PARAM_BAU_REQUIRED not in text:
                 issues.append(f"{doc.relative_to(REPO_ROOT)}: missing {PARAM_BAU_REQUIRED} metadata line")
+            # Info Panel check for non-solver params
+            if doc.stem not in SOLVER_PARAMS:
+                issues.extend(_check_param_info_panel(doc, text))
 
+    # Feedback loops metadata check
+    if DOC_FEEDBACK.exists():
+        issues.extend(_check_feedback_loops_metadata())
+
+    return issues
+
+
+def _check_param_info_panel(doc: Path, text: str) -> list[str]:
+    """Check that a parameter doc has ## Info Panel with all required fields."""
+    issues = []
+    rel = doc.relative_to(REPO_ROOT)
+    if "## Info Panel" not in text:
+        issues.append(f"{rel}: missing ## Info Panel heading")
+        return issues
+    # Extract the Info Panel section
+    ip_match = re.search(r"## Info Panel\s*\n(.*?)(?=\n## |\Z)", text, re.DOTALL)
+    if not ip_match:
+        issues.append(f"{rel}: ## Info Panel section is empty")
+        return issues
+    section = ip_match.group(1)
+    for field in PARAM_INFO_PANEL_FIELDS:
+        if field not in section:
+            issues.append(f"{rel}: Info Panel missing {field}")
+    return issues
+
+
+def _check_sector_info_panel(doc: Path) -> list[str]:
+    """Check sector doc ## Info Panel: must have subheadings with required fields."""
+    issues = []
+    rel = doc.relative_to(REPO_ROOT)
+    text = doc.read_text()
+    if "## Info Panel" not in text:
+        issues.append(f"{rel}: missing ## Info Panel heading")
+        return issues
+    # Extract section from ## Info Panel to the next ## heading or EOF
+    ip_match = re.search(r"## Info Panel\s*\n(.*?)(?=\n## |\Z)", text, re.DOTALL)
+    if not ip_match:
+        issues.append(f"{rel}: ## Info Panel section is empty")
+        return issues
+    section = ip_match.group(1)
+    # Split into ### subheading blocks
+    sub_blocks = re.split(r"\n(?=### )", section)
+    sub_blocks = [b for b in sub_blocks if b.strip().startswith("### ")]
+    if not sub_blocks:
+        issues.append(f"{rel}: ## Info Panel has no ### subheadings")
+        return issues
+    for block in sub_blocks:
+        heading_match = re.match(r"### (.+)", block)
+        var_name = heading_match.group(1).strip() if heading_match else "?"
+        for field in SECTOR_INFO_PANEL_VAR_FIELDS:
+            if field not in block:
+                issues.append(f"{rel}: Info Panel '{var_name}' missing {field}")
+    return issues
+
+
+def _check_feedback_loops_metadata() -> list[str]:
+    """Check that each ## N. loop section in feedback-loops.md has ID/Type/Chain."""
+    issues = []
+    text = DOC_FEEDBACK.read_text()
+    rel = DOC_FEEDBACK.relative_to(REPO_ROOT)
+    # Find all ## N. sections
+    loop_sections = re.findall(r"(## \d+\..+?)(?=\n## \d+\.|\Z)", text, re.DOTALL)
+    if not loop_sections:
+        issues.append(f"{rel}: no ## N. loop sections found")
+        return issues
+    for section in loop_sections:
+        heading_match = re.match(r"## (\d+\.\s*.+)", section)
+        heading = heading_match.group(1).strip() if heading_match else "?"
+        for field in ["**ID:**", "**Type:**", "**Chain:**"]:
+            if field not in section:
+                issues.append(f"{rel}: loop '{heading}' missing {field}")
     return issues
 
 
@@ -268,6 +361,28 @@ def phase3_sync() -> list[str]:
     return issues
 
 
+# ── Phase 4: Codegen Freshness (--check only) ─────────────────────────
+
+def phase4_codegen_freshness() -> list[str]:
+    """Run generate-variable-descriptions.py --check to verify codegen is fresh."""
+    issues = []
+    script = REPO_ROOT / "scripts" / "generate-variable-descriptions.py"
+    if not script.exists():
+        issues.append("scripts/generate-variable-descriptions.py not found")
+        return issues
+    result = subprocess.run(
+        [sys.executable, str(script), "--check"],
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+    )
+    if result.returncode != 0:
+        issues.append(
+            "variable-descriptions.ts is stale — run: python3 scripts/generate-variable-descriptions.py"
+        )
+    return issues
+
+
 # ── Main ───────────────────────────────────────────────────────────────
 
 def main():
@@ -307,6 +422,17 @@ def main():
             print(f"  - {i}")
     else:
         print("\nPhase 3 (Code-Doc Sync): OK")
+
+    # Phase 4 (--check mode only)
+    if check_mode:
+        issues = phase4_codegen_freshness()
+        all_issues.extend(issues)
+        if issues:
+            print(f"\nPhase 4 (Codegen Freshness): FAIL ({len(issues)} issues)")
+            for i in issues:
+                print(f"  - {i}")
+        else:
+            print("\nPhase 4 (Codegen Freshness): OK")
 
     # Summary
     print("\n" + "=" * 40)
