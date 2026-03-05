@@ -6,7 +6,7 @@
 
 | REQ | Title | Status | Test Files |
 |-----|-------|--------|------------|
-| REQ-001 | Core simulation engine | Done | `crates/world3-core/src/model/derivatives.rs`, `crates/world3-core/src/model/sectors/agriculture.rs`, `crates/world3-core/src/model/sectors/capital.rs`, `crates/world3-core/src/model/sectors/pollution.rs`, `crates/world3-core/src/model/sectors/population.rs`, `crates/world3-core/src/model/sectors/resources.rs`, `crates/world3-core/src/model/state.rs`, `crates/world3-core/src/solver/rk4.rs`, `crates/world3-cli/tests/qualitative_dynamics.rs` |
+| REQ-001 | Core simulation engine | Done | `crates/world3-core/src/model/derivatives.rs`, `crates/world3-core/src/model/sectors/agriculture.rs`, `crates/world3-core/src/model/sectors/capital.rs`, `crates/world3-core/src/model/sectors/pollution.rs`, `crates/world3-core/src/model/sectors/population.rs`, `crates/world3-core/src/model/sectors/resources.rs`, `crates/world3-core/src/model/state.rs`, `crates/world3-core/src/solver/rk4.rs`, `crates/world3-cli/tests/qualitative_dynamics.rs`, `crates/world3-core/tests/qualitative_dynamics.rs` |
 | REQ-002 | Lookup table infrastructure | Done | `crates/world3-core/src/lookup/table.rs` |
 | REQ-003 | CLI batch simulation | Done | `crates/world3-cli/src/diagnose/analysis.rs`, `crates/world3-cli/src/diagnose/compare.rs`, `crates/world3-cli/src/diagnose/format_json.rs`, `crates/world3-cli/src/diagnose/format_text.rs`, `crates/world3-cli/src/diagnose/mod.rs`, `crates/world3-core/src/output.rs` |
 | REQ-004 | Scenario presets | Done | `crates/world3-core/src/model/params.rs` |
@@ -31,7 +31,7 @@
 | REQ-023 | Simulation controls | Done | `frontend/src/lib/stores/simulation-controls.test.ts` |
 | REQ-024 | Chart annotations | Done | `frontend/src/lib/content/chart-annotations.test.ts` |
 | REQ-025 | Preset comparison UX | Done | `frontend/src/lib/stores/stores.test.ts` |
-| REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-cli/tests/historical_calibration.rs` |
+| REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-core/tests/historical_calibration.rs` |
 | REQ-027 | Bi-directional traceability | Done (exempt: Infrastructure tooling; the traceability script itself is the implementation) | — |
 | REQ-028 | User feedback mechanism | Done (exempt: UI-only feature with unit tests on URL builder; no backend logic to test.) | `frontend/src/lib/utils/feedback-url.test.ts` |
 | REQ-030 | Multi-scenario historical calibration | Abandoned | — |
@@ -56,7 +56,6 @@
 | `crates/world3-cli/src/diagnose/format_json.rs` | REQ-003 |
 | `crates/world3-cli/src/diagnose/format_text.rs` | REQ-003 |
 | `crates/world3-cli/src/diagnose/mod.rs` | REQ-003 |
-| `crates/world3-cli/tests/historical_calibration.rs` | REQ-026 |
 | `crates/world3-cli/tests/qualitative_dynamics.rs` | REQ-001 |
 | `crates/world3-core/src/lookup/table.rs` | REQ-002 |
 | `crates/world3-core/src/model/derivatives.rs` | REQ-001 |
@@ -69,6 +68,8 @@
 | `crates/world3-core/src/model/state.rs` | REQ-001 |
 | `crates/world3-core/src/output.rs` | REQ-003 |
 | `crates/world3-core/src/solver/rk4.rs` | REQ-001, REQ-005 |
+| `crates/world3-core/tests/historical_calibration.rs` | REQ-026 |
+| `crates/world3-core/tests/qualitative_dynamics.rs` | REQ-001 |
 | `frontend/src/lib/api.test.ts` | REQ-007, REQ-009 |
 | `frontend/src/lib/charts/chart-config.test.ts` | REQ-009 |
 | `frontend/src/lib/charts/unified-config.test.ts` | REQ-009 |

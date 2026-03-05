@@ -171,7 +171,7 @@ Run `/permissions-audit` to review and improve permission settings.
 - Individual cohort derivatives can be negative even when total population grows (e.g. `d_cohort_0_14 < 0` at 1900 because aging-out exceeds births). Assert on net population, not individual cohorts.
 - `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"bau"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
 - `init_app_state()` loads historical CSVs from `HISTORICAL_DATA_DIR` (default `./data/historical`). Integration tests using it must run from the repo root or set the env var.
-- Historical calibration tests: `cargo test -p world3-cli --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one BAU sim across all tests.
+- Historical calibration tests: `cargo test -p world3-core --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one BAU sim across all tests.
 
 ### Debugging Workflow
 - For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.
@@ -232,7 +232,7 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoo
 - BAU simulation must track real-world historical data within RMSE% and max-year-error thresholds over ~1960-2023.
 - RMSE% thresholds: Population (<11%), Food/capita (<21%), IOPC (<19%), NNR fraction (<4%), Life expectancy (<12%).
 - Max-year-error thresholds: Population (<15%), Food/capita (<28%), IOPC (<38%), NNR fraction (<6%), Life expectancy (<19%).
-- Test: `cargo test -p world3-cli --test historical_calibration` (11 tests: 5 RMSE + 5 max-year-error + 1 summary)
+- Test: `cargo test -p world3-core --test historical_calibration` (11 tests: 5 RMSE + 5 max-year-error + 1 summary)
 - All 10 thresholds PASS (Pop RMSE=8.1%, Food=18.6%, IOPC=16.2%, NNR=0.9%, LE=9.4%; Max-year: Pop 11.3%, Food 25.5%, IOPC 35.4%, NNR 2.6%, LE=15.6%).
 
 ## CI/CD
