@@ -18,7 +18,7 @@ What if you could simulate the future of humanity on your laptop? [Macroco](http
 | ●●●●● | **Foundation** — Engine, interactive frontend, API, CLI, docs | Complete |
 | ●●●●○ | **Collapse** — Historical calibration against real-world data (1960–2023) | In progress |
 | ○○○○○ | **Technotopia** — Climate & energy sectors, technology scenario | Planned |
-| ○○○○○ | **Ecotopia** — Biodiversity & inequality sectors, stabilized scenario | Planned |
+| ○○○○○ | **Ecotopia** — Biodiversity & inequality sectors, ecotopia scenario | Planned |
 | ○○○○○ | **Living Data** — Auto-updating data from World Bank, NOAA, FAO, UN, BP | Planned |
 | ○○○○○ | **Deep Exploration** — Sensitivity analysis, advanced charting | Planned |
 

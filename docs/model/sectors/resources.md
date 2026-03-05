@@ -62,7 +62,7 @@ Note that resource scarcity feeds back *only* through the FCAOR fraction in the 
 
 **`resource_efficiency` > 1.0 in Collapse.** The original World3-03 model uses $$r_e = 1.0$$ for the standard run (no efficiency improvement). Our Collapse preset uses $$r_e = 1.05$$ to compensate for real-world extraction efficiency gains over the 20th and early 21st centuries that the 1972 model did not anticipate. This slight increase delays NNR depletion just enough to improve historical calibration against World Bank data (NNR RMSE = 0.9%) without altering the qualitative overshoot-and-collapse trajectory.
 
-The Technology and Stabilized presets use $$r_e = 4.0$$, representing aggressive efficiency gains that substantially delay resource depletion.
+The Technology and Ecotopia presets use $$r_e = 4.0$$, representing aggressive efficiency gains that substantially delay resource depletion.
 
 ## Lookup Tables
 

@@ -40,7 +40,7 @@ The pollution sector's `pollution_index` feeds into the agriculture sector's lan
 
 **Connects:** [Capital](sectors/capital.md) --> [Population](sectors/population.md)
 
-This is the one major *negative* (stabilizing) feedback loop. It is why the Technology and Stabilized scenarios perform better --- they allow this transition to proceed before collapse overwhelms it.
+This is the one major *negative* (stabilizing) feedback loop. It is why the Technology and Ecotopia scenarios perform better --- they allow this transition to proceed before collapse overwhelms it.
 
 ```
 Rising income --> Smaller desired family size --> Lower birth rate

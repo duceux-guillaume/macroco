@@ -14,7 +14,7 @@ At 1.0, yield depends solely on fertility, capital inputs, and pollution. Values
 
 ## Calibration
 
-Collapse uses 1.0, matching the World3-03 standard run (no extraordinary agricultural innovation). Technology and Stabilized presets use 2.0, representing a second Green Revolution. No calibration deviation from World3-03 is needed for Collapse.
+Collapse uses 1.0, matching the World3-03 standard run (no extraordinary agricultural innovation). Technology and Ecotopia presets use 2.0, representing a second Green Revolution. No calibration deviation from World3-03 is needed for Collapse.
 
 ## Sensitivity
 

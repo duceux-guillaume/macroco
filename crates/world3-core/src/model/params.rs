@@ -122,10 +122,10 @@ impl ScenarioParams {
         p
     }
 
-    /// Stabilized world scenario — policy + technology + social change.
-    pub fn stabilized_world() -> Self {
+    /// Ecotopia scenario — policy + technology + social change.
+    pub fn ecotopia() -> Self {
         let mut p = Self::default();
-        p.meta.name = "Stabilized World".into();
+        p.meta.name = "Ecotopia".into();
         p.meta.description =
             "Combination of technology, pollution control, family planning, and resource efficiency."
                 .into();
@@ -330,7 +330,7 @@ mod tests {
         let presets = [
             ScenarioParams::collapse(),
             ScenarioParams::technotopia(),
-            ScenarioParams::stabilized_world(),
+            ScenarioParams::ecotopia(),
         ];
         for preset in &presets {
             for desc in &descriptors {

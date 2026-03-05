@@ -14,13 +14,13 @@ $$T_{ag} = (1 + g_{ag})^{\max(t - 1960,\; 0)}$$
 
 $$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology} \times T_{ag}$$
 
-Before 1960, the multiplier is 1.0. The Collapse preset uses $$g_{ag} = 0.005$$, giving a multiplier of ~1.37 by 2020 and ~2.03 by 2100. Technology and Stabilized presets use 0.0 (relying on the static `agricultural_technology = 2.0` multiplier instead).
+Before 1960, the multiplier is 1.0. The Collapse preset uses $$g_{ag} = 0.005$$, giving a multiplier of ~1.37 by 2020 and ~2.03 by 2100. Technology and Ecotopia presets use 0.0 (relying on the static `agricultural_technology = 2.0` multiplier instead).
 
 ## Calibration
 
 The Collapse value of 0.5%/yr was calibrated against FAO food production data (1960–2023). USDA Economic Research Service estimates agricultural TFP growth at roughly 1%/yr globally, but LYMC already captures input-driven gains (capital investment in agriculture), so the growth rate parameter covers only the residual TFP from breeding, agronomy, and technique improvements. The 0.5% rate brings food per capita into alignment with historical data (RMSE < 21%).
 
-Technology and Stabilized presets set this to 0.0 because they use a static `agricultural_technology = 2.0` multiplier that already represents a step-change in agricultural capability.
+Technology and Ecotopia presets set this to 0.0 because they use a static `agricultural_technology = 2.0` multiplier that already represents a step-change in agricultural capability.
 
 ## References
 

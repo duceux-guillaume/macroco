@@ -38,7 +38,7 @@ frontend/             # SvelteKit app. D3 charts, parameter sliders, scenario ma
 data/
   lookup_tables/      # World 3 piecewise-linear tables (JSON). Must be present at runtime.
   historical/         # Bundled historical CSVs used as seed/fallback data.
-  presets/            # Named scenario parameter sets (Collapse, Technology, Stabilized, LtG 1972).
+  presets/            # Named scenario parameter sets (Collapse, Technotopia, Ecotopia, LtG 1972).
 docs/
   plans/                 # Working design/impl plans (gitignored — local only)
   product-requirements.md  # Feature requirements (REQ-NNN IDs)
@@ -150,11 +150,11 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (21 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - `ScenarioParams::default()` must match Collapse preset. When changing defaults, also update `data/presets/collapse.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
-- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with four intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Stabilized preset), FIOAC consumption fraction is capped at 0.70 (pyworld3 goes to 0.83, which over-allocates to consumption and suppresses IOPC growth), and DCFS (desired completed family size) is calibrated for our model structure rather than exact pyworld3 match.
+- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with four intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Ecotopia preset), FIOAC consumption fraction is capped at 0.70 (pyworld3 goes to 0.83, which over-allocates to consumption and suppresses IOPC growth), and DCFS (desired completed family size) is calibrated for our model structure rather than exact pyworld3 match.
 - Perceived life expectancy uses a Delay3 (3-stage cascaded delay), matching World3-03 specification. Pollution appearance also uses Delay3. Both add 2 intermediate pipeline stages each to WorldState (4 extra ODE stocks total).
 - ISOPC lookup table provides dynamic service demand reference based on IOPC (replaces hardcoded 200.0). This allows service allocation to scale with industrial development.
 - Collapse `technology_growth_rate` = 0.014, `resource_efficiency` = 1.05 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
-- Collapse `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technology/Stabilized presets use 0.0 (static `agricultural_technology=2.0` instead).
+- Collapse `agricultural_technology_growth_rate` = 0.005 (Macroco extension: Green Revolution TFP from 1960; USDA ERS ~1%/yr; set to 0.005 because LYMC captures input-driven gains). Technology/Ecotopia presets use 0.0 (static `agricultural_technology=2.0` instead).
 - Collapse model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). Each table has a doc file in `docs/model/tables/`. Run `/audit-model-doc` to re-audit after changes. Modes: default (full audit + fix), `--check` (CI, read-only), `--diff` (pre-PR, changed files only).
 - When modifying sector code, lookup tables, or parameters, update the corresponding file in `docs/model/`. The `/audit-model-doc --diff` gate in `/refine-pr` will catch missed updates.
@@ -209,7 +209,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - When a user reports "the chart looks wrong", run `diagnose` first to identify which variable has unexpected peaks, phases, or anomalies, then investigate the relevant sector code.
 - `diagnose` auto-detects oscillations (rapid alternating phase reversals) — check the Anomalies section for `Oscillation` entries.
 - `diagnose --stability-check` runs at dt, dt/2, dt/4 and reports per-variable convergence. Use this when you suspect numerical instability (e.g., high phase counts, oscillating values). A variable drifting >3% between halvings is flagged UNSTABLE. Pollution peak is the most dt-sensitive variable (~2.4% drift).
-- After the IFPC food allocation rework, all presets (Collapse, Technology, Stabilized) are stable at dt=1.0.
+- After the IFPC food allocation rework, all presets (Collapse, Technotopia, Ecotopia) are stable at dt=1.0.
 
 ### Traceability
 - Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates. Rust: place before `#[cfg(test)]`. TypeScript: first line of `.test.ts` file.
@@ -278,7 +278,7 @@ Run `cargo test -p world3-cli --test qualitative_dynamics` to check Collapse ove
 1. **M1 — Foundation** (complete): Engine, UX, API, CLI, docs, CI/CD.
 2. **M2 — Collapse** (current): Collapse historical calibration, trajectory validation.
 3. **M3 — Technotopia**: Climate + energy sectors, Technology scenario calibration.
-4. **M4 — Ecotopia**: Biodiversity + inequality sectors, Stabilized scenario calibration.
+4. **M4 — Ecotopia**: Biodiversity + inequality sectors, Ecotopia scenario calibration.
 5. **M5 — Living Data**: `world3-ingestion` crate, 7 data sources, SQLite cache.
 6. **M6 — Deep Exploration**: Advanced charting, benchmarks, sensitivity analysis.
 

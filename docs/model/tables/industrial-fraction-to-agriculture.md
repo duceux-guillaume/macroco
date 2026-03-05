@@ -32,13 +32,13 @@ The smoothed FPC is an ODE stock (preserved across RK4 solver stages), while IFP
 
 Three deliberate changes:
 
-1. **Floor of 0.005.** The pyworld3 table drops to zero at food_ratio >= 2.0, meaning no industrial output goes to agriculture when food is abundant. In the Technology and Stabilized presets, this caused oscillation: agricultural investment drops to zero, yields decline, food falls, investment spikes, and the cycle repeats. The 0.005 floor maintains a minimal baseline investment that prevents this oscillatory mode.
+1. **Floor of 0.005.** The pyworld3 table drops to zero at food_ratio >= 2.0, meaning no industrial output goes to agriculture when food is abundant. In the Technology and Ecotopia presets, this caused oscillation: agricultural investment drops to zero, yields decline, food falls, investment spikes, and the cycle repeats. The 0.005 floor maintains a minimal baseline investment that prevents this oscillatory mode.
 
 2. **Slightly higher values at moderate food ratio.** At food_ratio = 0.5, our value is 0.22 versus 0.20; at 1.0, it is 0.12 versus 0.10. The higher allocation compensates for the Land Fraction Harvested (LFH = 0.7) and Processing Loss (PL = 0.1) factors that reduce effective food output by a factor of 0.63 compared to raw agricultural production.
 
 3. **Extended x-range to 4.0.** The pyworld3 table stops at food_ratio = 2.5. In scenarios with high agricultural technology, food ratio can exceed this range. The extension ensures well-defined behavior at extreme values.
 
-**Impact:** Collapse trajectory is nearly unchanged (food ratio stays below 2.0). Technology and Stabilized presets become stable without oscillation.
+**Impact:** Collapse trajectory is nearly unchanged (food ratio stays below 2.0). Technology and Ecotopia presets become stable without oscillation.
 
 ## References
 
