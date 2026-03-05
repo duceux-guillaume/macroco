@@ -5,7 +5,8 @@ import {
 	selectedVariableId,
 	selectedParameterId,
 	selectedHistoricalId,
-	highlightedVariables
+	highlightedVariables,
+	highlightHistoricalOnly
 } from './info';
 import { getRelatedParameters } from '$lib/content/variable-descriptions';
 
@@ -78,6 +79,36 @@ describe('highlightedVariables with variable selected', () => {
 		selectedVariableId.set('capital.industrial_output');
 		selectedVariableId.set(null);
 		expect(get(highlightedVariables).size).toBe(0);
+	});
+});
+
+describe('highlightedVariables with historical selected', () => {
+	it('returns all variable fieldPaths when historical is selected', () => {
+		selectedHistoricalId.set('historical');
+		const highlighted = get(highlightedVariables);
+		expect(highlighted.size).toBe(6);
+	});
+
+	it('returns empty set when historical is deselected', () => {
+		selectedHistoricalId.set('historical');
+		selectedHistoricalId.set(null);
+		expect(get(highlightedVariables).size).toBe(0);
+	});
+});
+
+describe('highlightHistoricalOnly', () => {
+	it('is false by default', () => {
+		expect(get(highlightHistoricalOnly)).toBe(false);
+	});
+
+	it('is true when historical is selected', () => {
+		selectedHistoricalId.set('historical');
+		expect(get(highlightHistoricalOnly)).toBe(true);
+	});
+
+	it('is false when a variable is selected', () => {
+		selectedVariableId.set('population.population');
+		expect(get(highlightHistoricalOnly)).toBe(false);
 	});
 });
 
