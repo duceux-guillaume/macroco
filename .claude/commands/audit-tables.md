@@ -32,7 +32,7 @@ Compare our World3 lookup tables against the pyworld3 reference implementation (
    | `family_planning_multiplier` | FRSN | Different x-axis |
    | `fecundity_multiplier` | FM | |
    | `compensatory_fertility` | CMPLE | Different scale |
-   | `fraction_services_health` | HSAPC (indirect) | Structural difference |
+   | `health_services_per_capita` | HSAPC | Aligned |
    | `consumption_fraction` | FIOACV | Absolute vs ratio x-axis |
    | `industrial_fraction_to_agriculture` | FIOAA1, FIOAA2 | |
    | `industrial_fraction_to_services` | FIOAS1, FIOAS2 | |

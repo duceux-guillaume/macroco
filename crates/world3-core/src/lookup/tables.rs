@@ -65,10 +65,10 @@ pub struct WorldLookupTables {
     /// x: life expectancy [years], y: fecundity multiplier
     pub fecundity_multiplier: LookupTable,
 
-    /// Fraction of services for health (FSH)
-    /// x: effective services per capita (normalized)
-    /// y: fraction devoted to health
-    pub fraction_services_health: LookupTable,
+    /// Health services allocations per capita (HSAPC) — World3-03
+    /// x: service output per capita [USD/person/yr]
+    /// y: health spending per capita [USD/person/yr]
+    pub health_services_per_capita: LookupTable,
 
     // --- Capital / Industrial sector ---
     /// Fraction of industrial output allocated to consumption (FIOAC)
@@ -200,20 +200,13 @@ impl WorldLookupTables {
                 vec![0.0, 1.0, 1.2, 1.3, 1.35, 1.4],
             ),
 
-            // Life expectancy multiplier from health services (LMHS)
-            // World3-03: LMHS1 table from EHSPC (effective health services per capita).
-            // x: effective health services per capita [USD/person/yr]
-            // In World3-03, EHSPC uses a 20-year delay (HSAPC → EHSPC). Our model
-            // doesn't delay health services, so we keep LMHS = 1.0 until EHSPC > 40
-            // to approximate the delayed startup effect (S-shaped response).
-            // Calibrated so:
-            //   1900: EHSPC ≈ $36 → LMHS ≈ 1.0 (minimal health infrastructure)
-            //   1940: EHSPC ≈ $60 → LMHS ≈ 1.20 (health system developing)
-            //   1970: EHSPC ≈ $150 → LMHS ≈ 1.85 (modern health services)
+            // LMHS — Life Expectancy Multiplier from Health Services (World3-03 LMHS2)
+            // Post-1940 table (iphst=1940). Higher ceiling than LMHS1 (2.0 vs 1.8)
+            // reflecting modern medical technology impact on longevity.
             life_exp_multiplier_health: LookupTable::new(
                 "life_exp_multiplier_health",
                 vec![0.0, 20.0, 40.0, 60.0, 80.0, 100.0],
-                vec![1.0, 1.1, 1.4, 1.6, 1.7, 1.8],
+                vec![1.0, 1.4, 1.6, 1.8, 1.95, 2.0],
             ),
 
             // CMI — Crowding Multiplier from Industrialization (World3-03)
@@ -296,11 +289,13 @@ impl WorldLookupTables {
                 vec![0.0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0, 1.05, 1.1],
             ),
 
-            // Fraction of services for health
-            fraction_services_health: LookupTable::new(
-                "fraction_services_health",
-                vec![0.0, 0.5, 1.0, 1.5, 2.0],
-                vec![0.3, 0.35, 0.40, 0.45, 0.50],
+            // HSAPC — Health Services Allocations Per Capita (World3-03)
+            // Maps service output per capita to health spending directly.
+            // Saturates at ~$230/person even at very high service output.
+            health_services_per_capita: LookupTable::new(
+                "health_services_per_capita",
+                vec![0.0, 250.0, 500.0, 750.0, 1000.0, 1250.0, 1500.0, 1750.0, 2000.0],
+                vec![0.0, 20.0, 50.0, 95.0, 140.0, 175.0, 200.0, 220.0, 230.0],
             ),
 
             // Fraction of industrial output allocated to consumption (FIOAC)

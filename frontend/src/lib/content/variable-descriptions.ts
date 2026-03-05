@@ -63,7 +63,7 @@ export const variableDescriptions: Record<string, VariableInfo> = {
 		beginner:
 			'How long the average person lives. Depends on food availability, healthcare, crowding, and pollution. When conditions deteriorate, life expectancy falls and death rates rise.',
 		expert:
-			'life_expectancy = 20.0 × LEM_food(food_ratio) × LEM_health(health_services) × LEM_crowding(pop/3.6e9) × LEM_pollution(pollution_index). Product of four lookup-table multipliers on a 20-year base. Health services = service_output_per_capita × fraction_services_health.',
+			'life_expectancy = 28.0 × LEM_food(food_ratio) × LEM_health(HSAPC) × LMC(CMI,FPU) × LEM_pollution(pollution_index). Product of four lookup-table multipliers on a 28-year base. Health services per capita from World3-03 HSAPC table (maps SOPC to health spending directly).',
 		feedbackLoops: ['food-population', 'pollution-food'],
 		relatedVariables: [
 			'population.population',

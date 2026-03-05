@@ -116,7 +116,7 @@ d(cohort_65+)/dt   = aging_45_to_65 - deaths_65+
 
 Aging rates: `cohort / duration` where durations are 15, 30, 20 years respectively.
 
-**Lookup tables:** `life_exp_multiplier_food`, `life_exp_multiplier_health`, `life_exp_multiplier_crowding`, `life_exp_multiplier_pollution`, `desired_family_size`, `family_planning_multiplier`, `food_fertility_multiplier`, `fraction_services_health`
+**Lookup tables:** `life_exp_multiplier_food`, `life_exp_multiplier_health`, `health_services_per_capita`, `crowding_multiplier_ind`, `fraction_population_urban`, `life_exp_multiplier_pollution`, `desired_family_size`, `family_planning_multiplier`, `food_fertility_multiplier`
 
 **Source:** `crates/world3-core/src/model/sectors/population.rs`
 
