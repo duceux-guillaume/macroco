@@ -272,11 +272,13 @@ impl WorldState {
             },
             pollution: PollutionState {
                 persistent_pollution: 0.05,
-                // Steady-state buffer: at 1900, generation ≈ pp / assimilation_time
-                // ≈ 0.05 / 20 = 0.0025/yr. Buffer = generation × delay = 0.0025 × 20 = 0.05.
-                pollution_appearance_buffer: 0.05,
-                pollution_appearance_stage1: 0.05,
-                pollution_appearance_stage2: 0.05,
+                // Steady-state Delay3 pipeline: at 1900, generation ≈ pp / assimilation_time
+                // ≈ 0.05 / 20 = 0.0025/yr. Each Delay3 stage holds generation × τ where
+                // τ = PPTD/3 = 6.67yr, so each stage ≈ 0.0025 × 6.67 ≈ 0.0167.
+                // Total pipeline = 3 × 0.0167 = 0.05 = generation × PPTD.
+                pollution_appearance_buffer: 0.0167,
+                pollution_appearance_stage1: 0.0167,
+                pollution_appearance_stage2: 0.0167,
                 pollution_index: 0.05,
                 ..Default::default()
             },
