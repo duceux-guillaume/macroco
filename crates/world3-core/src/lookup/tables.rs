@@ -20,10 +20,15 @@ pub struct WorldLookupTables {
     /// y: multiplier on life expectancy
     pub life_exp_multiplier_health: LookupTable,
 
-    /// Life expectancy multiplier from crowding (CMI × FPU proxy)
-    /// x: crowding ratio (population / reference)
-    /// y: multiplier on life expectancy (< 1 at high crowding)
-    pub life_exp_multiplier_crowding: LookupTable,
+    /// Crowding multiplier from industrialization (CMI) — World3-03
+    /// x: industrial output per capita [USD/person/yr]
+    /// y: crowding multiplier index (can be negative at mid-IOPC)
+    pub crowding_multiplier_ind: LookupTable,
+
+    /// Fraction of population urban (FPU) — World3-03
+    /// x: total population [persons]
+    /// y: fraction urban [0..1]
+    pub fraction_population_urban: LookupTable,
 
     /// Life expectancy multiplier from pollution (LMPD)
     /// World3-03 LMPDE: x = pollution index, y = LE multiplier
@@ -211,16 +216,18 @@ impl WorldLookupTables {
                 vec![1.0, 1.1, 1.4, 1.6, 1.7, 1.8],
             ),
 
-            // Life expectancy multiplier from crowding
-            // World3-03: LMCR = 1 - CMI(IOPC) × FPU(POP), simplified to a
-            // direct lookup on population/reference ratio.
-            // At 1900 (pop/ref = 0.44): ~1.0 (minimal crowding effect)
-            // At 1970 (pop/ref = 1.0): ~0.95 (mild crowding)
-            // At high pop: drops significantly
-            life_exp_multiplier_crowding: LookupTable::new(
-                "life_exp_multiplier_crowding",
-                vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
-                vec![1.05, 1.0, 0.95, 0.90, 0.85, 0.80, 0.75],
+            // CMI — Crowding Multiplier from Industrialization (World3-03)
+            crowding_multiplier_ind: LookupTable::new(
+                "crowding_multiplier_ind",
+                vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0],
+                vec![0.5, 0.05, -0.1, -0.08, -0.02, 0.05, 0.1, 0.15, 0.2],
+            ),
+
+            // FPU — Fraction of Population Urban (World3-03)
+            fraction_population_urban: LookupTable::new(
+                "fraction_population_urban",
+                vec![0.0, 2e9, 4e9, 6e9, 8e9, 10e9, 12e9, 14e9, 16e9],
+                vec![0.0, 0.2, 0.4, 0.5, 0.58, 0.65, 0.72, 0.78, 0.80],
             ),
 
             // Life expectancy multiplier from pollution (LMPDE)

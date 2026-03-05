@@ -27,10 +27,6 @@ const MAX_TOTAL_FERTILITY: f64 = 12.0;
 /// Lifetime perception delay [years] — World3-03: LPD = 20
 const LIFETIME_PERCEPTION_DELAY: f64 = 20.0;
 
-/// Reference population for crowding multiplier [persons].
-/// World3-03 uses ~3.6 billion (roughly 1970 world population) as the
-/// baseline at which crowding effects begin.
-const CROWDING_REFERENCE_POP: f64 = 3.6e9;
 
 pub struct PopulationDerivatives {
     pub d_cohort_0_14: f64,
@@ -64,11 +60,13 @@ pub fn population_derivatives(
         * health_fraction
         * params.health_investment_multiplier;
 
-    let crowding_ratio = pop / CROWDING_REFERENCE_POP;
-
     let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
     let lem_health = tables.life_exp_multiplier_health.eval(health_services);
-    let lem_crowding = tables.life_exp_multiplier_crowding.eval(crowding_ratio);
+
+    // World3-03: LMC = 1 - CMI(IOPC) × FPU(POP)
+    let cmi = tables.crowding_multiplier_ind.eval(state.capital.industrial_output_per_capita);
+    let fpu = tables.fraction_population_urban.eval(pop);
+    let lem_crowding = 1.0 - cmi * fpu;
     let lem_pollution = tables
         .life_exp_multiplier_pollution
         .eval(state.pollution.pollution_index);
@@ -232,10 +230,11 @@ mod tests {
         );
         let health_services = s.capital.service_output_per_capita
             * health_fraction * params.health_investment_multiplier;
-        let crowding = s.population.population.max(1.0) / CROWDING_REFERENCE_POP;
+        let cmi = tables.crowding_multiplier_ind.eval(s.capital.industrial_output_per_capita);
+        let fpu = tables.fraction_population_urban.eval(s.population.population.max(1.0));
+        let lem_crowding = 1.0 - cmi * fpu;
         let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
         let lem_health = tables.life_exp_multiplier_health.eval(health_services);
-        let lem_crowding = tables.life_exp_multiplier_crowding.eval(crowding);
         let lem_pollution = tables.life_exp_multiplier_pollution.eval(s.pollution.pollution_index);
         let expected = (LIFE_EXPECTANCY_BASE * lem_food * lem_health * lem_crowding * lem_pollution)
             .clamp(5.0, 90.0);
