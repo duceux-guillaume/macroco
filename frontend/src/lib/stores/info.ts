@@ -34,9 +34,9 @@ selectedHistoricalId.subscribe((h) => {
 
 /** Set of variable field paths to highlight on the chart. */
 export const highlightedVariables = derived(
-	[selectedParameterId, selectedVariableId],
-	([$paramId, $varId]) => {
-		if ($varId === '__historical__') return new Set(unifiedVariables.map((v) => v.fieldPath));
+	[selectedParameterId, selectedVariableId, selectedHistoricalId],
+	([$paramId, $varId, $histId]) => {
+		if ($histId) return new Set(unifiedVariables.map((v) => v.fieldPath));
 		if ($varId) return new Set<string>([$varId]);
 		if (!$paramId) return new Set<string>();
 		const info = parameterDescriptions[$paramId];
@@ -46,6 +46,6 @@ export const highlightedVariables = derived(
 
 /** Whether highlighting targets historical lines only (when "Historical" legend item is clicked). */
 export const highlightHistoricalOnly = derived(
-	selectedVariableId,
-	($varId) => $varId === '__historical__'
+	selectedHistoricalId,
+	($histId) => $histId !== null
 );
