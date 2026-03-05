@@ -16,7 +16,7 @@
 | REQ-008 | WebSocket streaming simulation | Done | `crates/world3-api/src/routes/ws.rs`, `frontend/src/lib/ws.test.ts` |
 | REQ-009 | SvelteKit frontend | Done | `frontend/src/lib/api.test.ts`, `frontend/src/lib/charts/chart-config.test.ts`, `frontend/src/lib/charts/unified-config.test.ts`, `frontend/src/lib/stores/stores.test.ts`, `frontend/src/lib/utils/extract.test.ts`, `frontend/src/lib/utils/format.test.ts` |
 | REQ-010 | CI pipeline | Done (exempt: CI infrastructure, validated by pipeline execution) | — |
-| REQ-011 | Extension sectors — climate, energy, biodiversity, inequality | Planned | — |
+| REQ-011 | Extension sectors — climate, energy, biodiversity, inequality | Abandoned | — |
 | REQ-012 | Historical data calibration | Done | `crates/world3-api/src/historical.rs`, `frontend/src/lib/stores/historical.test.ts` |
 | REQ-013 | Live data ingestion pipeline | Planned | — |
 | REQ-014 | Data mapping layer | Planned | — |
@@ -34,9 +34,12 @@
 | REQ-026 | BAU historical calibration regression tests | Done | `crates/world3-cli/tests/historical_calibration.rs` |
 | REQ-027 | Bi-directional traceability | Done (exempt: Infrastructure tooling; the traceability script itself is the implementation) | — |
 | REQ-028 | User feedback mechanism | Done (exempt: UI-only feature with unit tests on URL builder; no backend logic to test.) | `frontend/src/lib/utils/feedback-url.test.ts` |
-| REQ-030 | Multi-scenario historical calibration | In Progress | — |
+| REQ-030 | Multi-scenario historical calibration | Abandoned | — |
 | REQ-031 | Scenario trajectory validation | In Progress | — |
-| REQ-032 | PR preview deployment | Done (exempt: CI infrastructure, validated by pipeline execution) | — |
+| REQ-033 | Climate and energy extension sectors | Planned | — |
+| REQ-034 | Biodiversity and inequality extension sectors | Planned | — |
+| REQ-035 | Technology scenario historical calibration | Planned | — |
+| REQ-036 | Stabilized scenario historical calibration | Planned | — |
 
 ## Reverse: Test -> REQs
 
@@ -77,9 +80,9 @@
 
 ## Summary
 
-- **Done requirements:** 25
+- **Done requirements:** 24
 - **Covered by tests:** 16
-- **Exempt:** 8
+- **Exempt:** 7
 - **Uncovered:** 1
 
 ### Uncovered Done Requirements
