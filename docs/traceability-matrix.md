@@ -6,7 +6,7 @@
 
 | REQ | Title | Status | Test Files |
 |-----|-------|--------|------------|
-| REQ-001 | Core simulation engine | Done | `crates/world3-core/src/model/derivatives.rs`, `crates/world3-core/src/model/sectors/agriculture.rs`, `crates/world3-core/src/model/sectors/capital.rs`, `crates/world3-core/src/model/sectors/pollution.rs`, `crates/world3-core/src/model/sectors/population.rs`, `crates/world3-core/src/model/sectors/resources.rs`, `crates/world3-core/src/model/state.rs`, `crates/world3-core/src/solver/rk4.rs` |
+| REQ-001 | Core simulation engine | Done | `crates/world3-core/src/model/derivatives.rs`, `crates/world3-core/src/model/sectors/agriculture.rs`, `crates/world3-core/src/model/sectors/capital.rs`, `crates/world3-core/src/model/sectors/pollution.rs`, `crates/world3-core/src/model/sectors/population.rs`, `crates/world3-core/src/model/sectors/resources.rs`, `crates/world3-core/src/model/state.rs`, `crates/world3-core/src/solver/rk4.rs`, `crates/world3-cli/tests/qualitative_dynamics.rs` |
 | REQ-002 | Lookup table infrastructure | Done | `crates/world3-core/src/lookup/table.rs` |
 | REQ-003 | CLI batch simulation | Done | `crates/world3-cli/src/diagnose/analysis.rs`, `crates/world3-cli/src/diagnose/compare.rs`, `crates/world3-cli/src/diagnose/format_json.rs`, `crates/world3-cli/src/diagnose/format_text.rs`, `crates/world3-cli/src/diagnose/mod.rs`, `crates/world3-core/src/output.rs` |
 | REQ-004 | Scenario presets | Done | `crates/world3-core/src/model/params.rs` |
@@ -53,6 +53,7 @@
 | `crates/world3-cli/src/diagnose/format_text.rs` | REQ-003 |
 | `crates/world3-cli/src/diagnose/mod.rs` | REQ-003 |
 | `crates/world3-cli/tests/historical_calibration.rs` | REQ-026 |
+| `crates/world3-cli/tests/qualitative_dynamics.rs` | REQ-001 |
 | `crates/world3-core/src/lookup/table.rs` | REQ-002 |
 | `crates/world3-core/src/model/derivatives.rs` | REQ-001 |
 | `crates/world3-core/src/model/params.rs` | REQ-004 |

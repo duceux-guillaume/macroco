@@ -71,8 +71,8 @@ cargo build --workspace
 # Run simulation CLI
 cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 
-# Validate against Meadows 1972 reference trajectories (BAU only — test Technology/Stabilized manually with simulate --preset)
-cargo run --bin world3-cli -- validate
+# Validate qualitative dynamics (BAU overshoot-and-collapse shape)
+cargo test -p world3-cli --test qualitative_dynamics
 
 # Diagnose simulation output (structured text report)
 cargo run --bin world3-cli -- diagnose --preset bau
@@ -127,14 +127,15 @@ Run `/permissions-audit` to review and improve permission settings.
 
 ### Simulation Engine (`world3-core`)
 - Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
-- `WorldState::N` = 16 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`.
-- `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (16 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
+- `WorldState::N` = 20 ODE stocks. When adding/removing stocks, update: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs` (assembly + doc comments), and `initial_1900()`. The 20 stocks include: 4 population cohorts, industrial/service capital, 3 agriculture stocks, NNR, persistent pollution, 2 smoothing stocks, and 4 Delay3 pipeline stages (2 for perceived life expectancy, 2 for pollution appearance).
+- `from_vec()` zeroes all auxiliary fields (non-ODE stocks like `food_per_capita`, `industrial_output`). Only ODE stocks (20 fields) survive RK4 intermediate stages (k2/k3/k4). For inter-sector feedback that must be consistent across solver stages, use ODE stocks (e.g., `food_per_capita_smooth`) not auxiliaries.
 - `ScenarioParams::default()` must match BAU preset. When changing defaults, also update `data/presets/business_as_usual.json`.
 - `LookupTable::eval()` clamps to endpoint y-values beyond the x-range (no extrapolation). When adding scenario params that push inputs beyond existing table ranges, extend the table.
-- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with three intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Stabilized preset), and FIOAC consumption fraction is capped at 0.70 (pyworld3 goes to 0.83, which over-allocates to consumption and suppresses IOPC growth).
+- Our model includes World3-03's Land Fraction Harvested (LFH=0.7) and Processing Loss (PL=0.1) in the food equation. Lookup tables are aligned to pyworld3 reference values with four intentional deviations: FIOACV is smoothed above IOPC=400 (pyworld3 has a cliff from 0.43→0.73 that traps IOPC), FIOAA has a 0.005 floor at high food_ratio (prevents oscillation in Stabilized preset), FIOAC consumption fraction is capped at 0.70 (pyworld3 goes to 0.83, which over-allocates to consumption and suppresses IOPC growth), and DCFS (desired completed family size) is calibrated for our model structure rather than exact pyworld3 match.
+- Perceived life expectancy uses a Delay3 (3-stage cascaded delay), matching World3-03 specification. Pollution appearance also uses Delay3. Both add 2 intermediate pipeline stages each to WorldState (4 extra ODE stocks total).
 - ISOPC lookup table provides dynamic service demand reference based on IOPC (replaces hardcoded 200.0). This allows service allocation to scale with industrial development.
-- BAU `technology_growth_rate` = 0.014 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
-- BAU model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `validate` and `diagnose` after parameter changes to catch qualitative shifts.
+- BAU `technology_growth_rate` = 0.015, `resource_efficiency` = 1.05 (compensates for real-world TFP growth ~1.5%/yr that the original 1972 model did not anticipate).
+- BAU model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). See `docs/audit.md`. Run `/audit-tables` to re-audit after changes.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
@@ -164,7 +165,7 @@ Run `/permissions-audit` to review and improve permission settings.
 
 ### Backend Testing
 - `approx` crate `assert_relative_eq!` does NOT support format string messages — use separate `assert!` for custom messages.
-- Run full verification after model changes: `cargo test --workspace && cargo clippy --workspace -- -D warnings && cargo run --bin world3-cli -- validate`
+- Run full verification after model changes: `cargo test --workspace && cargo clippy --workspace -- -D warnings`
 - Sector test modules use a shared `setup() -> (WorldState, ScenarioParams, WorldLookupTables)` that pre-populates upstream auxiliary fields. Reuse it; don't create new setup fns unless the file has none.
 - Import `approx::assert_relative_eq` at module level in `#[cfg(test)] mod tests`, not inside individual test functions.
 - `f64::parse()` accepts "NaN", "inf", "-inf" as valid. Always add `.is_finite()` guard when parsing external data destined for JSON serialization.
@@ -227,15 +228,15 @@ The "standard run" (BAU preset, 1900–2100, no policy interventions) must repro
 - Food per capita peaks mid-century then falls
 - Industrial output per capita peaks and collapses before 2100
 
-Run `cargo run --bin world3-cli -- validate` to check against bundled reference trajectories.
+Run `cargo test -p world3-cli --test qualitative_dynamics` to check BAU overshoot-and-collapse trajectory shape.
 
 ### Historical Calibration (REQ-026)
 - BAU simulation must track real-world historical data within RMSE% and max-year-error thresholds over ~1960-2023.
-- RMSE% thresholds: Population (<16%), Food/capita (<22%), IOPC (<23%), NNR fraction (<15%).
-- Max-year-error thresholds: Population (<42%), Food/capita (<30%), IOPC (<43%), NNR fraction (<30%).
+- RMSE% thresholds: Population (<14%), Food/capita (<19%), IOPC (<21%), NNR fraction (<10%).
+- Max-year-error thresholds: Population (<35%), Food/capita (<26%), IOPC (<36%), NNR fraction (<20%).
 - Test: `cargo test -p world3-cli --test historical_calibration` (8 tests: 4 RMSE + 4 max-year-error)
 - Design: `docs/plans/2026-03-04-better-bau-calibration-design.md`
-- All 8 thresholds PASS (Pop RMSE=15.5%, Food=21.2%, IOPC=22.9%, NNR=7.1%; Max-year: Pop 41.5%@1961, Food 29.1%@2022, IOPC 42.3%@2023, NNR 29.9%@2023).
+- All 8 thresholds PASS (Pop RMSE=13.2%, Food=17.9%, IOPC=20.5%, NNR=4.8%; Max-year: Pop 31.7%, Food 25.0%, IOPC 35.9%, NNR 19.8%).
 
 ## CI/CD
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)

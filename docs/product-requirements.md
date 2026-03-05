@@ -23,9 +23,9 @@
 
 - [x] **REQ-003: CLI batch simulation**
   - *Milestone:* M1
-  - *Context:* Users need a command-line tool to run simulations, validate against reference trajectories, and export results.
-  - *Components:* `world3-cli`: simulate, validate, presets subcommands
-  - *Done:* `world3-cli` crate with `simulate`, `validate`, and `presets` subcommands; CSV output support.
+  - *Context:* Users need a command-line tool to run simulations, diagnose trajectories, and export results.
+  - *Components:* `world3-cli`: simulate, diagnose, presets subcommands
+  - *Done:* `world3-cli` crate with `simulate`, `diagnose`, and `presets` subcommands; CSV output support.
 
 - [x] **REQ-004: Scenario presets**
   - *Milestone:* M1
@@ -36,8 +36,8 @@
 - [x] **REQ-005: Validation against Meadows 1972**
   - *Milestone:* M2
   - *Context:* The standard BAU run must reproduce the qualitative dynamics of Meadows 1972 Fig. 35.
-  - *Components:* `world3-cli`: validate subcommand
-  - *Done:* `world3-cli validate` checks population peak, resource depletion, food and industrial output trajectories.
+  - *Components:* `world3-cli`: `tests/qualitative_dynamics.rs`
+  - *Done:* `qualitative_dynamics.rs` integration test checks population peak, resource depletion, food and industrial output trajectories.
 
 - [x] **REQ-006: PNG chart output**
   - *Milestone:* M1
@@ -144,11 +144,11 @@
   - *Milestone:* M2
   - *Context:* The BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023. Quantitative comparison against World Bank, FAO, and OWID data exposes calibration gaps.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
-  - *RMSE% thresholds:* Population (<16%), Food/capita (<22%), IOPC (<23%), NNR fraction (<15%)
-  - *Max-year-error thresholds:* Population (<42%), Food/capita (<30%), IOPC (<43%), NNR fraction (<30%)
-  - *Current metrics:* Pop RMSE=15.5%, Food RMSE=21.2%, IOPC RMSE=22.9%, NNR RMSE=7.1%. Max-year: Pop 41.5%@1961, Food 29.1%@2022, IOPC 42.3%@2023, NNR 29.9%@2023.
-  - *Model changes:* ISOPC dynamic service demand reference (lookup table replaces hardcoded 200.0), technology_growth_rate=0.014 (was 0.002, compensates for real-world TFP ~1.5%/yr), FIOAC consumption fraction capped at 0.70 (was 0.83).
-  - *Structural limitations:* Population 1960s overshoot (41.5% max error at 1961 -- model birth/death rates lag real demographic transition), IOPC post-2010 collapse (42.3% max error at 2023 -- BAU overshoot-collapse starts earlier than real world).
+  - *RMSE% thresholds:* Population (<14%), Food/capita (<19%), IOPC (<21%), NNR fraction (<10%)
+  - *Max-year-error thresholds:* Population (<35%), Food/capita (<26%), IOPC (<36%), NNR fraction (<20%)
+  - *Current metrics:* Pop RMSE=13.2%, Food RMSE=17.9%, IOPC RMSE=20.5%, NNR RMSE=4.8%. Max-year: Pop 31.7%, Food 25.0%, IOPC 35.9%, NNR 19.8%.
+  - *Model changes:* ISOPC dynamic service demand reference (lookup table replaces hardcoded 200.0), technology_growth_rate=0.015 (was 0.002, compensates for real-world TFP ~1.5%/yr), resource_efficiency=1.05, FIOAC consumption fraction capped at 0.70 (was 0.83), Delay3 for perceived life expectancy and pollution appearance (replacing Delay1), DCFS table calibrated for our model structure.
+  - *Structural limitations:* Population 1960s overshoot (31.7% max error -- model birth/death rates lag real demographic transition), IOPC post-2010 collapse (35.9% max error -- BAU overshoot-collapse starts earlier than real world).
   - *Done:* All 4 RMSE + 4 max-year-error thresholds pass. 8 tests run in CI without `#[ignore]`.
   - *Design:* `docs/plans/2026-03-04-better-bau-calibration-design.md`
 
