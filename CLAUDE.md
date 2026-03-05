@@ -159,6 +159,8 @@ Run `/permissions-audit` to review and improve permission settings.
 - Info panels use composition: `InfoPanelShell` (shell chrome + Escape handler + expert toggle) → panel-specific content → shared `FeedbackLoops` + `RelatedVars` sub-components. Don't duplicate markup/CSS across panels.
 - To style slotted child content from a parent component, use `:global()` scoped to a parent class: `.panel-body :global(section h3) { ... }`.
 - D3 is used directly (not wrapped in a chart library) because World 3 output requires custom multi-axis, phase-plane, and animated transition patterns.
+- Historical line IDs use `HIST_LINE_PREFIX` (`hist-`) prefix on the variable ID (e.g., `hist-population`). Strip prefix to map back to `unifiedVariables` config.
+- Use `get()` from `svelte/store` for synchronous store reads outside reactive contexts, not manual subscribe/unsubscribe.
 - WS client auto-reconnects with 2s backoff. All WS messages are typed against `WsClientMsg` / `WsServerMsg`.
 - All variable/parameter descriptions live in `frontend/src/lib/content/variable-descriptions.ts` — single source of truth.
 - Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
