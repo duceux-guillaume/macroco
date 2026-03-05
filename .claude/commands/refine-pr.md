@@ -6,7 +6,7 @@ description: Run phased quality gates before creating or updating a PR
 
 Run quality gates in 3 phases before creating or updating a PR. Stop on hard failures in Phase 1. Report changes in Phase 2. Report findings in Phase 3.
 
-**Prerequisites:** This command invokes `/simplify`, `/requesting-code-review`, `/permissions-audit`, and `/claude-md-management:revise-claude-md`. If any skill is unavailable, skip that step and note it in the report.
+**Prerequisites:** This command invokes `/simplify`, `/requesting-code-review`, `/security-review`, `/permissions-audit`, and `/claude-md-management:revise-claude-md`. If any skill is unavailable, skip that step and note it in the report.
 
 ## Phase 1 — Validate
 
@@ -55,7 +55,10 @@ These steps are advisory — they produce findings for review but do not auto-ap
 2. **Permissions audit:**
    Invoke the `/permissions-audit` skill. Present findings.
 
-3. **CLAUDE.md revision:**
+3. **Security review:**
+   Invoke the `/security-review` command. Present findings.
+
+4. **CLAUDE.md revision:**
    Invoke the `/claude-md-management:revise-claude-md` skill. Present proposed updates for review. Do NOT auto-apply — wait for user approval.
 
 ## Final Step
