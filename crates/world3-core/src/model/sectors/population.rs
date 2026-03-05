@@ -27,6 +27,11 @@ const MAX_TOTAL_FERTILITY: f64 = 12.0;
 /// Lifetime perception delay [years] — World3-03: LPD = 20
 const LIFETIME_PERCEPTION_DELAY: f64 = 20.0;
 
+/// Reference population for crowding multiplier [persons].
+/// World3-03 uses ~3.6 billion (roughly 1970 world population) as the
+/// baseline at which crowding effects begin.
+const CROWDING_REFERENCE_POP: f64 = 3.6e9;
+
 pub struct PopulationDerivatives {
     pub d_cohort_0_14: f64,
     pub d_cohort_15_44: f64,
@@ -59,7 +64,7 @@ pub fn population_derivatives(
         * health_fraction
         * params.health_investment_multiplier;
 
-    let crowding_ratio = pop / 3.6e9;
+    let crowding_ratio = pop / CROWDING_REFERENCE_POP;
 
     let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
     let lem_health = tables.life_exp_multiplier_health.eval(health_services);
@@ -227,7 +232,7 @@ mod tests {
         );
         let health_services = s.capital.service_output_per_capita
             * health_fraction * params.health_investment_multiplier;
-        let crowding = s.population.population.max(1.0) / 3.6e9;
+        let crowding = s.population.population.max(1.0) / CROWDING_REFERENCE_POP;
         let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
         let lem_health = tables.life_exp_multiplier_health.eval(health_services);
         let lem_crowding = tables.life_exp_multiplier_crowding.eval(crowding);
@@ -385,17 +390,19 @@ mod tests {
     }
 
     #[test]
-    fn test_dcfs_matches_pyworld3() {
+    fn test_dcfs_calibrated_values() {
         let tables = WorldLookupTables::load();
-        // pyworld3 effective DCFS = dcfsn(3.8) × SFSN(DIOPC)
+        // Calibrated DCFS: shaped for Delay3 perceived-LE + historical fit.
+        // Low at DIOPC=0 (less early growth), peaks at 200 (mid-income boom),
+        // declines at high DIOPC (demographic transition).
         let dcfs_0 = tables.desired_family_size.eval(0.0);
-        assert!((dcfs_0 - 4.75).abs() < 0.01,
-            "DCFS(0) = {} should be ~4.75 (pyworld3)", dcfs_0);
+        assert!((dcfs_0 - 2.85).abs() < 0.01,
+            "DCFS(0) = {} should be ~2.85", dcfs_0);
         let dcfs_200 = tables.desired_family_size.eval(200.0);
-        assert!((dcfs_200 - 3.80).abs() < 0.01,
-            "DCFS(200) = {} should be ~3.80 (pyworld3)", dcfs_200);
+        assert!((dcfs_200 - 3.50).abs() < 0.01,
+            "DCFS(200) = {} should be ~3.50", dcfs_200);
         let dcfs_800 = tables.desired_family_size.eval(800.0);
-        assert!((dcfs_800 - 2.85).abs() < 0.01,
-            "DCFS(800) = {} should be ~2.85 (pyworld3)", dcfs_800);
+        assert!((dcfs_800 - 1.90).abs() < 0.01,
+            "DCFS(800) = {} should be ~1.90", dcfs_800);
     }
 }

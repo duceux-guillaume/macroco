@@ -4,29 +4,12 @@
 //! Ensures the BAU scenario produces the Limits to Growth overshoot-and-collapse
 //! pattern without constraining specific years from the 1972 study.
 
-use std::sync::OnceLock;
-use world3_core::{
-    model::{params::ScenarioParams, state::WorldState},
-    output::SimulationOutput,
-    solver::traits::OdeSolver,
-    Rk4Solver,
-};
+mod common;
+use common::bau_sim;
 
-fn bau_sim() -> &'static SimulationOutput {
-    static SIM: OnceLock<SimulationOutput> = OnceLock::new();
-    SIM.get_or_init(|| {
-        let params = ScenarioParams::bau();
-        let initial = WorldState::initial_1900();
-        let tables = std::sync::Arc::new(
-            world3_core::lookup::tables::WorldLookupTables::load(),
-        );
-        let solver = Rk4Solver::new(tables);
-        let states = solver.solve(initial, &params).expect("BAU simulation failed");
-        SimulationOutput::new(states, params)
-    })
-}
-
-/// BAU population must peak between 2020-2070 then decline.
+/// BAU population must peak between 2020-2090 then decline.
+/// Upper bound widened from 2080 to 2090 because Delay3 perceived-LE
+/// adds ~20yr demographic inertia vs the original Delay1 model.
 #[test]
 fn bau_population_peaks_then_declines() {
     let sim = bau_sim();
@@ -38,12 +21,13 @@ fn bau_population_peaks_then_declines() {
     assert!(peak_pop >= 5.0e9, "Population peak {:.2e} should be >= 5B", peak_pop);
     assert!(peak_pop <= 16.0e9, "Population peak {:.2e} should be <= 16B", peak_pop);
     assert!(peak_year >= 2020.0, "Population peak year {:.0} should be >= 2020", peak_year);
-    assert!(peak_year <= 2080.0, "Population peak year {:.0} should be <= 2080", peak_year);
+    assert!(peak_year <= 2090.0, "Population peak year {:.0} should be <= 2090", peak_year);
 
-    let pop_2100 = sim.states.iter().find(|s| (s.time - 2100.0).abs() < 0.5)
-        .expect("missing year 2100").population.population;
-    assert!(pop_2100 < peak_pop * 0.95,
-        "2100 pop {:.2e} should be < 95% of peak {:.2e} (decline)", pop_2100, peak_pop);
+    let pop_2100 = sim.state_at_year(2100.0).expect("missing year 2100").population.population;
+    // Relaxed from 95% to 97%: Delay3 perceived-LE creates more gradual
+    // population decline because compensatory fertility responds slowly.
+    assert!(pop_2100 < peak_pop * 0.97,
+        "2100 pop {:.2e} should be < 97% of peak {:.2e} (decline)", pop_2100, peak_pop);
 }
 
 /// BAU IOPC must peak then collapse (2100 IOPC < 50% of peak).
@@ -60,8 +44,7 @@ fn bau_iopc_peaks_then_collapses() {
     assert!(peak_year >= 1990.0, "IOPC peak year {:.0} should be >= 1990", peak_year);
     assert!(peak_year <= 2060.0, "IOPC peak year {:.0} should be <= 2060", peak_year);
 
-    let iopc_2100 = sim.states.iter().find(|s| (s.time - 2100.0).abs() < 0.5)
-        .expect("missing year 2100").capital.industrial_output_per_capita;
+    let iopc_2100 = sim.state_at_year(2100.0).expect("missing year 2100").capital.industrial_output_per_capita;
     assert!(iopc_2100 < peak_iopc * 0.5,
         "2100 IOPC {:.0} should be < 50% of peak {:.0} (collapse)", iopc_2100, peak_iopc);
 }
@@ -70,18 +53,15 @@ fn bau_iopc_peaks_then_collapses() {
 #[test]
 fn bau_nnr_monotonic_depletion() {
     let sim = bau_sim();
-    let nnr_2100 = sim.states.iter().find(|s| (s.time - 2100.0).abs() < 0.5)
-        .expect("missing year 2100").resources.fraction_remaining;
+    let nnr_2100 = sim.state_at_year(2100.0).expect("missing year 2100").resources.fraction_remaining;
     assert!(nnr_2100 < 0.25,
         "2100 NNR fraction {:.3} should be < 0.25", nnr_2100);
 
     let monotonic = [1920.0, 1940.0, 1960.0, 1980.0, 2000.0, 2020.0, 2040.0, 2060.0, 2080.0, 2100.0]
         .windows(2)
         .all(|pair| {
-            let a = sim.states.iter().find(|s| (s.time - pair[0]).abs() < 0.5)
-                .expect("missing NNR state").resources.fraction_remaining;
-            let b = sim.states.iter().find(|s| (s.time - pair[1]).abs() < 0.5)
-                .expect("missing NNR state").resources.fraction_remaining;
+            let a = sim.state_at_year(pair[0]).expect("missing NNR state").resources.fraction_remaining;
+            let b = sim.state_at_year(pair[1]).expect("missing NNR state").resources.fraction_remaining;
             b <= a + 0.001
         });
     assert!(monotonic, "NNR fraction should decrease monotonically");
@@ -102,8 +82,7 @@ fn bau_life_expectancy_peaks_then_declines() {
     assert!(peak_le >= 45.0, "Peak LE {:.1} should be >= 45", peak_le);
     assert!(peak_le <= 80.0, "Peak LE {:.1} should be <= 80", peak_le);
 
-    let le_2100 = sim.states.iter().find(|s| (s.time - 2100.0).abs() < 0.5)
-        .expect("missing year 2100").population.life_expectancy;
+    let le_2100 = sim.state_at_year(2100.0).expect("missing year 2100").population.life_expectancy;
     assert!(le_2100 < peak_le * 0.8,
         "2100 LE {:.1} should be < 80% of peak {:.1} (decline)", le_2100, peak_le);
 }
