@@ -585,6 +585,15 @@
 					.attr('class', 'eye-toggle')
 					.attr('cursor', 'pointer');
 
+				// Invisible hit area — the eye path is stroke-only (~14×11px),
+				// so without this rect clicks only register on the thin strokes.
+				eyeG.append('rect')
+					.attr('x', -3)
+					.attr('y', -1)
+					.attr('width', 22)
+					.attr('height', 18)
+					.attr('fill', 'transparent');
+
 				eyeG.append('path')
 					.attr('d', getEyePath)
 					.attr('fill', 'none')
@@ -605,6 +614,7 @@
 							.attr('stroke-dasharray', '4,2');
 					} else {
 						el.append('rect')
+							.attr('class', 'swatch')
 							.attr('x', 22)
 							.attr('width', 16)
 							.attr('height', 4)
@@ -649,7 +659,7 @@
 					})
 					.attr('opacity', getLegendOpacity);
 				update.select('text').text((d) => d.label);
-				update.select('rect').attr('fill', (d) => d.color);
+				update.select('rect.swatch').attr('fill', (d) => d.color);
 				update.select('line').attr('stroke', (d) => d.color);
 				update.select('.eye-toggle path').attr('d', getEyePath);
 				update.select('.eye-toggle').on('click', handleEyeClick);
