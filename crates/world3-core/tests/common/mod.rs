@@ -7,34 +7,28 @@ use world3_core::{
     Rk4Solver,
 };
 
+/// Run a simulation with the given params. Used inside OnceLock initializers.
+pub fn run_sim(params: ScenarioParams) -> SimulationOutput {
+    let initial = WorldState::initial_1900();
+    let tables = std::sync::Arc::new(world3_core::lookup::tables::WorldLookupTables::load());
+    let solver = Rk4Solver::new(tables);
+    let name = params.meta.name.clone();
+    let states = solver
+        .solve(initial, &params)
+        .unwrap_or_else(|_| panic!("{name} simulation failed"));
+    SimulationOutput::new(states, params)
+}
+
 /// Shared Collapse simulation (run once across all tests in this binary).
 pub fn collapse_sim() -> &'static SimulationOutput {
     static SIM: OnceLock<SimulationOutput> = OnceLock::new();
-    SIM.get_or_init(|| {
-        let params = ScenarioParams::collapse();
-        let initial = WorldState::initial_1900();
-        let tables = std::sync::Arc::new(
-            world3_core::lookup::tables::WorldLookupTables::load(),
-        );
-        let solver = Rk4Solver::new(tables);
-        let states = solver.solve(initial, &params).expect("Collapse simulation failed");
-        SimulationOutput::new(states, params)
-    })
+    SIM.get_or_init(|| run_sim(ScenarioParams::collapse()))
 }
 
 /// Shared Technotopia simulation (run once across all tests in this binary).
 pub fn technotopia_sim() -> &'static SimulationOutput {
     static SIM: OnceLock<SimulationOutput> = OnceLock::new();
-    SIM.get_or_init(|| {
-        let params = ScenarioParams::technotopia();
-        let initial = WorldState::initial_1900();
-        let tables = std::sync::Arc::new(
-            world3_core::lookup::tables::WorldLookupTables::load(),
-        );
-        let solver = Rk4Solver::new(tables);
-        let states = solver.solve(initial, &params).expect("Technotopia simulation failed");
-        SimulationOutput::new(states, params)
-    })
+    SIM.get_or_init(|| run_sim(ScenarioParams::technotopia()))
 }
 
 // ---------------------------------------------------------------------------

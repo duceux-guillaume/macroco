@@ -9,7 +9,7 @@ Fraction by which pollution generation is reduced per unit of industrial and agr
 | Preset | Value |
 |---|---|
 | Collapse | 0.0 |
-| Technology (Technotopia) | 0.8 |
+| Technotopia | 0.15 |
 | Ecotopia | 0.8 |
 
 **Range:** 0.0 -- 1.0 (fraction)
