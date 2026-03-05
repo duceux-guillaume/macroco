@@ -1,12 +1,12 @@
 <script lang="ts">
 	import UnifiedChart from '$lib/charts/UnifiedChart.svelte';
 	import { activeSimData } from '$lib/stores/simulation';
-	import { scenarioColors, scenarioNames, focusedScenarioId } from '$lib/stores/scenarios';
+	import { scenarioColors, scenarioNames, focusedScenarioId, activeScenarioIds } from '$lib/stores/scenarios';
 </script>
 
 <div class="chart-layout">
 	<div class="chart-section">
-		<UnifiedChart data={$activeSimData} colors={$scenarioColors} names={$scenarioNames} focusedScenarioId={$focusedScenarioId} />
+		<UnifiedChart data={$activeSimData} colors={$scenarioColors} names={$scenarioNames} activeScenarioIds={[...$activeScenarioIds]} focusedScenarioId={$focusedScenarioId} />
 	</div>
 </div>
 
