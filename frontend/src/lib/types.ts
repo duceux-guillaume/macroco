@@ -85,6 +85,7 @@ export interface ScenarioParams {
 	land_protection_fraction: number;
 	subsistence_food_per_capita: number;
 	resource_efficiency: number;
+	resource_efficiency_growth_rate: number;
 	initial_nnr_fraction: number;
 	pollution_control: number;
 	start_year: number;

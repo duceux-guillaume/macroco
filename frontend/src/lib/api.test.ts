@@ -51,6 +51,7 @@ const testParams: ScenarioParams = {
 	land_protection_fraction: 0.0,
 	subsistence_food_per_capita: 230,
 	resource_efficiency: 1.0,
+	resource_efficiency_growth_rate: 0.0,
 	initial_nnr_fraction: 1.0,
 	pollution_control: 0.0,
 	start_year: 1900,
