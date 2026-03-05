@@ -44,6 +44,7 @@
 | REQ-038 | CLI — Batch export | Done (exempt: Organizational requirement; CSV output tested by REQ-003 tests) | — |
 | REQ-039 | CLI — Simulation debugging | Done (exempt: Organizational requirement; diagnose tested via agent workflow tests) | — |
 | REQ-040 | CLI — Reproducibility | Done (exempt: Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests) | — |
+| REQ-041 | Click/tap chart lines to open info panel | Done (exempt: D3 SVG interaction; not testable with jsdom (no SVG pointer events)) | — |
 
 ## Reverse: Test -> REQs
 
@@ -86,7 +87,7 @@
 
 ## Summary
 
-- **Done requirements:** 27
+- **Done requirements:** 28
 - **Covered by tests:** 16
-- **Exempt:** 11
+- **Exempt:** 12
 - **Uncovered:** 0

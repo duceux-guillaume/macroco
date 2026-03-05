@@ -165,7 +165,6 @@
   - *Components:* `frontend/src/lib/charts/UnifiedChart.svelte`, `frontend/src/lib/charts/zoom-helpers.ts`
   - *Done:* Replaced no-op `d3.brushX` with `d3.zoom()`. X-axis zoom/pan on all devices (wheel, pinch, drag). SVG clip path prevents overflow. Tap-to-pin tooltip on mobile (pointer: coarse). Hover tooltip on desktop. Reset zoom button + double-click/tap + Escape key. Y-axis auto-fits visible window in compare mode. Extracted pure zoom helpers with 30 unit tests.
 
-<<<<<<< HEAD
 - [x] **REQ-037: CLI — CI/CD validation**
   - *Milestone:* M1
   - *Context:* Automated pipelines need headless qualitative checks against Meadows 1972 reference dynamics. The CLI `validate` command runs without a browser or frontend.
@@ -194,12 +193,12 @@
   - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (BAU, Technology, Stabilized).
   - *Exempt:* Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests
 
-- [ ] **REQ-041: Click/tap chart lines to open info panel**
+- [x] **REQ-041: Click/tap chart lines to open info panel**
   - *Milestone:* M1
   - *Context:* Chart lines are not clickable — the only way to open a variable's info panel is via the legend. On desktop, clicking a line should open its info panel. On mobile, tapping a line opens the info panel; tapping the background shows the tooltip.
   - *Components:* `frontend/src/lib/charts/UnifiedChart.svelte`
-  - *Priority:* medium
-  - *Design:* `docs/plans/2026-03-05-click-to-info-panel-design.md`
+  - *Done:* Invisible 20px-wide hit-area SVG paths on top of chart lines. Desktop click opens info panel with hover feedback. Mobile tap on line opens panel, tap on background shows tooltip. Hit-lines render above overlay with individual clip-path, handlers refreshed on D3 update selection.
+  - *Exempt:* D3 SVG interaction; not testable with jsdom (no SVG pointer events)
 
 ---
 
