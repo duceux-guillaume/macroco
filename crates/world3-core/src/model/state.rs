@@ -52,6 +52,9 @@ pub struct PopulationState {
     pub perceived_le_stage1: f64,
     /// Delay3 stage 2 for perceived LE [years]
     pub perceived_le_stage2: f64,
+    /// Effective health services per capita — smooth of HSAPC with 20yr delay
+    /// World3-03: EHSPC = smooth(HSAPC, HSID=20)
+    pub ehspc: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -127,7 +130,7 @@ pub struct PollutionState {
 
 impl WorldState {
     /// The number of state variables (excluding `time`, which is tracked separately).
-    pub const N: usize = 20;
+    pub const N: usize = 21;
 
     /// Human Welfare Index (0–1 scale) — World3-03 composite indicator.
     ///
@@ -191,6 +194,8 @@ impl WorldState {
             self.population.perceived_le,
             self.population.perceived_le_stage1,
             self.population.perceived_le_stage2,
+            // Health services smooth (1 stock: EHSPC)
+            self.population.ehspc,
         ]
     }
 
@@ -230,6 +235,7 @@ impl WorldState {
         s.population.perceived_le = v[17].max(5.0); // never below minimum LE
         s.population.perceived_le_stage1 = v[18].max(5.0);
         s.population.perceived_le_stage2 = v[19].max(5.0);
+        s.population.ehspc = v[20].max(0.0);
         s
     }
 
@@ -248,6 +254,7 @@ impl WorldState {
                 perceived_le: 33.0, // Initial perceived LE matches 1900 computed LE
                 perceived_le_stage1: 33.0,
                 perceived_le_stage2: 33.0,
+                ehspc: 7.2, // HSAPC(SOPC=90) ≈ 7.2 at 1900 (linear interp in HSAPC table)
                 ..Default::default()
             },
             capital: CapitalState {
@@ -325,6 +332,7 @@ impl std::ops::Add for WorldState {
         self.population.perceived_le += rhs.population.perceived_le;
         self.population.perceived_le_stage1 += rhs.population.perceived_le_stage1;
         self.population.perceived_le_stage2 += rhs.population.perceived_le_stage2;
+        self.population.ehspc += rhs.population.ehspc;
         self.capital.industrial_capital += rhs.capital.industrial_capital;
         self.capital.service_capital += rhs.capital.service_capital;
         self.capital.perceived_iopc += rhs.capital.perceived_iopc;
@@ -352,6 +360,7 @@ impl std::ops::Mul<f64> for WorldState {
         self.population.perceived_le *= rhs;
         self.population.perceived_le_stage1 *= rhs;
         self.population.perceived_le_stage2 *= rhs;
+        self.population.ehspc *= rhs;
         self.capital.industrial_capital *= rhs;
         self.capital.service_capital *= rhs;
         self.capital.perceived_iopc *= rhs;
@@ -388,7 +397,7 @@ mod tests {
 
     #[test]
     fn test_world_state_n() {
-        assert_eq!(WorldState::N, 20);
+        assert_eq!(WorldState::N, 21);
         let s = WorldState::initial_1900();
         assert_eq!(s.to_vec().len(), WorldState::N);
     }
@@ -411,6 +420,8 @@ mod tests {
         // Pollution appearance stages clamped to 0
         assert_eq!(s.pollution.pollution_appearance_stage1, 0.0);
         assert_eq!(s.pollution.pollution_appearance_stage2, 0.0);
+        // EHSPC clamped to 0
+        assert_eq!(s.population.ehspc, 0.0);
         // Resources clamped to 0
         assert_eq!(s.resources.nonrenewable_resources, 0.0);
     }

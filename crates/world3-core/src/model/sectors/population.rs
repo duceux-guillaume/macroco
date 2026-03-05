@@ -27,6 +27,9 @@ const MAX_TOTAL_FERTILITY: f64 = 12.0;
 /// Lifetime perception delay [years] — World3-03: LPD = 20
 const LIFETIME_PERCEPTION_DELAY: f64 = 20.0;
 
+/// Health services impact delay [years] — World3-03: HSID = 20
+const HEALTH_SERVICES_IMPACT_DELAY: f64 = 20.0;
+
 
 pub struct PopulationDerivatives {
     pub d_cohort_0_14: f64,
@@ -36,6 +39,7 @@ pub struct PopulationDerivatives {
     pub d_perceived_le: f64,
     pub d_perceived_le_stage1: f64,
     pub d_perceived_le_stage2: f64,
+    pub d_ehspc: f64,
 }
 
 /// Compute population derivatives and update auxiliary fields:
@@ -51,12 +55,15 @@ pub fn population_derivatives(
     let food_ratio = state.agriculture.food_per_capita / params.subsistence_food_per_capita;
 
     // World3-03: HSAPC table maps SOPC → health spending per capita directly.
-    let health_services = tables.health_services_per_capita.eval(
+    let hsapc = tables.health_services_per_capita.eval(
         state.capital.service_output_per_capita,
     ) * params.health_investment_multiplier;
+    // EHSPC = smooth(HSAPC, HSID=20yr) — first-order exponential delay
+    let d_ehspc = (hsapc - state.population.ehspc) / HEALTH_SERVICES_IMPACT_DELAY;
 
     let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
-    let lem_health = tables.life_exp_multiplier_health.eval(health_services);
+    // Use smoothed EHSPC (not raw HSAPC) for life expectancy
+    let lem_health = tables.life_exp_multiplier_health.eval(state.population.ehspc);
 
     // World3-03: LMC = 1 - CMI(IOPC) × FPU(POP)
     let cmi = tables.crowding_multiplier_ind.eval(state.capital.industrial_output_per_capita);
@@ -152,6 +159,7 @@ pub fn population_derivatives(
         d_perceived_le,
         d_perceived_le_stage1,
         d_perceived_le_stage2,
+        d_ehspc,
     }
 }
 
@@ -220,14 +228,12 @@ mod tests {
         population_derivatives(&mut s, &params, &tables);
         // LE = 28 × LEM_food × LEM_health × LEM_crowding × LEM_pollution
         let food_ratio = s.agriculture.food_per_capita / params.subsistence_food_per_capita;
-        let health_services = tables.health_services_per_capita.eval(
-            s.capital.service_output_per_capita,
-        ) * params.health_investment_multiplier;
+        // EHSPC (smoothed) is the input to LMHS, not raw HSAPC
         let cmi = tables.crowding_multiplier_ind.eval(s.capital.industrial_output_per_capita);
         let fpu = tables.fraction_population_urban.eval(s.population.population.max(1.0));
         let lem_crowding = 1.0 - cmi * fpu;
         let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
-        let lem_health = tables.life_exp_multiplier_health.eval(health_services);
+        let lem_health = tables.life_exp_multiplier_health.eval(s.population.ehspc);
         let lem_pollution = tables.life_exp_multiplier_pollution.eval(s.pollution.pollution_index);
         let expected = (LIFE_EXPECTANCY_BASE * lem_food * lem_health * lem_crowding * lem_pollution)
             .clamp(5.0, 90.0);
@@ -341,6 +347,7 @@ mod tests {
         assert!(d.d_cohort_45_64.is_finite());
         assert!(d.d_cohort_65_plus.is_finite());
         assert!(d.d_perceived_le.is_finite());
+        assert!(d.d_ehspc.is_finite());
     }
 
     #[test]
