@@ -230,7 +230,7 @@ mod tests {
         // EHSPC (smoothed) is the input to LMHS, not raw HSAPC
         let cmi = tables.crowding_multiplier_ind.eval(s.capital.industrial_output_per_capita);
         let fpu = tables.fraction_population_urban.eval(s.population.population.max(1.0));
-        let lem_crowding = 1.0 - cmi * fpu;
+        let lem_crowding = (1.0 - cmi * fpu).max(0.0);
         let lem_food = tables.life_exp_multiplier_food.eval(food_ratio);
         let lem_health = tables.life_exp_multiplier_health.eval(s.population.ehspc);
         let lem_pollution = tables.life_exp_multiplier_pollution.eval(s.pollution.pollution_index);
