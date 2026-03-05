@@ -40,6 +40,7 @@ data/
   historical/         # Bundled historical CSVs used as seed/fallback data.
   presets/            # Named scenario parameter sets (BAU, Technology, Stabilized, LtG 1972).
 docs/
+  plans/                 # Working design/impl plans (gitignored — local only)
   product-requirements.md  # Feature requirements (REQ-NNN IDs)
   architecture.md          # System design, components, data flow
   quick-start.md           # Beginner-friendly setup guide
@@ -50,7 +51,7 @@ docs/
   deployment.md            # Fly.io deployment guide
 Dockerfile            # Multi-stage build (Rust + Node + slim runtime)
 fly.toml              # Fly.io app configuration
-.claude/commands/      # Project-local Claude Code slash commands (/audit-tables)
+.claude/commands/      # Project-local Claude Code slash commands (/audit-tables, /refine-pr)
 ```
 
 ## Commands
@@ -124,6 +125,16 @@ Claude has broad tool permissions in this project. The deny-list in `.claude/set
 These actions require explicit user confirmation regardless of tool permissions.
 
 Run `/permissions-audit` to review and improve permission settings.
+
+### Pre-PR Workflow
+
+Before creating or updating a PR, run `/refine-pr`. This executes phased quality gates:
+
+1. **Validate** — tests, clippy, frontend checks, traceability (stops on failure)
+2. **Refine** — `/simplify`, fold plan findings into permanent docs (modifies files)
+3. **Review** — `/requesting-code-review`, `/permissions-audit`, `/claude-md-management:revise-claude-md` (advisory)
+
+Plan files (`docs/plans/`) are gitignored. They are working documents for Claude sessions — valuable findings must be folded into CLAUDE.md, architecture.md, or product-requirements.md before the PR.
 
 ### Simulation Engine (`world3-core`)
 - Sector derivative order matters: resource_aux → capital → resource_depletion → agriculture → pollution → population. Documented in `derivatives.rs`.
