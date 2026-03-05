@@ -72,10 +72,17 @@ pub fn agriculture_derivatives(
         .eval(state.pollution.pollution_index);
 
     let land_fertility = state.agriculture.land_fertility.max(1.0);
+    // Macroco extension: time-varying agricultural technology.
+    // Represents Green Revolution TFP not captured by capital-driven LYMC.
+    // Starts 1960 (semi-dwarf wheat/rice development by Borlaug et al.).
+    // Source: USDA ERS agricultural TFP ~1%/yr (1960-2020).
+    let ag_tech_years = (state.time - 1960.0).max(0.0);
+    let ag_tech = params.agricultural_technology
+        * (1.0 + params.agricultural_technology_growth_rate).powf(ag_tech_years);
     let land_yield = land_fertility
         * yield_multiplier_capital
         * yield_multiplier_pollution
-        * params.agricultural_technology;
+        * ag_tech;
     state.agriculture.land_yield = land_yield;
 
     // ---- Food production ----
@@ -321,7 +328,10 @@ mod tests {
         let fertility = s.agriculture.land_fertility.max(1.0);
         let lymc = tables.land_yield_multiplier_capital.eval(s.agriculture.agricultural_inputs_per_hectare);
         let lymap = tables.land_yield_multiplier_pollution.eval(s.pollution.pollution_index);
-        let expected = fertility * lymc * lymap * params.agricultural_technology;
+        let ag_tech_years = (s.time - 1960.0).max(0.0);
+        let ag_tech = params.agricultural_technology
+            * (1.0 + params.agricultural_technology_growth_rate).powf(ag_tech_years);
+        let expected = fertility * lymc * lymap * ag_tech;
         assert_relative_eq!(s.agriculture.land_yield, expected, max_relative = 1e-10);
     }
 
@@ -339,5 +349,42 @@ mod tests {
         let erosion = development - d.d_arable_land - uil_from_arable;
         assert!(erosion >= 0.0, "erosion {erosion} should be non-negative");
         assert!(development >= 0.0, "development {development} should be non-negative");
+    }
+
+    #[test]
+    fn test_agricultural_technology_growth_at_2000() {
+        let (mut s1, _, tables) = setup();
+        let params = ScenarioParams::bau();
+        s1.time = 1900.0;
+        agriculture_derivatives(&mut s1, &params, &tables);
+        let yield_1900 = s1.agriculture.land_yield;
+
+        let (mut s2, _, _) = setup();
+        s2.time = 2000.0;
+        agriculture_derivatives(&mut s2, &params, &tables);
+        let yield_2000 = s2.agriculture.land_yield;
+
+        let expected_ratio = (1.0 + params.agricultural_technology_growth_rate).powf(40.0);
+        assert_relative_eq!(yield_2000 / yield_1900, expected_ratio, max_relative = 1e-10);
+    }
+
+    #[test]
+    fn test_agricultural_technology_growth_zero_rate() {
+        let (mut s1, _, tables) = setup();
+        let mut params = ScenarioParams::bau();
+        params.agricultural_technology_growth_rate = 0.0;
+        s1.time = 2050.0;
+        agriculture_derivatives(&mut s1, &params, &tables);
+        let yield_no_growth = s1.agriculture.land_yield;
+
+        let (mut s2, _, _) = setup();
+        let mut params2 = ScenarioParams::bau();
+        params2.agricultural_technology_growth_rate = 0.0;
+        params2.agricultural_technology = 1.0;
+        s2.time = 1900.0;
+        agriculture_derivatives(&mut s2, &params2, &tables);
+        let yield_1900 = s2.agriculture.land_yield;
+
+        assert_relative_eq!(yield_no_growth, yield_1900, max_relative = 1e-10);
     }
 }

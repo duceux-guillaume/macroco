@@ -155,6 +155,25 @@ pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
         ),
     });
 
+    // Food per capita: peak then decline
+    let (peak_fpc, peak_fpc_year) = find_peak(sim, |s| s.agriculture.food_per_capita);
+    results.push(CheckResult {
+        label: "Food/capita peak range".into(),
+        passed: peak_fpc >= 500.0 && peak_fpc <= 1200.0,
+        detail: format!("peak={:.0} kg/yr (expected 500–1200)", peak_fpc),
+    });
+    results.push(CheckResult {
+        label: "Food/capita peak timing".into(),
+        passed: peak_fpc_year >= 2000.0 && peak_fpc_year <= 2070.0,
+        detail: format!("peak year={:.0} (expected 2000–2070)", peak_fpc_year),
+    });
+    let fpc_2100 = sim.state_at_year(2100.0).map(|s| s.agriculture.food_per_capita).unwrap_or(0.0);
+    results.push(CheckResult {
+        label: "Food/capita collapse by 2100".into(),
+        passed: fpc_2100 < peak_fpc * 0.6,
+        detail: format!("2100={:.0}, peak={:.0}, ratio={:.2} (need <0.60)", fpc_2100, peak_fpc, fpc_2100 / peak_fpc),
+    });
+
     // Life expectancy peak (skip initial year before recomputation)
     let (peak_le, peak_le_year) = sim
         .states
