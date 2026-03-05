@@ -147,7 +147,7 @@
 		if (innerW <= 0 || innerH <= 0) return;
 
 		let linesData: LineDatum[] = [];
-		let legendData: Array<{ id: string; label: string; color: string; fieldPath: string }> = [];
+		let legendData: Array<{ id: string; label: string; shortLabel: string; color: string; fieldPath: string }> = [];
 		let useNormalizedY = true;
 
 		if (_compareMode) {
@@ -189,6 +189,7 @@
 				legendData.push({
 					id: scenarioId,
 					label: scenarioId.slice(0, 8),
+					shortLabel: scenarioId.slice(0, 8),
 					color,
 					fieldPath: varConfig.fieldPath
 				});
@@ -199,6 +200,7 @@
 				legendData.push({
 					id: 'historical',
 					label: 'Historical',
+					shortLabel: 'Hist.',
 					color: '#9ca3af',
 					fieldPath: '__historical__'
 				});
@@ -260,6 +262,7 @@
 			legendData = unifiedVariables.map((v) => ({
 				id: v.id,
 				label: v.label,
+				shortLabel: v.shortLabel,
 				color: v.color,
 				fieldPath: v.fieldPath
 			}));
@@ -269,6 +272,7 @@
 				legendData.push({
 					id: 'historical',
 					label: 'Historical',
+					shortLabel: 'Hist.',
 					color: '#9ca3af',
 					fieldPath: '__historical__'
 				});
@@ -679,23 +683,12 @@
 				});
 
 				// Label text (at x=42)
-				const labelText = item.append('text')
+				item.append('text')
 					.attr('x', 42)
 					.attr('y', 12)
 					.attr('fill', 'var(--text-secondary)')
 					.attr('font-size', isNarrow ? '10px' : '13px')
-					.text((d) => d.label);
-
-				if (isNarrow) {
-					const maxTextW = Math.floor(innerW / 3) - 46;
-					labelText
-						.attr('textLength', (d) => {
-							// Only constrain if text would overflow
-							const est = d.label.length * 6; // ~6px per char at 10px font
-							return est > maxTextW ? maxTextW : null;
-						})
-						.attr('lengthAdjust', 'spacing');
-				}
+					.text((d) => isNarrow ? d.shortLabel : d.label);
 
 				return item;
 			},
@@ -712,7 +705,7 @@
 						return `translate(0, ${i * 28})`;
 					})
 					.attr('opacity', getLegendOpacity);
-				update.select('text').text((d) => d.label);
+				update.select('text').text((d) => isNarrow ? d.shortLabel : d.label);
 				update.select('rect.swatch').attr('fill', (d) => d.color);
 				update.select('line').attr('stroke', (d) => d.color);
 				update.select('.eye-toggle path').attr('d', getEyePath);
