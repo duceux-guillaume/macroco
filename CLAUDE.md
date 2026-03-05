@@ -160,6 +160,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). Each table has a doc file in `docs/model/tables/`. Run `/audit-model-doc` to re-audit after changes. Modes: default (full audit + fix), `--check` (CI, read-only), `--diff` (pre-PR, changed files only).
 - When modifying sector code, lookup tables, or parameters, update the corresponding file in `docs/model/`. The `/audit-model-doc --diff` gate in `/refine-pr` will catch missed updates.
 - Parameter doc files (`docs/model/parameters/*.md`) must follow the template: H1 title, `**Sector:**`, `**Source code:**`, `**BAU value:**` metadata lines, then `## Equation Context`, `## Calibration`, `## Info Panel`, `## References` sections. The audit enforces this structure.
+- When changing scenario preset params, check `docs/model/parameters/*.md` for preset value tables that reference the old values. `/audit-model-doc --diff` only checks files corresponding to changed code, not all docs mentioning a preset.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 - `world3_core::validation::validate_collapse()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.
@@ -202,7 +203,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"collapse"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
 - `init_app_state()` loads historical CSVs from `HISTORICAL_DATA_DIR` (default `./data/historical`). Integration tests using it must run from the repo root or set the env var.
 - Historical calibration tests: `cargo test -p world3-core --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one Collapse sim across all tests.
-- Calibration test helpers (CSV loader, RMSE%, max-year-error, match_years) live in `crates/world3-core/tests/common/mod.rs`. Reuse them for new scenario calibration tests (e.g., Ecotopia REQ-036).
+- Calibration test helpers (`run_sim`, CSV loader, RMSE%, max-year-error, match_years) live in `crates/world3-core/tests/common/mod.rs`. To add a new scenario: add `pub fn ecotopia_sim()` using `run_sim(ScenarioParams::ecotopia())` + OnceLock, then duplicate `technotopia_historical_calibration.rs` with adjusted thresholds.
 
 ### Debugging Workflow
 - For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.
