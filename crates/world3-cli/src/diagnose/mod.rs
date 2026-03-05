@@ -58,7 +58,7 @@ pub fn preset_params(name: &str) -> Result<ScenarioParams> {
     match name {
         "collapse" => Ok(ScenarioParams::collapse()),
         "technology" => Ok(ScenarioParams::technotopia()),
-        "stabilized" => Ok(ScenarioParams::stabilized_world()),
+        "stabilized" => Ok(ScenarioParams::ecotopia()),
         other => anyhow::bail!("Unknown preset '{}'", other),
     }
 }

@@ -39,7 +39,7 @@
 | REQ-033 | Climate and energy extension sectors | Planned | — |
 | REQ-034 | Biodiversity and inequality extension sectors | Planned | — |
 | REQ-035 | Technology scenario historical calibration | Planned | — |
-| REQ-036 | Stabilized scenario historical calibration | Planned | — |
+| REQ-036 | Ecotopia scenario historical calibration | Planned | — |
 | REQ-037 | CLI — CI/CD validation | Done (exempt: Organizational requirement; CLI validate tested by REQ-005 tests) | `frontend/src/lib/charts/zoom-helpers.test.ts` |
 | REQ-038 | CLI — Batch export | Done (exempt: Organizational requirement; CSV output tested by REQ-003 tests) | — |
 | REQ-039 | CLI — Simulation debugging | Done (exempt: Organizational requirement; diagnose tested via agent workflow tests) | — |

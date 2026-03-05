@@ -1,7 +1,7 @@
 {
   "meta": {
-    "id": "stabilized-preset",
-    "name": "Stabilized World",
+    "id": "ecotopia-preset",
+    "name": "Ecotopia",
     "description": "Combination of technology, pollution control, family planning, land protection, and resource efficiency. Closest to a sustainable trajectory in Meadows et al.",
     "color_hex": "#457b9d",
     "created_at": "2026-01-01T00:00:00Z"

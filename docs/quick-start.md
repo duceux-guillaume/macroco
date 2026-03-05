@@ -121,7 +121,7 @@ docker run -p 8080:8080 macroco
 
 ## 4. First things to try
 
-1. **Compare scenarios** — Click the preset buttons in the sidebar (Collapse, Technology, Stabilized) to overlay different futures on the same charts.
+1. **Compare scenarios** — Click the preset buttons in the sidebar (Collapse, Technotopia, Ecotopia) to overlay different futures on the same charts.
 
 2. **Read the charts** — Hover over any chart to see values at a specific year. Notice how population peaks around 2030 in Collapse, then declines as resources deplete.
 

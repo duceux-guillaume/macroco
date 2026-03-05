@@ -25,7 +25,7 @@ pub fn init_app_state() -> AppState {
     let presets: Vec<ScenarioParams> = vec![
         ScenarioParams::collapse(),
         ScenarioParams::technotopia(),
-        ScenarioParams::stabilized_world(),
+        ScenarioParams::ecotopia(),
     ];
 
     let mut map: HashMap<String, Scenario> = HashMap::new();

@@ -316,7 +316,7 @@ impl WorldLookupTables {
             // moderate and preventing the zero-allocation trap.
             // Table shape recalibrated for LFH/PL factors (×0.63 food reduction).
             // Higher allocation at moderate food_ratio compensates for reduced food output.
-            // Floor of 0.005 at high food_ratio (prevents oscillation in Stabilized preset).
+            // Floor of 0.005 at high food_ratio (prevents oscillation in Ecotopia preset).
             industrial_fraction_to_agriculture: LookupTable::new(
                 "industrial_fraction_to_agriculture",
                 vec![0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 4.0],
@@ -328,10 +328,10 @@ impl WorldLookupTables {
             // Based on World3-03's IFPC table, but starts at subsistence (230)
             // to preserve Collapse behavior (where IOPC stays below ~330). Rises at
             // higher IOPC to prevent zero-allocation trap in Technology and
-            // Stabilized scenarios where IOPC can exceed 1600.
+            // Ecotopia scenarios where IOPC can exceed 1600.
             // Without IFPC, food_ratio = FPC/SFPC would reach 3.0+ and FIOAA → 0.
             // With IFPC, food_ratio = FPC_smooth/IFPC stays moderate even at high FPC.
-            // Extended to IOPC=2500 for Stabilized scenario (IOPC peaks ~2000).
+            // Extended to IOPC=2500 for Ecotopia scenario (IOPC peaks ~2000).
             indicated_food_per_capita: LookupTable::new(
                 "indicated_food_per_capita",
                 vec![0.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0],

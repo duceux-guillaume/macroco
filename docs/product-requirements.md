@@ -31,7 +31,7 @@
   - *Milestone:* M1
   - *Context:* Named parameter sets allow reproducible runs and comparison against canonical scenarios.
   - *Components:* `world3-core`: ScenarioParams, `data/presets/`
-  - *Done:* Three presets (Collapse, Technotopia, Stabilized World) constructed in Rust code; JSON copies in `data/presets/`.
+  - *Done:* Three presets (Collapse, Technotopia, Ecotopia) constructed in Rust code; JSON copies in `data/presets/`.
 
 - [x] **REQ-005: Validation against Meadows 1972**
   - *Milestone:* M2
@@ -190,7 +190,7 @@
   - *Milestone:* M1
   - *Context:* Deterministic simulation runs from a single command ensure reproducible results across environments. Named presets provide canonical parameter sets.
   - *Components:* `world3-cli`: `simulate`, `presets` subcommands
-  - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (Collapse, Technology, Stabilized).
+  - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (Collapse, Technotopia, Ecotopia).
   - *Exempt:* Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests
 
 - [x] **REQ-042: Sidebar-centric layout principle**
@@ -222,7 +222,7 @@
 
 - [ ] **REQ-030: Multi-scenario historical calibration**
   - *Context:* Originally a monolithic requirement for calibrating all non-Collapse scenarios. Split into per-scenario requirements.
-  - *Replaced by:* REQ-035 (Technology calibration, M3) and REQ-036 (Stabilized calibration, M4)
+  - *Replaced by:* REQ-035 (Technology calibration, M3) and REQ-036 (Ecotopia calibration, M4)
 
 ---
 
@@ -230,7 +230,7 @@
 
 - [ ] **REQ-031: Scenario trajectory validation**
   - *Milestone:* M2
-  - *Context:* Non-Collapse scenarios must produce meaningfully divergent futures compared to Collapse. Technology should show extended resource availability and delayed decline; Stabilized should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
+  - *Context:* Non-Collapse scenarios must produce meaningfully divergent futures compared to Collapse. Technology should show extended resource availability and delayed decline; Ecotopia should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
   - *Components:* `world3-cli`: validate subcommand or dedicated test
   - *Priority:* high
 
@@ -256,9 +256,9 @@
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Priority:* high
 
-- [ ] **REQ-036: Stabilized scenario historical calibration**
+- [ ] **REQ-036: Ecotopia scenario historical calibration**
   - *Milestone:* M4
-  - *Context:* Stabilized (Ecotopia) preset must track real-world historical data over 1960-2023. Shared history with Collapse before policy switch years, then divergent future trajectory.
+  - *Context:* Ecotopia preset must track real-world historical data over 1960-2023. Shared history with Collapse before policy switch years, then divergent future trajectory.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Priority:* high
 

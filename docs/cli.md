@@ -139,7 +139,7 @@ Output:
 Available presets:
   collapse     Collapse (original World 3 standard run)
   technology   Technotopia scenario
-  stabilized   Stabilized World scenario
+  stabilized   Ecotopia scenario
 ```
 
 ## Exit Codes

@@ -119,7 +119,7 @@ The consumption fraction table uses absolute IOPC as its x-axis (rather than the
 
 ### FIOAA Floor and Adjustment
 
-The fraction to agriculture has a 0.005 floor at high food ratio (instead of zero in World3-03), preventing oscillation in the Stabilized preset where agricultural investment would drop to zero and trigger yield collapse. Values are slightly higher at moderate food ratio to compensate for Land Fraction Harvested and Processing Loss food reduction factors. See [Industrial Fraction to Agriculture (FIOAA)](../tables/industrial-fraction-to-agriculture.md).
+The fraction to agriculture has a 0.005 floor at high food ratio (instead of zero in World3-03), preventing oscillation in the Ecotopia preset where agricultural investment would drop to zero and trigger yield collapse. Values are slightly higher at moderate food ratio to compensate for Land Fraction Harvested and Processing Loss food reduction factors. See [Industrial Fraction to Agriculture (FIOAA)](../tables/industrial-fraction-to-agriculture.md).
 
 ### Technology Growth Rate
 

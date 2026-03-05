@@ -71,7 +71,7 @@ pub fn capital_derivatives(
     // (preserved by from_vec across RK4 stages), while IFPC scales with
     // industrialization to prevent zero-allocation traps at high food levels.
     // At low IOPC (Collapse), IFPC ≈ SFPC so this matches the original allocation.
-    // At high IOPC (Tech/Stabilized), IFPC rises, keeping food_ratio moderate.
+    // At high IOPC (Tech/Ecotopia), IFPC rises, keeping food_ratio moderate.
     let ifpc = tables.indicated_food_per_capita.eval(iopc).max(1.0);
     let food_ratio = state.agriculture.food_per_capita_smooth / ifpc;
 

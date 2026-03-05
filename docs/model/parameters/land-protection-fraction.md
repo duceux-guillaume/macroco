@@ -14,11 +14,11 @@ At 0.0, all land erodes at the full rate determined by the [LERD](../tables/land
 
 ## Calibration
 
-Collapse uses 0.0 (no protection), matching the World3-03 standard run assumption. The Stabilized preset uses 0.3, representing active soil conservation policy. No deviation from World3-03 is needed for Collapse calibration since the parameter is zero in the standard run.
+Collapse uses 0.0 (no protection), matching the World3-03 standard run assumption. The Ecotopia preset uses 0.3, representing active soil conservation policy. No deviation from World3-03 is needed for Collapse calibration since the parameter is zero in the standard run.
 
 ## Sensitivity
 
-At Collapse erosion rates, increasing protection from 0.0 to 0.3 extends the productive life of arable land by roughly 40%. This has compounding effects: preserved land maintains food production, reducing pressure to develop marginal land (which is more expensive and less productive). In the Stabilized scenario, land protection is essential for preventing the erosion-fertility reinforcing loop from degrading agricultural capacity.
+At Collapse erosion rates, increasing protection from 0.0 to 0.3 extends the productive life of arable land by roughly 40%. This has compounding effects: preserved land maintains food production, reducing pressure to develop marginal land (which is more expensive and less productive). In the Ecotopia scenario, land protection is essential for preventing the erosion-fertility reinforcing loop from degrading agricultural capacity.
 
 ## References
 
