@@ -48,6 +48,10 @@ pub struct PopulationState {
     /// Perceived life expectancy (20-year delay) [years]
     /// World3-03: PLE — drives compensatory fertility via CMPLE.
     pub perceived_le: f64,
+    /// Delay3 stage 1 for perceived LE [years]
+    pub perceived_le_stage1: f64,
+    /// Delay3 stage 2 for perceived LE [years]
+    pub perceived_le_stage2: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -105,6 +109,10 @@ pub struct PollutionState {
     pub persistent_pollution: f64,
     /// Pollution appearing pipeline (generated, in 20-year delay) [pollution units]
     pub pollution_appearance_buffer: f64,
+    /// Delay3 stage 1 for pollution appearance [pollution units]
+    pub pollution_appearance_stage1: f64,
+    /// Delay3 stage 2 for pollution appearance [pollution units]
+    pub pollution_appearance_stage2: f64,
     /// Pollution index (normalized to 1.0 in 1970)
     pub pollution_index: f64,
     /// Current pollution generation rate [units / year]
@@ -119,7 +127,7 @@ pub struct PollutionState {
 
 impl WorldState {
     /// The number of state variables (excluding `time`, which is tracked separately).
-    pub const N: usize = 16;
+    pub const N: usize = 20;
 
     /// Human Welfare Index (0–1 scale) — World3-03 composite indicator.
     ///
@@ -174,15 +182,19 @@ impl WorldState {
             self.agriculture.food_per_capita_smooth,
             // Resources (1 stock)
             self.resources.nonrenewable_resources,
-            // Pollution (2 stocks: appeared + pipeline)
+            // Pollution (4 stocks: persistent + 3-stage appearance delay)
             self.pollution.persistent_pollution,
             self.pollution.pollution_appearance_buffer,
-            // Population delay (1 stock: perceived LE)
+            self.pollution.pollution_appearance_stage1,
+            self.pollution.pollution_appearance_stage2,
+            // Population delay (3 stocks: Delay3 for perceived LE)
             self.population.perceived_le,
+            self.population.perceived_le_stage1,
+            self.population.perceived_le_stage2,
         ]
     }
 
-    /// Reconstruct state from a flat vec (only the 16 ODE stocks).
+    /// Reconstruct state from a flat vec (only the 20 ODE stocks).
     /// Derived/auxiliary fields are left at their defaults — they will be
     /// computed by the derivative function before use.
     pub fn from_vec(time: f64, v: &[f64]) -> Self {
@@ -212,8 +224,12 @@ impl WorldState {
 
         s.pollution.persistent_pollution = v[13].max(0.0);
         s.pollution.pollution_appearance_buffer = v[14].max(0.0);
+        s.pollution.pollution_appearance_stage1 = v[15].max(0.0);
+        s.pollution.pollution_appearance_stage2 = v[16].max(0.0);
 
-        s.population.perceived_le = v[15].max(5.0); // never below minimum LE
+        s.population.perceived_le = v[17].max(5.0); // never below minimum LE
+        s.population.perceived_le_stage1 = v[18].max(5.0);
+        s.population.perceived_le_stage2 = v[19].max(5.0);
         s
     }
 
@@ -230,6 +246,8 @@ impl WorldState {
                 cohort_45_64: 1.9e8,
                 cohort_65_plus: 6.0e7,
                 perceived_le: 33.0, // Initial perceived LE matches 1900 computed LE
+                perceived_le_stage1: 33.0,
+                perceived_le_stage2: 33.0,
                 ..Default::default()
             },
             capital: CapitalState {
@@ -257,6 +275,8 @@ impl WorldState {
                 // Steady-state buffer: at 1900, generation ≈ pp / assimilation_time
                 // ≈ 0.05 / 20 = 0.0025/yr. Buffer = generation × delay = 0.0025 × 20 = 0.05.
                 pollution_appearance_buffer: 0.05,
+                pollution_appearance_stage1: 0.05,
+                pollution_appearance_stage2: 0.05,
                 pollution_index: 0.05,
                 ..Default::default()
             },
@@ -301,6 +321,8 @@ impl std::ops::Add for WorldState {
         self.population.cohort_45_64 += rhs.population.cohort_45_64;
         self.population.cohort_65_plus += rhs.population.cohort_65_plus;
         self.population.perceived_le += rhs.population.perceived_le;
+        self.population.perceived_le_stage1 += rhs.population.perceived_le_stage1;
+        self.population.perceived_le_stage2 += rhs.population.perceived_le_stage2;
         self.capital.industrial_capital += rhs.capital.industrial_capital;
         self.capital.service_capital += rhs.capital.service_capital;
         self.capital.perceived_iopc += rhs.capital.perceived_iopc;
@@ -312,6 +334,8 @@ impl std::ops::Add for WorldState {
         self.resources.nonrenewable_resources += rhs.resources.nonrenewable_resources;
         self.pollution.persistent_pollution += rhs.pollution.persistent_pollution;
         self.pollution.pollution_appearance_buffer += rhs.pollution.pollution_appearance_buffer;
+        self.pollution.pollution_appearance_stage1 += rhs.pollution.pollution_appearance_stage1;
+        self.pollution.pollution_appearance_stage2 += rhs.pollution.pollution_appearance_stage2;
         self
     }
 }
@@ -324,6 +348,8 @@ impl std::ops::Mul<f64> for WorldState {
         self.population.cohort_45_64 *= rhs;
         self.population.cohort_65_plus *= rhs;
         self.population.perceived_le *= rhs;
+        self.population.perceived_le_stage1 *= rhs;
+        self.population.perceived_le_stage2 *= rhs;
         self.capital.industrial_capital *= rhs;
         self.capital.service_capital *= rhs;
         self.capital.perceived_iopc *= rhs;
@@ -335,6 +361,8 @@ impl std::ops::Mul<f64> for WorldState {
         self.resources.nonrenewable_resources *= rhs;
         self.pollution.persistent_pollution *= rhs;
         self.pollution.pollution_appearance_buffer *= rhs;
+        self.pollution.pollution_appearance_stage1 *= rhs;
+        self.pollution.pollution_appearance_stage2 *= rhs;
         self
     }
 }
@@ -358,7 +386,7 @@ mod tests {
 
     #[test]
     fn test_world_state_n() {
-        assert_eq!(WorldState::N, 16);
+        assert_eq!(WorldState::N, 20);
         let s = WorldState::initial_1900();
         assert_eq!(s.to_vec().len(), WorldState::N);
     }
@@ -376,6 +404,11 @@ mod tests {
         assert_eq!(s.agriculture.land_fertility, 1.0);
         // Perceived LE clamped to 5
         assert_eq!(s.population.perceived_le, 5.0);
+        assert_eq!(s.population.perceived_le_stage1, 5.0);
+        assert_eq!(s.population.perceived_le_stage2, 5.0);
+        // Pollution appearance stages clamped to 0
+        assert_eq!(s.pollution.pollution_appearance_stage1, 0.0);
+        assert_eq!(s.pollution.pollution_appearance_stage2, 0.0);
         // Resources clamped to 0
         assert_eq!(s.resources.nonrenewable_resources, 0.0);
     }
