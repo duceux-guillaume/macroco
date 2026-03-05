@@ -17,7 +17,7 @@ pub struct ScenarioParams {
     pub health_investment_multiplier: f64,
 
     // ---- Capital / technology ----
-    /// Industrial capital depreciation rate [yr⁻¹]. World3-03: 1/alic1 = 1/14 ≈ 0.0714
+    /// Industrial capital depreciation rate [yr⁻¹]. World3-03: 1/alic1 = 1/13 ≈ 0.0769
     pub industrial_depreciation_rate: f64,
     /// Service capital depreciation rate [yr⁻¹]. World3-03: 1/alsc1 = 1/20 = 0.05
     pub service_depreciation_rate: f64,
@@ -245,7 +245,7 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             field: "resource_efficiency".into(),
             label: "Resource Efficiency".into(),
             unit: "multiplier".into(),
-            min: 1.0, max: 5.0, default: 1.0, step: 0.25,
+            min: 1.0, max: 5.0, default: 1.05, step: 0.25,
             sector: "resources".into(),
             description: "Reduces resource use per unit of industrial output.".into(),
         },

@@ -199,7 +199,7 @@ impl WorldState {
         ]
     }
 
-    /// Reconstruct state from a flat vec (only the 20 ODE stocks).
+    /// Reconstruct state from a flat vec (only the 21 ODE stocks).
     /// Derived/auxiliary fields are left at their defaults — they will be
     /// computed by the derivative function before use.
     pub fn from_vec(time: f64, v: &[f64]) -> Self {
