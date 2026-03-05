@@ -11,6 +11,7 @@
 //!   REQ-026 (Food/capita)  -> bau_food_per_capita_tracks_historical
 //!   REQ-026 (IOPC)         -> bau_iopc_tracks_historical
 //!   REQ-026 (NNR fraction) -> bau_nnr_fraction_tracks_historical
+//!   REQ-026 (Life expect.) -> bau_life_expectancy_tracks_historical
 
 mod common;
 use common::bau_sim;
@@ -236,6 +237,36 @@ fn bau_nnr_fraction_max_year_error() {
     );
 }
 
+/// REQ-026: BAU life expectancy must track World Bank SP.DYN.LE00.IN within 25% RMSE.
+#[test]
+fn bau_life_expectancy_tracks_historical() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("life-expectancy.csv"));
+    let (sim_vals, hist_vals, _years) =
+        match_years(sim, |s| s.population.life_expectancy, &hist);
+    let pct = rmse_pct(&sim_vals, &hist_vals);
+    assert!(
+        pct < 25.0,
+        "REQ-026 Life expectancy: RMSE% = {:.1}%, threshold = 25.0%",
+        pct
+    );
+}
+
+/// REQ-026: BAU life expectancy max per-year error must be ≤ 40%.
+#[test]
+fn bau_life_expectancy_max_year_error() {
+    let sim = bau_sim();
+    let hist = load_historical_csv(&historical_dir().join("life-expectancy.csv"));
+    let (sim_vals, hist_vals, years) =
+        match_years(sim, |s| s.population.life_expectancy, &hist);
+    let (max_err, worst_year) = max_year_error_pct(&sim_vals, &hist_vals, &years);
+    assert!(
+        max_err <= 40.0,
+        "REQ-026 Life expectancy max-year: {:.1}% in year {} (threshold 40.0%)",
+        max_err, worst_year
+    );
+}
+
 /// Summary: print all RMSE% values for visibility. Always passes.
 /// REQ-026 traceability — shows current calibration gap.
 #[test]
@@ -246,6 +277,7 @@ fn calibration_summary_report() {
         ("Food/capita", "food.csv", (|s: &WorldState| s.agriculture.food_per_capita) as fn(&WorldState) -> f64, 19.0, 26.0),
         ("IOPC", "industrial.csv", (|s: &WorldState| s.capital.industrial_output_per_capita) as fn(&WorldState) -> f64, 21.0, 36.0),
         ("NNR fraction", "resources.csv", (|s: &WorldState| s.resources.fraction_remaining) as fn(&WorldState) -> f64, 10.0, 20.0),
+        ("Life expect.", "life-expectancy.csv", (|s: &WorldState| s.population.life_expectancy) as fn(&WorldState) -> f64, 25.0, 40.0),
     ];
     println!("\n=== BAU Historical Calibration Report (REQ-026) ===");
     for (name, csv, extract, rmse_threshold, max_err_threshold) in vars {
