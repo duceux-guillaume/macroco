@@ -22,6 +22,24 @@ The Collapse value of 0.5%/yr was calibrated against FAO food production data (1
 
 Technology and Ecotopia presets set this to 0.0 because they use a static `agricultural_technology = 2.0` multiplier that already represents a step-change in agricultural capability.
 
+## Info Panel
+
+**Unit:** yr⁻¹
+
+**Beginner:** How fast farming technology improves each year -- representing the Green Revolution, better seeds, and modern techniques that World3 did not originally model.
+
+**Expert:** Macroco extension: annual agricultural TFP growth rate, applied from 1960. ag_tech = agricultural_technology × (1 + rate)^max(year-1960, 0). Calibrated against USDA ERS international agricultural productivity data (~1%/yr, 1960-2020). Set to 0.005 for Collapse (residual TFP not captured by LYMC capital-driven yield).
+
+**Feedback loops:** food-population, pollution-food
+
+**Related variables:** agriculture.food_per_capita, agriculture.land_yield
+
+**Impact increase:** Higher crop yields over time -- more food but eventually constrained by land degradation and pollution
+
+**Impact decrease:** Slower yield improvement -- food per capita peaks lower and earlier
+
+**Sparkline variable:** agriculture.food_per_capita
+
 ## References
 
 - USDA Economic Research Service: International Agricultural Productivity (TFP ~1%/yr global average)

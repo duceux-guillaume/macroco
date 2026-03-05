@@ -38,6 +38,24 @@ This parameter has **high sensitivity** and can cause qualitative bifurcations i
 
 Always run `cargo test -p world3-cli --test qualitative_dynamics` after changing this parameter to verify that the Collapse overshoot-and-collapse shape is preserved.
 
+## Info Panel
+
+**Unit:** fraction/yr
+
+**Beginner:** Annual improvement in how efficiently capital produces output. Compounds over time -- even small rates have big long-term effects.
+
+**Expert:** tech_multiplier = (1 + rate)^max(time--1970, 0). Applied to productive capital before ICOR division.
+
+**Feedback loops:** resource-collapse
+
+**Related variables:** capital.industrial_output, capital.industrial_output_per_capita, resources.fraction_remaining
+
+**Impact increase:** More output per unit capital -- delays resource-driven collapse
+
+**Impact decrease:** Slower technological progress -- economy hits limits earlier
+
+**Sparkline variable:** capital.industrial_output_per_capita
+
 ## Slider Range
 
 | Min | Max | Default | Step |

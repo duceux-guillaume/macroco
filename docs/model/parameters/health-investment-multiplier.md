@@ -28,6 +28,24 @@ Sensitivity: increasing the multiplier from 1.0 to 2.0 roughly doubles HSAPC, wh
 
 The parameter range in the UI is 0.5--3.0 with a step size of 0.1.
 
+## Info Panel
+
+**Unit:** multiplier
+
+**Beginner:** How much the economy invests in healthcare. Higher values mean better health services and longer life expectancy.
+
+**Expert:** Scales service_output_per_capita input to life_exp_multiplier_health lookup.
+
+**Feedback loops:** demographic-transition, food-population
+
+**Related variables:** population.life_expectancy, population.death_rate, population.population
+
+**Impact increase:** Better health -- longer life expectancy -- slower population decline
+
+**Impact decrease:** Worse health -- higher death rates -- faster population decline
+
+**Sparkline variable:** population.life_expectancy
+
 ## References
 
 - Meadows, D. H., Randers, J., & Meadows, D. L. (2004). *Limits to Growth: The 30-Year Update*. Chelsea Green Publishing.

@@ -18,6 +18,24 @@ The stock then evolves according to the depletion equation: $$\frac{d(NNR)}{dt} 
 
 All standard presets use 1.0 (the World3-03 default). No calibration deviation is needed since the NNR depletion trajectory already achieves RMSE = 0.9% against historical estimates at this value. The parameter exists as an exploration lever for sensitivity analysis.
 
+## Info Panel
+
+**Unit:** fraction (0--1)
+
+**Beginner:** Starting level of non-renewable resources. 1.0 = full initial endowment. Lower values simulate a world where resources are already partially depleted.
+
+**Expert:** Initial condition for nonrenewable_resources ODE stock.
+
+**Feedback loops:** resource-collapse
+
+**Related variables:** resources.nonrenewable_resources, resources.fraction_remaining, capital.industrial_output_per_capita
+
+**Impact increase:** More starting resources -- delays the resource depletion crisis
+
+**Impact decrease:** Fewer starting resources -- collapse arrives much sooner
+
+**Sparkline variable:** resources.nonrenewable_resources
+
 ## References
 
 - Meadows et al. (2004), *Limits to Growth: The 30-Year Update*. NRI (Non-Renewable Resources Initial) = 1.0 × 10^12 resource units, here normalized to 1.0.

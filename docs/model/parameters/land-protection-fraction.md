@@ -20,6 +20,24 @@ Collapse uses 0.0 (no protection), matching the World3-03 standard run assumptio
 
 At Collapse erosion rates, increasing protection from 0.0 to 0.3 extends the productive life of arable land by roughly 40%. This has compounding effects: preserved land maintains food production, reducing pressure to develop marginal land (which is more expensive and less productive). In the Ecotopia scenario, land protection is essential for preventing the erosion-fertility reinforcing loop from degrading agricultural capacity.
 
+## Info Panel
+
+**Unit:** fraction (0--0.5)
+
+**Beginner:** How much farmland is protected from erosion through conservation practices. 0 = no protection, 0.5 = half of erosion prevented.
+
+**Expert:** Reduces erosion: erosion × (1 -- land_protection_fraction). Clamped to [0, 0.5].
+
+**Feedback loops:** food-population
+
+**Related variables:** agriculture.arable_land, agriculture.food_per_capita, agriculture.land_yield
+
+**Impact increase:** Less farmland lost to erosion -- sustained food production capacity
+
+**Impact decrease:** More erosion -- arable land shrinks faster, food production drops
+
+**Sparkline variable:** agriculture.arable_land
+
 ## References
 
 - Meadows et al. (2004), stabilized world scenario (Chapter 7)
