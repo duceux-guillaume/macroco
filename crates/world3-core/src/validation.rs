@@ -1,3 +1,4 @@
+// REQ: REQ-031
 //! BAU validation against World3 reference dynamics (Meadows 1972/2004).
 
 use crate::model::state::WorldState;
