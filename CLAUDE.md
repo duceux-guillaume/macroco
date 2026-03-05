@@ -245,6 +245,10 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 - GitHub Actions: clippy → test → frontend-test → deploy (on push to main only)
 - PR preview deploy: add `deploy-preview` label to any PR → deploys to macroco.fly.dev; remove label / merge / close → auto-reverts to main
 - Deploy gated on `environment: production` with required status checks
+- `production` environment has branch policy: only `main` can deploy. PR deploys use `preview` environment (separate `FLY_API_TOKEN` secret).
+- Workflow jobs needing `gh pr comment` require `permissions: pull-requests: write`.
+- When a job uses `needs:` but upstream jobs may be skipped (not failed), use `always()` + `!contains(needs.*.result, 'failure')` in the `if:` condition.
+- GitHub `unlabeled` event: `github.event.pull_request.labels` is post-removal. Check `github.event.label.name` for the removed label.
 - `frontend-test` job runs: `npm run check`, `npm test`, `npm run build`
 - Ruleset on main: PR required (1 approval), rebase-only, linear history, no force push
 
