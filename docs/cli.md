@@ -1,6 +1,15 @@
 # CLI Reference
 
-The `world3-cli` binary provides batch simulation, validation, and chart generation.
+The `world3-cli` binary is the command-line interface for batch simulation, validation, debugging, and reproducibility.
+
+## Purpose
+
+The CLI complements the interactive web frontend for use cases that don't need a browser:
+
+- **CI/CD validation** — headless qualitative checks in automated pipelines (REQ-033)
+- **Batch export** — CSV output for external analysis tools like R, Python, or Excel (REQ-034)
+- **Simulation debugging** — structured text/JSON analysis of trajectories, faster than visual inspection (REQ-035)
+- **Reproducibility** — deterministic runs from a single command with named presets (REQ-036)
 
 ## Build & Install
 
@@ -28,14 +37,11 @@ cargo run --bin world3-cli -- simulate [OPTIONS]
 | `--start <YEAR>` | `1900` | Simulation start year |
 | `--end <YEAR>` | `2100` | Simulation end year |
 | `--dt <YEARS>` | `1.0` | Time step in years |
-| `--chart <FILE>` | _(none)_ | Render a normalized PNG chart |
 
 **Output formats:**
 
 - **No flags**: prints a summary table to stdout (every 10th year)
 - **`--output`**: writes a 22-column CSV with all state variables
-- **`--chart`**: renders a 1200x800 PNG chart with normalized key variables
-- **`--output` + `--chart`**: both CSV and chart are produced
 
 **Examples:**
 
@@ -46,13 +52,9 @@ cargo run --bin world3-cli -- simulate
 # Full CSV output
 cargo run --bin world3-cli -- simulate --preset bau --output output.csv
 
-# Generate chart
-cargo run --bin world3-cli -- simulate --preset bau --chart bau_chart.png
-
-# CSV + chart + custom time range
+# Custom time range and step
 cargo run --bin world3-cli -- simulate --preset stabilized \
-  --start 1970 --end 2100 --dt 0.5 \
-  --output results.csv --chart results.png
+  --start 1970 --end 2100 --dt 0.5 --output results.csv
 ```
 
 **CSV columns (22 fields):**
@@ -69,17 +71,58 @@ nnr_fraction, persistent_pollution, pollution_index
 
 Validate the BAU run against Meadows 1972 reference checkpoints. Checks qualitative dynamics (not exact values):
 
-1. 1900 population in [1B, 2.5B]
-2. 1970 population in [2.5B, 5B]
-3. Population peaks at 6B-12B between 2000-2070
-4. NNR fraction remaining in 2100 < 0.7
-5. Peak pollution index > 0.5
+1. Population at 1900, 1950, 1970 within expected ranges
+2. Population peaks at 5B-12B between 1990-2080, then declines
+3. NNR fraction monotonically decreasing, significantly depleted by 2100
+4. Pollution peaks within expected range
+5. IOPC peaks then collapses before 2100
+6. Life expectancy peaks then falls
 
 ```bash
 cargo run --bin world3-cli -- validate
 ```
 
 Each checkpoint prints `PASS` or `FAIL`. The command exits with code 1 if any check fails.
+
+### `diagnose`
+
+Run structured simulation diagnostics for debugging model behavior.
+
+```bash
+cargo run --bin world3-cli -- diagnose [OPTIONS]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--preset <NAME>` | `bau` | Scenario preset to analyze |
+| `--compare <NAME>` | _(none)_ | Compare against a second preset |
+| `--format <FMT>` | `text` | Output format: `text` or `json` |
+| `--start <YEAR>` | `1900` | Simulation start year |
+| `--end <YEAR>` | `2100` | Simulation end year |
+| `--dt <YEARS>` | `1.0` | Time step in years |
+| `--stability-check` | _(off)_ | Run dt-sensitivity analysis (dt, dt/2, dt/4) |
+
+**Examples:**
+
+```bash
+# Text report for BAU
+cargo run --bin world3-cli -- diagnose --preset bau
+
+# Compare two scenarios
+cargo run --bin world3-cli -- diagnose --preset bau --compare technology
+
+# JSON output for scripting
+cargo run --bin world3-cli -- diagnose --preset bau --format json
+
+# Check numerical stability
+cargo run --bin world3-cli -- diagnose --preset bau --stability-check
+```
+
+**Report sections:**
+- **Peaks & troughs** — year and value of maxima/minima for each variable
+- **Phases** — growth/decline periods with rates
+- **Anomalies** — oscillation detection, rapid reversals
+- **Stability** (with `--stability-check`) — per-variable convergence across dt halvings; flags UNSTABLE if drift >3%
 
 ### `presets`
 
