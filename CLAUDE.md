@@ -211,9 +211,9 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
 
 ### Scenario Naming
-- **Collapse** — default trajectory, overshoot and decline
-- Technology = **Technotopia** — technology and resource discovery save the day
-- Stabilized = **Ecotopia** — humanity progresses toward justice and moderation
+- Collapse (preset: `collapse`) = **Collapse** — default trajectory, overshoot and decline
+- Technology (preset: `technology`) = **Technotopia** — technology and resource discovery save the day
+- Stabilized (preset: `stabilized`) = **Ecotopia** — humanity progresses toward justice and moderation
 
 Future extensions: Climate + Energy (M3 Technotopia, REQ-033) · Biodiversity + Inequality (M4 Ecotopia, REQ-034)
 
