@@ -159,6 +159,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Collapse model parameter changes can cause bifurcations: e.g., tech_rate >0.002 shifts population peak from ~2030 to ~2073. Always run `cargo test -p world3-cli --test qualitative_dynamics` and `diagnose` after parameter changes to catch qualitative shifts.
 - Lookup tables in `crates/world3-core/src/lookup/tables.rs` are audited against pyworld3 reference (World3-03 Vensim). Each table has a doc file in `docs/model/tables/`. Run `/audit-model-doc` to re-audit after changes. Modes: default (full audit + fix), `--check` (CI, read-only), `--diff` (pre-PR, changed files only).
 - When modifying sector code, lookup tables, or parameters, update the corresponding file in `docs/model/`. The `/audit-model-doc --diff` gate in `/refine-pr` will catch missed updates.
+- Parameter doc files (`docs/model/parameters/*.md`) must follow the template: H1 title, `**Sector:**`, `**Source code:**`, `**BAU value:**` metadata lines, then `## Equation Context`, `## Calibration`, `## Info Panel`, `## References` sections. The audit enforces this structure.
 - pyworld3 reference: `https://github.com/cvanwynsberghe/pyworld3/blob/master/pyworld3/functions_table_world3.json`
 - Simulation is CPU-bound; always run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 - `world3_core::validation::validate_collapse()` thresholds must stay aligned with `world3-core/tests/qualitative_dynamics.rs` bounds on main. After rebasing, check both if model parameters changed upstream.
@@ -180,6 +181,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - Use `get()` from `svelte/store` for synchronous store reads outside reactive contexts, not manual subscribe/unsubscribe.
 - WS client auto-reconnects with 2s backoff. All WS messages are typed against `WsClientMsg` / `WsServerMsg`.
 - All variable/parameter descriptions live in `frontend/src/lib/content/variable-descriptions.ts` — single source of truth.
+- `variable-descriptions.ts` is **generated** by `python3 scripts/generate-variable-descriptions.py` from `## Info Panel` sections in `docs/model/` files. Never edit it manually — edit the doc source and regenerate. Use `--check` to verify freshness.
 - Chart annotations (peaks, thresholds) defined in `frontend/src/lib/content/chart-annotations.ts`.
 
 ### Frontend Testing
