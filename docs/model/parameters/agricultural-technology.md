@@ -2,25 +2,7 @@
 
 **Sector:** [Agriculture](../sectors/agriculture.md)
 **Source code:** `crates/world3-core/src/model/params.rs` (`agricultural_technology`)
-**Unit:** dimensionless multiplier
-**Range:** 0.5 -- 3.0
-**Step:** 0.1
-
-## Purpose
-
-A direct multiplier on land yield representing crop improvements, irrigation technology, and farming practices beyond what is captured by the capital-input relationship (LYMC). This parameter models the cumulative effect of agricultural research, genetically improved cultivars, and advanced techniques.
-
-$$LY = LFERT \times \mathrm{LYMC}(AIPH) \times \mathrm{LYMAP}(\text{pollution\_index}) \times \text{agricultural\_technology}$$
-
-At 1.0, yield depends solely on land fertility, capital inputs, and pollution. At 2.0, yield is doubled at every level of capital input --- equivalent to a second Green Revolution.
-
-## Scenario Values
-
-| Scenario | Value | Rationale |
-|----------|-------|-----------|
-| BAU (Collapse) | 1.0 | No extraordinary agricultural innovation beyond capital-driven gains |
-| Technology (Technotopia) | 2.0 | Aggressive crop science, precision agriculture, GMOs |
-| Stabilized (Ecotopia) | 2.0 | Sustainable intensification, agroecology at scale |
+**BAU value:** `1.0` (no extraordinary agricultural innovation; matches World3-03 standard run)
 
 ## Equation Context
 

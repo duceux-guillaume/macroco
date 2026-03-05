@@ -2,29 +2,7 @@
 
 **Sector:** [Agriculture](../sectors/agriculture.md)
 **Source code:** `crates/world3-core/src/model/params.rs` (`subsistence_food_per_capita`)
-**Unit:** kg/person/yr (vegetable-equivalent)
-**Range:** 150 -- 350
-**Step:** 10
-
-## Purpose
-
-The minimum food per capita required for basic health and survival. Below this threshold, life expectancy falls sharply (via the population sector's LMF table) and agricultural investment increases (via the FIOAA allocation fraction). This parameter anchors the food ratio used throughout the model:
-
-$$\text{food\_ratio} = \frac{FPC}{\text{SFPC}}$$
-
-A food ratio of 1.0 means the population is at subsistence. Above 1.0, health improves and agricultural allocation decreases. Below 1.0, mortality rises and the economy shifts resources toward food production.
-
-The value of 230 kg/person/yr corresponds to approximately 1700 kcal/day (assuming ~2700 kcal/kg for a mixed vegetable-equivalent diet), which aligns with the World3-03 specification of SFPC = 230.
-
-## Scenario Values
-
-| Scenario | Value | Rationale |
-|----------|-------|-----------|
-| BAU (Collapse) | 230.0 | World3-03 standard value |
-| Technology (Technotopia) | 230.0 | Same biological minimum |
-| Stabilized (Ecotopia) | 230.0 | Same biological minimum |
-
-This parameter is identical across all scenarios because it represents a biological constant (minimum nutritional requirement), not a policy lever. It is exposed as a parameter for sensitivity analysis.
+**BAU value:** `230.0` kg/person/yr (matches World3-03 SFPC = 230; ~1700 kcal/day)
 
 ## Equation Context
 

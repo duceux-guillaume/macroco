@@ -4,13 +4,7 @@ The annual rate of total factor productivity (TFP) improvement in industrial out
 
 **Sector:** [Capital](../sectors/capital.md)
 **Source code:** `crates/world3-core/src/model/params.rs`, field `technology_growth_rate`
-
-## Value
-
-| | Rate |
-|---|---|
-| **BAU (ours)** | $$g = 0.014$$ (1.4% per year) |
-| **World3-03 BAU** | 0 (no technology progress in standard run) |
+**BAU value:** `0.014` (1.4%/yr; World3-03 BAU uses 0)
 
 ## Equation Context
 
