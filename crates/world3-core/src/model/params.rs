@@ -31,6 +31,11 @@ pub struct ScenarioParams {
     pub land_protection_fraction: f64,
     /// Subsistence food threshold [kg/person/yr, default 230.0]
     pub subsistence_food_per_capita: f64,
+    /// Agricultural technology growth rate [yr⁻¹, default 0.005].
+    /// Macroco extension: represents Green Revolution TFP not captured by LYMC.
+    /// Source: USDA ERS International Agricultural Productivity (~1%/yr, 1960-2020).
+    /// Applied from 1960: ag_tech = agricultural_technology × (1 + rate)^max(year-1960, 0).
+    pub agricultural_technology_growth_rate: f64,
 
     // ---- Resources ----
     /// Resource extraction efficiency multiplier [1..5, default 1.0]
@@ -71,6 +76,11 @@ impl Default for ScenarioParams {
             // productivity growth not in World3-03 structure (~1.5%/yr TFP).
             technology_growth_rate: 0.014,
             agricultural_technology: 1.0,
+            // Macroco extension: agricultural TFP growth from Green Revolution.
+            // USDA ERS data shows ~1%/yr globally (1960-2020). Set to 0.005
+            // because LYMC already captures input-driven yield gains; this is
+            // the residual TFP (improved cultivars, practices, irrigation tech).
+            agricultural_technology_growth_rate: 0.005,
             land_protection_fraction: 0.0,
             subsistence_food_per_capita: 230.0,
             // Slightly above 1.0 to account for real-world resource extraction
@@ -107,6 +117,7 @@ impl ScenarioParams {
         p.resource_efficiency = 4.0;
         p.pollution_control = 0.8;
         p.agricultural_technology = 2.0;
+        p.agricultural_technology_growth_rate = 0.0;
         p.technology_growth_rate = 0.02;
         p
     }
@@ -122,6 +133,7 @@ impl ScenarioParams {
         p.resource_efficiency = 4.0;
         p.pollution_control = 0.8;
         p.agricultural_technology = 2.0;
+        p.agricultural_technology_growth_rate = 0.0;
         p.technology_growth_rate = 0.015;
         p.family_planning_efficacy = 0.95;
         p.family_planning_year = 1975.0;
@@ -234,6 +246,14 @@ pub fn parameter_descriptors() -> Vec<ParameterDescriptor> {
             description: "Multiplier on land yield — represents crop improvements, irrigation.".into(),
         },
         ParameterDescriptor {
+            field: "agricultural_technology_growth_rate".into(),
+            label: "Agricultural Tech Growth".into(),
+            unit: "yr⁻¹".into(),
+            min: 0.0, max: 0.02, default: 0.005, step: 0.001,
+            sector: "agriculture".into(),
+            description: "Annual improvement in agricultural yield from Green Revolution and modern farming advances. Macroco extension beyond World3-03.".into(),
+        },
+        ParameterDescriptor {
             field: "land_protection_fraction".into(),
             label: "Land Protection".into(),
             unit: "fraction".into(),
@@ -301,6 +321,7 @@ mod tests {
         assert_eq!(d.resource_efficiency, b.resource_efficiency);
         assert_eq!(d.pollution_control, b.pollution_control);
         assert_eq!(d.agricultural_technology, b.agricultural_technology);
+        assert_eq!(d.agricultural_technology_growth_rate, b.agricultural_technology_growth_rate);
     }
 
     #[test]
@@ -320,6 +341,7 @@ mod tests {
                     "industrial_depreciation_rate" => preset.industrial_depreciation_rate,
                     "technology_growth_rate" => preset.technology_growth_rate,
                     "agricultural_technology" => preset.agricultural_technology,
+                    "agricultural_technology_growth_rate" => preset.agricultural_technology_growth_rate,
                     "land_protection_fraction" => preset.land_protection_fraction,
                     "resource_efficiency" => preset.resource_efficiency,
                     "pollution_control" => preset.pollution_control,
