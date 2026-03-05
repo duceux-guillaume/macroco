@@ -41,3 +41,6 @@ frontend/.env.local
 data/cache.db
 data/cache.db-shm
 data/cache.db-wal
+
+# Working design/implementation plans (local only — fold findings into permanent docs)
+docs/plans/
