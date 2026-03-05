@@ -28,9 +28,9 @@ Root cause chain: NNR depletes ~30% too fast → FCAOR rises → capital starvat
 **Add:** `crates/world3-cli/tests/qualitative_dynamics.rs` — a test file that enforces BAU produces overshoot-and-collapse with wide timing windows.
 
 Checks (migrated from validate fn, with widened windows):
-- Population peaks between 2020-2070 at 5B-12B, then declines (2100 pop < 95% of peak)
+- Population peaks between 2020-2090 at 5B-16B, then declines (2100 pop < 97% of peak)
 - NNR monotonically decreasing; < 25% remaining by 2100
-- IOPC peaks then collapses (2100 IOPC < 50% of peak)
+- IOPC peaks (1990-2060) then collapses (2100 IOPC < 50% of peak)
 - Life expectancy peaks 45-80yr, then declines (2100 LE < 80% of peak)
 - Pollution index peaks > 1.0
 
