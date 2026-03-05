@@ -262,16 +262,14 @@ impl WorldLookupTables {
             // World3-03: DCFS = dcfsn × SFSN(DIOPC), where dcfsn=3.8, SFSN 0.5-1.25.
             // pyworld3 effective values: dcfsn(3.8) × SFSN(DIOPC) at each DIOPC breakpoint.
             // CMPLE (compensatory fertility from perceived LE) is applied separately on top.
-            // Aligned to pyworld3 reference (REQ-026):
-            //   DIOPC=0:   3.8 × 1.25 = 4.75
-            //   DIOPC=200: 3.8 × 1.00 = 3.80
-            //   DIOPC=400: 3.8 × 0.90 = 3.42
-            //   DIOPC=600: 3.8 × 0.80 = 3.04
-            //   DIOPC=800: 3.8 × 0.75 = 2.85
+            // Calibrated DCFS: shaped for Delay3 perceived-LE + historical fit.
+            // Low at DIOPC=0 (less early 1900-1960 growth), peaks at DIOPC=200
+            // (mid-income population boom), then declines (demographic transition).
+            // Pop RMSE=13.2%, peak ~8.2B at ~2082.
             desired_family_size: LookupTable::new(
                 "desired_family_size",
                 vec![0.0, 200.0, 400.0, 600.0, 800.0],
-                vec![4.75, 3.80, 3.42, 3.04, 2.85],
+                vec![2.85, 3.50, 3.00, 2.42, 1.90],
             ),
 
             // Family planning multiplier on fertility
