@@ -88,7 +88,7 @@ describe('onServerMessage', () => {
 		const handler = vi.fn();
 		ws.onServerMessage(handler);
 
-		const msg = { type: 'sim_complete', scenario_id: 'bau', total_steps: 100 };
+		const msg = { type: 'sim_complete', scenario_id: 'collapse', total_steps: 100 };
 		socket.simulateMessage(JSON.stringify(msg));
 
 		expect(handler).toHaveBeenCalledOnce();
@@ -102,7 +102,7 @@ describe('send', () => {
 		const socket = MockWebSocket.lastInstance!;
 		socket.simulateOpen();
 
-		const msg = { type: 'start_simulation' as const, scenario_id: 'bau' };
+		const msg = { type: 'start_simulation' as const, scenario_id: 'collapse' };
 		ws.send(msg);
 
 		expect(socket.send).toHaveBeenCalledOnce();

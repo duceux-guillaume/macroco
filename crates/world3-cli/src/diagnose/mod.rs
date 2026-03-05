@@ -56,7 +56,7 @@ fn tracked_variables() -> Vec<TrackedVar> {
 
 pub fn preset_params(name: &str) -> Result<ScenarioParams> {
     match name {
-        "bau" => Ok(ScenarioParams::bau()),
+        "collapse" => Ok(ScenarioParams::collapse()),
         "technology" => Ok(ScenarioParams::comprehensive_technology()),
         "stabilized" => Ok(ScenarioParams::stabilized_world()),
         other => anyhow::bail!("Unknown preset '{}'", other),
@@ -186,8 +186,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn bau_diagnostics_regression() {
-        let diag = run_analysis("bau", 1900.0, 2100.0, 1.0).expect("BAU sim failed");
+    fn collapse_diagnostics_regression() {
+        let diag = run_analysis("collapse", 1900.0, 2100.0, 1.0).expect("Collapse sim failed");
 
         // Population peaks in expected range
         let pop = &diag.variables[0];
@@ -214,14 +214,14 @@ mod tests {
         assert!(iopc.final_value < iopc.peak.value * 0.5,
             "IOPC should collapse by 2100");
 
-        // No anomalies in standard BAU run
+        // No anomalies in standard Collapse run
         assert!(diag.anomalies.is_empty(),
-            "BAU should have no anomalies, found: {:?}", diag.anomalies);
+            "Collapse should have no anomalies, found: {:?}", diag.anomalies);
     }
 
     #[test]
-    fn comparative_bau_vs_technology() {
-        let base = run_analysis("bau", 1900.0, 2100.0, 1.0).expect("BAU failed");
+    fn comparative_collapse_vs_technology() {
+        let base = run_analysis("collapse", 1900.0, 2100.0, 1.0).expect("Collapse failed");
         let comp = run_analysis("technology", 1900.0, 2100.0, 1.0).expect("Tech failed");
         let result = compare::compare(base, comp);
 
@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn json_output_roundtrips() {
-        let diag = run_analysis("bau", 1900.0, 2100.0, 1.0).expect("BAU failed");
+        let diag = run_analysis("collapse", 1900.0, 2100.0, 1.0).expect("Collapse failed");
         let json = format_json::format_json(&diag);
         let parsed: serde_json::Value = serde_json::from_str(&json).expect("Invalid JSON");
         assert_eq!(parsed["variables"].as_array().unwrap().len(), 6);
@@ -258,18 +258,18 @@ mod tests {
     }
 
     #[test]
-    fn bau_stability_check_passes() {
-        let report = run_stability_check("bau", 1900.0, 2100.0, 1.0).expect("BAU stability failed");
-        assert!(report.stable, "BAU should be stable at dt=1.0");
+    fn collapse_stability_check_passes() {
+        let report = run_stability_check("collapse", 1900.0, 2100.0, 1.0).expect("Collapse stability failed");
+        assert!(report.stable, "Collapse should be stable at dt=1.0");
         assert_eq!(report.dt_values.len(), 3);
         for vs in &report.variables {
-            assert!(vs.converged, "{} should converge in BAU", vs.name);
+            assert!(vs.converged, "{} should converge in Collapse", vs.name);
         }
     }
 
     #[test]
     fn stability_json_roundtrips() {
-        let report = run_stability_check("bau", 1900.0, 2100.0, 1.0).expect("BAU stability failed");
+        let report = run_stability_check("collapse", 1900.0, 2100.0, 1.0).expect("Collapse stability failed");
         let json = format_json::format_json_stability(&report);
         let parsed: serde_json::Value = serde_json::from_str(&json).expect("Invalid JSON");
         assert_eq!(parsed["stable"], true);

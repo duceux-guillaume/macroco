@@ -480,7 +480,7 @@ export const parameterDescriptions: Record<string, ParameterInfo> = {
 		beginner:
 			'How fast farming technology improves each year — representing the Green Revolution, better seeds, and modern techniques that World3 did not originally model.',
 		expert:
-			'Macroco extension: annual agricultural TFP growth rate, applied from 1960. ag_tech = agricultural_technology × (1 + rate)^max(year-1960, 0). Calibrated against USDA ERS international agricultural productivity data (~1%/yr, 1960-2020). Set to 0.005 for BAU (residual TFP not captured by LYMC capital-driven yield).',
+			'Macroco extension: annual agricultural TFP growth rate, applied from 1960. ag_tech = agricultural_technology × (1 + rate)^max(year-1960, 0). Calibrated against USDA ERS international agricultural productivity data (~1%/yr, 1960-2020). Set to 0.005 for Collapse (residual TFP not captured by LYMC capital-driven yield).',
 		feedbackLoops: ['food-population', 'pollution-food'],
 		relatedVariables: ['agriculture.food_per_capita', 'agriculture.land_yield'],
 		impact: {

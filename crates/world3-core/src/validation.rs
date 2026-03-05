@@ -1,5 +1,5 @@
 // REQ: REQ-031
-//! BAU validation against World3 reference dynamics (Meadows 1972/2004).
+//! Collapse scenario validation against World3 reference dynamics (Meadows 1972/2004).
 
 use crate::model::state::WorldState;
 use crate::output::SimulationOutput;
@@ -26,8 +26,8 @@ fn find_peak(sim: &SimulationOutput, extract: fn(&WorldState) -> f64) -> (f64, f
         })
 }
 
-/// Run all BAU qualitative validation checks against a simulation output.
-pub fn validate_bau(sim: &SimulationOutput) -> Vec<CheckResult> {
+/// Run all Collapse scenario qualitative validation checks against a simulation output.
+pub fn validate_collapse(sim: &SimulationOutput) -> Vec<CheckResult> {
     let mut results = Vec::new();
 
     // Population trajectory checkpoints

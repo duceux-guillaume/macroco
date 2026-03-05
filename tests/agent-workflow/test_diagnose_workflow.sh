@@ -22,7 +22,7 @@ cargo build --release --bin world3-cli 2>/dev/null
 # --- Test 1: Text output contains expected sections ---
 echo ""
 echo "Test 1: Text output contains expected sections"
-output=$($CLI diagnose --preset bau 2>/dev/null)
+output=$($CLI diagnose --preset collapse 2>/dev/null)
 
 echo "$output" | grep -q "Simulation Diagnostics" && pass "header present" || fail "header missing"
 echo "$output" | grep -q "Population" && pass "Population section" || fail "Population section missing"
@@ -33,7 +33,7 @@ echo "$output" | grep -q "Anomalies" && pass "Anomalies section" || fail "Anomal
 # --- Test 2: JSON output is valid and queryable ---
 echo ""
 echo "Test 2: JSON output is valid and queryable"
-json=$($CLI diagnose --preset bau --format json 2>/dev/null)
+json=$($CLI diagnose --preset collapse --format json 2>/dev/null)
 
 echo "$json" | jq . > /dev/null 2>&1 && pass "valid JSON" || fail "invalid JSON"
 
@@ -46,12 +46,12 @@ peak_year=$(echo "$json" | jq '.variables[] | select(.name == "Population") | .p
     fail "population peak year $peak_year outside range"
 
 anomaly_count=$(echo "$json" | jq '.anomalies | length')
-[ "$anomaly_count" -eq 0 ] && pass "no anomalies in BAU" || fail "unexpected anomalies: $anomaly_count"
+[ "$anomaly_count" -eq 0 ] && pass "no anomalies in Collapse" || fail "unexpected anomalies: $anomaly_count"
 
 # --- Test 3: Comparison mode produces deltas ---
 echo ""
 echo "Test 3: Comparison mode produces deltas"
-comp=$($CLI diagnose --preset bau --compare technology 2>/dev/null)
+comp=$($CLI diagnose --preset collapse --compare technology 2>/dev/null)
 
 echo "$comp" | grep -q "Comparative Diagnostics" && pass "comp header" || fail "comp header missing"
 echo "$comp" | grep -q "D peak:" && pass "delta peak present" || fail "delta peak missing"

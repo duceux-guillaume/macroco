@@ -31,13 +31,13 @@
   - *Milestone:* M1
   - *Context:* Named parameter sets allow reproducible runs and comparison against canonical scenarios.
   - *Components:* `world3-core`: ScenarioParams, `data/presets/`
-  - *Done:* Three presets (Business as Usual, Comprehensive Technology, Stabilized World) constructed in Rust code; JSON copies in `data/presets/`.
+  - *Done:* Three presets (Collapse, Comprehensive Technology, Stabilized World) constructed in Rust code; JSON copies in `data/presets/`.
 
 - [x] **REQ-005: Validation against Meadows 1972**
   - *Milestone:* M2
-  - *Context:* The standard BAU run must reproduce the qualitative dynamics of Meadows 1972 Fig. 35.
+  - *Context:* The standard Collapse run must reproduce the qualitative dynamics of Meadows 1972 Fig. 35.
   - *Components:* `world3-core`: `validation` module, `world3-cli`: `validate` subcommand (REQ-037)
-  - *Done:* `world3-core::validate_bau()` checks population peak, resource depletion, food and industrial output trajectories. CLI `validate` is a thin wrapper.
+  - *Done:* `world3-core::validate_collapse()` checks population peak, resource depletion, food and industrial output trajectories. CLI `validate` is a thin wrapper.
 
 - [x] **REQ-007: REST API server**
   - *Milestone:* M1
@@ -134,15 +134,15 @@
   - *Components:* `frontend`: ScenarioBar, ScenarioSelector
   - *Done:* `ScenarioBar` with click-to-toggle and double-click-to-focus; `ScenarioSelector` with "Compare All" button and per-scenario descriptions.
 
-- [x] **REQ-026: BAU historical calibration regression tests**
+- [x] **REQ-026: Collapse historical calibration regression tests**
   - *Milestone:* M2
-  - *Context:* The BAU simulation must track real-world historical data within RMSE% thresholds over ~1960-2023. Quantitative comparison against World Bank, FAO, and OWID data exposes calibration gaps.
+  - *Context:* The Collapse simulation must track real-world historical data within RMSE% thresholds over ~1960-2023. Quantitative comparison against World Bank, FAO, and OWID data exposes calibration gaps.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *RMSE% thresholds:* Population (<11%), Food/capita (<21%), IOPC (<19%), NNR fraction (<4%), Life expectancy (<12%)
   - *Max-year-error thresholds:* Population (<15%), Food/capita (<28%), IOPC (<38%), NNR fraction (<6%), Life expectancy (<19%)
   - *Current metrics:* Pop RMSE=8.1%, Food RMSE=18.6%, IOPC RMSE=16.2%, NNR RMSE=0.9%, LE RMSE=9.4%. Max-year: Pop 11.3%, Food 25.5%, IOPC 35.4%, NNR 2.6%, LE 15.6%.
   - *Model changes:* ISOPC dynamic service demand reference (lookup table replaces hardcoded 200.0), technology_growth_rate=0.014 (was 0.002, compensates for real-world TFP ~1.5%/yr), resource_efficiency=1.05, FIOAC consumption fraction capped at 0.70 (was 0.83), Delay3 for perceived life expectancy and pollution appearance (replacing Delay1), DCFS table calibrated for our model structure, HSAPC table + LMHS2 + EHSPC 20-year smooth for health services allocation, CMI(IOPC)×FPU(POP) crowding multiplier (replaces single crowding lookup), alic1=13yr (was 14yr).
-  - *Structural limitations:* Population 1960s overshoot (31.7% max error -- model birth/death rates lag real demographic transition), IOPC post-2010 collapse (35.9% max error -- BAU overshoot-collapse starts earlier than real world).
+  - *Structural limitations:* Population 1960s overshoot (31.7% max error -- model birth/death rates lag real demographic transition), IOPC post-2010 collapse (35.9% max error -- Collapse overshoot-collapse starts earlier than real world).
   - *Done:* All 5 RMSE + 5 max-year-error thresholds pass. 10 tests run in CI without `#[ignore]`.
 
 - [x] **REQ-027: Bi-directional traceability**
@@ -190,7 +190,7 @@
   - *Milestone:* M1
   - *Context:* Deterministic simulation runs from a single command ensure reproducible results across environments. Named presets provide canonical parameter sets.
   - *Components:* `world3-cli`: `simulate`, `presets` subcommands
-  - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (BAU, Technology, Stabilized).
+  - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (Collapse, Technology, Stabilized).
   - *Exempt:* Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests
 
 - [x] **REQ-041: Click/tap chart lines to open info panel**
@@ -214,7 +214,7 @@
   - *Replaced by:* REQ-033 (climate + energy, M3) and REQ-034 (biodiversity + inequality, M4)
 
 - [ ] **REQ-030: Multi-scenario historical calibration**
-  - *Context:* Originally a monolithic requirement for calibrating all non-BAU scenarios. Split into per-scenario requirements.
+  - *Context:* Originally a monolithic requirement for calibrating all non-Collapse scenarios. Split into per-scenario requirements.
   - *Replaced by:* REQ-035 (Technology calibration, M3) and REQ-036 (Stabilized calibration, M4)
 
 ---
@@ -223,7 +223,7 @@
 
 - [ ] **REQ-031: Scenario trajectory validation**
   - *Milestone:* M2
-  - *Context:* Non-BAU scenarios must produce meaningfully divergent futures compared to BAU. Technology should show extended resource availability and delayed decline; Stabilized should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
+  - *Context:* Non-Collapse scenarios must produce meaningfully divergent futures compared to Collapse. Technology should show extended resource availability and delayed decline; Stabilized should show population leveling off and sustained output. Validates that preset parameter differences actually produce distinct trajectories.
   - *Components:* `world3-cli`: validate subcommand or dedicated test
   - *Priority:* high
 
@@ -245,13 +245,13 @@
 
 - [ ] **REQ-035: Technology scenario historical calibration**
   - *Milestone:* M3
-  - *Context:* Technology (Technotopia) preset must track real-world historical data over 1960-2023. Shared history with BAU before policy switch years, then divergent future trajectory.
+  - *Context:* Technology (Technotopia) preset must track real-world historical data over 1960-2023. Shared history with Collapse before policy switch years, then divergent future trajectory.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Priority:* high
 
 - [ ] **REQ-036: Stabilized scenario historical calibration**
   - *Milestone:* M4
-  - *Context:* Stabilized (Ecotopia) preset must track real-world historical data over 1960-2023. Shared history with BAU before policy switch years, then divergent future trajectory.
+  - *Context:* Stabilized (Ecotopia) preset must track real-world historical data over 1960-2023. Shared history with Collapse before policy switch years, then divergent future trajectory.
   - *Components:* `world3-cli`: `tests/historical_calibration.rs`; `data/historical/*.csv`
   - *Priority:* high
 

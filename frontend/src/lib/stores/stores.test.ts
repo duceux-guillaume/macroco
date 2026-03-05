@@ -62,8 +62,8 @@ describe('activeSimData', () => {
 describe('focusedScenario', () => {
 	const testScenarios: ScenarioSummary[] = [
 		{
-			id: 'bau',
-			name: 'Business As Usual',
+			id: 'collapse',
+			name: 'Collapse',
 			description: 'Standard run',
 			color_hex: '#ff0000',
 			is_preset: true
@@ -79,12 +79,12 @@ describe('focusedScenario', () => {
 
 	it('returns matching scenario', () => {
 		scenarios.set(testScenarios);
-		focusedScenarioId.set('bau');
+		focusedScenarioId.set('collapse');
 
 		const focused = get(focusedScenario);
 		expect(focused).not.toBeNull();
-		expect(focused!.id).toBe('bau');
-		expect(focused!.name).toBe('Business As Usual');
+		expect(focused!.id).toBe('collapse');
+		expect(focused!.name).toBe('Collapse');
 	});
 
 	it('returns null for null ID', () => {

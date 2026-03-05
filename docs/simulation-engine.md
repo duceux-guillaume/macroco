@@ -69,7 +69,7 @@ Three built-in scenario presets are provided:
 
 | Preset | Key parameters | Description |
 |--------|---------------|-------------|
-| **BAU** | No interventions (`family_planning_efficacy=0`, `pollution_control=0`, `resource_efficiency=1`) | Original World 3 standard run. Reproduces Meadows 1972 Fig. 35. |
+| **Collapse** | No interventions (`family_planning_efficacy=0`, `pollution_control=0`, `resource_efficiency=1`) | Original World 3 standard run. Reproduces Meadows 1972 Fig. 35. |
 | **Technology** | `resource_efficiency=4`, `pollution_control=0.8`, `agricultural_technology=2`, `technology_growth_rate=0.02` | Aggressive technology gains without social changes. |
 | **Stabilized** | Technology params + `family_planning_efficacy=0.95` (from 1975), `land_protection=0.3` | Full combination of technology and social policy. Closest to sustainable. |
 

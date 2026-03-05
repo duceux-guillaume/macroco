@@ -110,7 +110,7 @@ mod tests {
     #[test]
     fn compare_detects_peak_shift() {
         let baseline = make_diag(
-            "bau",
+            "collapse",
             7.2e9,
             2032.0,
             3.5e9,
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn compare_no_nan_in_deltas() {
         let baseline = make_diag(
-            "bau",
+            "collapse",
             7.2e9,
             2032.0,
             3.5e9,
@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn compare_detects_trajectory_change() {
         let baseline = make_diag(
-            "bau",
+            "collapse",
             7.2e9,
             2032.0,
             3.5e9,

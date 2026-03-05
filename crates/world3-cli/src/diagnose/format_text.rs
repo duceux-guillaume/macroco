@@ -253,7 +253,7 @@ mod tests {
 
     fn make_test_diagnostics() -> SimDiagnostics {
         SimDiagnostics {
-            preset_name: "bau".to_string(),
+            preset_name: "collapse".to_string(),
             time_range: (1900.0, 2100.0),
             dt: 1.0,
             num_steps: 201,
@@ -308,7 +308,7 @@ mod tests {
         let diag = make_test_diagnostics();
         let text = format_text(&diag);
         assert!(
-            text.contains("Simulation Diagnostics: bau"),
+            text.contains("Simulation Diagnostics: collapse"),
             "missing header"
         );
         assert!(text.contains("1900"), "missing start year");

@@ -168,7 +168,7 @@ Differences from pyworld3 effective DCFS:
 
 **Status: Intentional Deviation (structural)**
 
-Different x-axis: ours uses 0–1 (planning effectiveness), pyworld3 uses family income expectation difference. Different mechanism but comparable net effect on fertility at BAU settings.
+Different x-axis: ours uses 0–1 (planning effectiveness), pyworld3 uses family income expectation difference. Different mechanism but comparable net effect on fertility at Collapse settings.
 
 ---
 
@@ -246,7 +246,7 @@ Differences:
 - Extended x-range (up to 4.0 vs 2.5).
 - **Input uses** `food_per_capita_smooth / IFPC(IOPC)` instead of pyworld3's `FPC / IFPC`. The smooth is an ODE stock preserved across RK4 stages.
 - **Rationale:** The 0.005 floor prevents agricultural investment from dropping to zero, which caused yield collapse and oscillation in Technology/Stabilized scenarios. Slightly higher allocation compensates for LFH/PL food reduction factors.
-- **Impact:** BAU nearly unchanged. Technology and Stabilized scenarios stable.
+- **Impact:** Collapse nearly unchanged. Technology and Stabilized scenarios stable.
 
 ---
 
@@ -512,7 +512,7 @@ Completely different functional form. pyworld3 AHLM is the Assimilation Half-Lif
 
 4. **PPASR reconciliation**: Our pollution assimilation mechanism differs structurally from pyworld3. Consider implementing the half-life multiplier approach for better alignment.
 
-5. **Nebel et al. fine-tuning**: BAU parameters (alic1=13yr, tech_rate=0.014) are tuned per Nebel et al. (2024) methodology — adjusting high-sensitivity parameters (industrial capital lifetime, technology growth) within plausible ranges to match historical data through 2023. Future recalibration should follow the same methodology when new empirical data becomes available.
+5. **Nebel et al. fine-tuning**: Collapse parameters (alic1=13yr, tech_rate=0.014) are tuned per Nebel et al. (2024) methodology — adjusting high-sensitivity parameters (industrial capital lifetime, technology growth) within plausible ranges to match historical data through 2023. Future recalibration should follow the same methodology when new empirical data becomes available.
 
 ---
 
@@ -536,33 +536,33 @@ These parameters are Macroco additions not present in pyworld3 or the World3-03 
 | | Value |
 |---|---|
 | **Parameter** | `agricultural_technology_growth_rate` |
-| **BAU default** | 0.005 yr⁻¹ |
+| **Collapse default** | 0.005 yr⁻¹ |
 | **Technology/Stabilized** | 0.0 (use static `agricultural_technology` instead) |
 | **Applied from** | 1960 (Green Revolution onset) |
 | **Formula** | `ag_tech = agricultural_technology × (1 + rate)^max(year - 1960, 0)` |
 
-**Justification:** World3-03 BAU has zero agricultural technology improvement (`lyf=1`, `LYCM=0`). Real-world agricultural TFP grew ~1%/yr from 1960-2020, causing a widening gap between modeled and historical food per capita (FAOSTAT). Without this extension, BAU food/capita RMSE was 18.6% and growing.
+**Justification:** World3-03 BAU has zero agricultural technology improvement (`lyf=1`, `LYCM=0`). Real-world agricultural TFP grew ~1%/yr from 1960-2020, causing a widening gap between modeled and historical food per capita (FAOSTAT). Without this extension, Collapse food/capita RMSE was 18.6% and growing.
 
 **Calibration source:**
 - USDA ERS International Agricultural Productivity dataset (https://www.ers.usda.gov/data-products/international-agricultural-productivity/)
 - Global agricultural TFP growth: <0.1%/yr (1960s) to ~2.0%/yr (2000s) to ~1.1%/yr (2010s); weighted average ~1%/yr
-- BAU rate set to 0.005 (half the raw average) because LYMC already captures input-driven yield gains
+- Collapse rate set to 0.005 (half the raw average) because LYMC already captures input-driven yield gains
 
 **pyworld3 equivalent:** None. pyworld3 BAU sets `lyf1 = lyf2 = 1` (no technology factor). The Vensim LYCM (`p_yield_tech_chg_mlt`) is only non-zero in technology scenarios (4%/yr in Scenario 4).
 
 **Literature:** No published World3 recalibration paper (Turner 2008, Herrington 2021, Nebel et al. 2024) has introduced this mechanism. This is a novel Macroco extension justified by empirical agricultural productivity data.
 
-**Precedent:** `technology_growth_rate` (BAU 0.014) for industrial output is the same kind of Macroco extension -- real-world TFP growth not in the original World3-03 structure.
+**Precedent:** `technology_growth_rate` (Collapse 0.014) for industrial output is the same kind of Macroco extension -- real-world TFP growth not in the original World3-03 structure.
 
 ### Industrial Technology Growth Rate (`technology_growth_rate`)
 
 | | Value |
 |---|---|
 | **Parameter** | `technology_growth_rate` |
-| **BAU default** | 0.014 yr⁻¹ |
+| **Collapse default** | 0.014 yr⁻¹ |
 | **Applied from** | 1970 |
 | **Formula** | `tech_multiplier = (1 + rate)^max(year - 1970, 0)` |
 
-**Justification:** World3-03 has no exogenous industrial TFP growth. Real-world industrial TFP grew ~1.5%/yr. Without this, BAU IOPC underestimates historical trajectory.
+**Justification:** World3-03 has no exogenous industrial TFP growth. Real-world industrial TFP grew ~1.5%/yr. Without this, Collapse IOPC underestimates historical trajectory.
 
 **Calibration source:** World Bank industrial value added per capita (1960-2023).

@@ -26,13 +26,13 @@ Implements: REQ-001, REQ-002, REQ-004, REQ-005
 - `to_vec()` / `from_vec()` on `WorldState` are used only at solver boundaries for RK4 arithmetic.
 - Sector derivative evaluation order is fixed: resource_aux, capital, resource_depletion, agriculture, pollution, population. Defined in `derivatives.rs`.
 - `WorldState::N` = 16 ODE stocks. Adding or removing a stock requires updating: `N`, `to_vec()`, `from_vec()`, `Add`/`Mul` impls, `derivatives.rs`, and `initial_1900()`.
-- `ScenarioParams::default()` matches the BAU preset (`data/presets/business_as_usual.json`).
+- `ScenarioParams::default()` matches the Collapse preset (`data/presets/collapse.json`).
 - All non-linear relationships are encoded as `LookupTable` (piecewise-linear interpolation). Tables are loaded from `data/lookup_tables/*.json` and audited against the pyworld3 reference (World3-03 Vensim).
 - Simulation is CPU-bound; must be run via `tokio::task::spawn_blocking` to avoid blocking the async reactor.
 
 ### Validation Module
 
-- `world3_core::validation::validate_bau()` runs qualitative dynamics checks against a `SimulationOutput` and returns `Vec<CheckResult>`.
+- `world3_core::validation::validate_collapse()` runs qualitative dynamics checks against a `SimulationOutput` and returns `Vec<CheckResult>`.
 - Used by: `world3-core/tests/qualitative_dynamics.rs` (integration tests), CLI `validate` command (thin wrapper).
 - Checks: population trajectory, NNR depletion, pollution peak, IOPC collapse, life expectancy decline.
 
@@ -85,7 +85,7 @@ Implements: REQ-020 (extension)
 
 - Extended `ParameterInfo` interface adds `feedbackLoops`, `relatedVariables`, and `impact` (increase/decrease text + sparkline variable) fields.
 - Stores: `selectedParameterId` (writable, mutually exclusive with `selectedVariableId`) and `highlightedVariables` (derived from selected parameter's related variables).
-- `ParameterInfoPanel`: 340px fixed-right slide-in panel with sparkline (BAU vs. current scenario), impact cards, feedback loops, and related variables.
+- `ParameterInfoPanel`: 340px fixed-right slide-in panel with sparkline (Collapse vs. current scenario), impact cards, feedback loops, and related variables.
 - Chart highlighting: when `highlightedVariables` is non-empty, related lines render at full opacity with thicker stroke; all other lines dim to 0.15 opacity.
 - Info icon on `ParameterSlider` triggers the panel.
 
@@ -102,7 +102,7 @@ Implements: REQ-013, REQ-014
 Implements: REQ-037, REQ-038, REQ-039, REQ-040
 
 The CLI serves four roles:
-1. **CI/CD validation** (REQ-037): `validate` is a thin wrapper around `world3_core::validation::validate_bau()` — prints PASS/FAIL, exits 1 on failure.
+1. **CI/CD validation** (REQ-037): `validate` is a thin wrapper around `world3_core::validation::validate_collapse()` — prints PASS/FAIL, exits 1 on failure.
 2. **Batch export** (REQ-038): `simulate --output` exports 25-column CSV for external analysis.
 3. **Simulation debugging** (REQ-039): `diagnose` produces structured text/JSON reports (peaks, phases, anomalies, oscillation detection, dt-sensitivity, preset comparison).
 4. **Reproducibility** (REQ-040): `simulate --preset` and `presets` provide deterministic named runs.
@@ -111,10 +111,10 @@ All scenario tests (qualitative dynamics, historical calibration) live in `world
 
 ### Historical Calibration Tests (REQ-026)
 
-- Integration test in `crates/world3-core/tests/historical_calibration.rs` compares BAU simulation against real-world historical CSVs.
+- Integration test in `crates/world3-core/tests/historical_calibration.rs` compares Collapse simulation against real-world historical CSVs.
 - Metric: RMSE as percentage of mean historical value, computed over overlapping years (~1960-2023).
 - Four variables tested: Population (<16%), Food/capita (<22%), IOPC (<23%), NNR fraction (<15%).
-- Shared `OnceLock<SimulationOutput>` in `tests/common/mod.rs` avoids redundant BAU simulation runs across tests.
+- Shared `OnceLock<SimulationOutput>` in `tests/common/mod.rs` avoids redundant Collapse simulation runs across tests.
 - Historical CSVs loaded with a minimal inline parser (no dependency on `world3-api`'s parser). Uses `CARGO_MANIFEST_DIR` to resolve `data/historical/` path.
 - Run: `cargo test -p world3-core --test historical_calibration` (summary only); `-- --nocapture` for full report.
 

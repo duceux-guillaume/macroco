@@ -326,7 +326,7 @@ impl WorldLookupTables {
             // Indicated food per capita (IFPC) — calibrated for our model.
             // x: IOPC [$/person/yr], y: IFPC [kg/person/yr]
             // Based on World3-03's IFPC table, but starts at subsistence (230)
-            // to preserve BAU behavior (where IOPC stays below ~330). Rises at
+            // to preserve Collapse behavior (where IOPC stays below ~330). Rises at
             // higher IOPC to prevent zero-allocation trap in Technology and
             // Stabilized scenarios where IOPC can exceed 1600.
             // Without IFPC, food_ratio = FPC/SFPC would reach 3.0+ and FIOAA → 0.
@@ -498,7 +498,7 @@ impl WorldLookupTables {
             // y: assimilation time [years] — increases sharply as environment is overwhelmed
             //
             // Steeper than original Meadows table so that pollution accumulates to
-            // visible levels (index > 5) by 2000 and peak > 10 by 2030–2040 in BAU.
+            // visible levels (index > 5) by 2000 and peak > 10 by 2030–2040 in Collapse.
             // At low PP the environment assimilates quickly; above PP=10 it slows dramatically.
             pollution_assimilation_time: LookupTable::new(
                 "pollution_assimilation_time",

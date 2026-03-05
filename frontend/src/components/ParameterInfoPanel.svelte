@@ -49,23 +49,23 @@
 
 	let sparklineEl = $state<HTMLDivElement | null>(null);
 
-	// Find the BAU scenario ID
-	let bauScenarioId = $derived.by(() => {
+	// Find the Collapse scenario ID
+	let collapseScenarioId = $derived.by(() => {
 		const allScenarios = $scenarios;
-		const bau = allScenarios.find(
-			(s) => s.name.toLowerCase().includes('business as usual') || s.name === 'BAU'
+		const collapse = allScenarios.find(
+			(s) => s.name.toLowerCase().includes('collapse')
 		);
-		return bau?.id ?? null;
+		return collapse?.id ?? null;
 	});
 
-	// Get a focused scenario ID (any active non-BAU scenario, or BAU itself)
+	// Get a focused scenario ID (any active non-Collapse scenario, or Collapse itself)
 	let comparisonScenarioId = $derived.by(() => {
 		const active = $activeScenarioIds;
-		const bau = bauScenarioId;
+		const collapse = collapseScenarioId;
 		for (const id of active) {
-			if (id !== bau) return id;
+			if (id !== collapse) return id;
 		}
-		return bau;
+		return collapse;
 	});
 
 	$effect(() => {
@@ -73,16 +73,16 @@
 		const fieldPath = info.impact.sparklineVariable;
 		const results = $simulationResults;
 
-		const bauData = bauScenarioId ? results.get(bauScenarioId) : null;
+		const collapseData = collapseScenarioId ? results.get(collapseScenarioId) : null;
 		const compData = comparisonScenarioId ? results.get(comparisonScenarioId) : null;
 
-		drawSparkline(sparklineEl, fieldPath, bauData ?? null, compData ?? null);
+		drawSparkline(sparklineEl, fieldPath, collapseData ?? null, compData ?? null);
 	});
 
 	function drawSparkline(
 		el: HTMLDivElement,
 		fieldPath: string,
-		bauStates: WorldState[] | null,
+		collapseStates: WorldState[] | null,
 		compStates: WorldState[] | null
 	) {
 		const rect = el.getBoundingClientRect();
@@ -108,9 +108,9 @@
 			.attr('transform', `translate(${m.left},${m.top})`);
 
 		const allPoints: DataPoint[] = [];
-		const bauPoints = bauStates ? extractSeries(bauStates, fieldPath) : [];
+		const collapsePoints = collapseStates ? extractSeries(collapseStates, fieldPath) : [];
 		const compPoints = compStates ? extractSeries(compStates, fieldPath) : [];
-		allPoints.push(...bauPoints, ...compPoints);
+		allPoints.push(...collapsePoints, ...compPoints);
 
 		if (allPoints.length === 0) {
 			g.selectAll('*').remove();
@@ -133,11 +133,11 @@
 			.x((d) => xScale(d.year))
 			.y((d) => yScale(d.value));
 
-		// BAU line (dimmed)
-		g.selectAll<SVGPathElement, null>('path.bau-line')
-			.data(bauPoints.length > 0 ? [bauPoints] : [])
+		// Collapse line (dimmed)
+		g.selectAll<SVGPathElement, null>('path.collapse-line')
+			.data(collapsePoints.length > 0 ? [collapsePoints] : [])
 			.join('path')
-			.attr('class', 'bau-line')
+			.attr('class', 'collapse-line')
 			.attr('fill', 'none')
 			.attr('stroke', 'var(--text-secondary)')
 			.attr('stroke-width', 1)

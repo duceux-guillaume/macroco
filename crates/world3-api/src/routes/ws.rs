@@ -238,13 +238,13 @@ mod tests {
     fn test_message_serialization_roundtrip() {
         // WsClientMsg variants serialize with correct tags
         let start = WsClientMsg::StartSimulation {
-            scenario_id: "bau".into(),
+            scenario_id: "collapse".into(),
             params: None,
         };
         let json = serde_json::to_string(&start).unwrap();
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(v["type"], "start_simulation");
-        assert_eq!(v["scenario_id"], "bau");
+        assert_eq!(v["scenario_id"], "collapse");
         assert!(v.get("params").is_some());
 
         let stop = WsClientMsg::StopSimulation;
@@ -262,14 +262,14 @@ mod tests {
         assert_eq!(v["message"], "boom");
 
         let ack = WsServerMsg::ParamsAck {
-            scenario_id: "bau".into(),
+            scenario_id: "collapse".into(),
         };
         let json = serde_json::to_string(&ack).unwrap();
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(v["type"], "params_ack");
 
         let complete = WsServerMsg::SimComplete {
-            scenario_id: "bau".into(),
+            scenario_id: "collapse".into(),
             total_steps: 42,
         };
         let json = serde_json::to_string(&complete).unwrap();
@@ -328,7 +328,7 @@ mod tests {
         let (mut ws, _) = connect_async(&url).await.unwrap();
 
         // Short sim: 1900-1910 with inline params (bypasses random preset IDs)
-        let mut params = world3_core::ScenarioParams::bau();
+        let mut params = world3_core::ScenarioParams::collapse();
         params.end_year = 1910.0;
         let msg = WsClientMsg::StartSimulation {
             scenario_id: "custom".into(),
@@ -402,25 +402,25 @@ mod tests {
         let url = spawn_test_server().await;
         let (mut ws, _) = connect_async(&url).await.unwrap();
 
-        let mut short_params = world3_core::ScenarioParams::bau();
+        let mut short_params = world3_core::ScenarioParams::collapse();
         short_params.end_year = 1910.0;
 
         let msg = WsClientMsg::UpdateParams {
-            scenario_id: "bau".into(),
+            scenario_id: "collapse".into(),
             params: short_params,
         };
         send_json(&mut ws, &msg).await;
 
         let v = recv_json(&mut ws).await;
         assert_eq!(v["type"], "params_ack");
-        assert_eq!(v["scenario_id"], "bau");
+        assert_eq!(v["scenario_id"], "collapse");
 
         loop {
             let v = recv_json(&mut ws).await;
             match v["type"].as_str().unwrap() {
                 "sim_step" => continue,
                 "sim_complete" => {
-                    assert_eq!(v["scenario_id"], "bau");
+                    assert_eq!(v["scenario_id"], "collapse");
                     break;
                 }
                 other => panic!("Unexpected: {other}"),
