@@ -264,13 +264,7 @@ fn write_csv(sim: &SimulationOutput, path: &PathBuf) -> Result<()> {
 fn validate() -> Result<()> {
     eprintln!("Running BAU validation against World3 reference dynamics…\n");
 
-    let params = ScenarioParams::bau();
-    let initial = WorldState::initial_1900();
-    let tables = std::sync::Arc::new(world3_core::lookup::tables::WorldLookupTables::load());
-    let solver = Rk4Solver::new(tables);
-    let states = solver.solve(initial, &params)?;
-    let sim = SimulationOutput::new(states, params);
-
+    let sim = diagnose::run_sim("bau", 1900.0, 2100.0, 1.0)?;
     let results = world3_core::validation::validate_bau(&sim);
 
     let mut failed = false;
