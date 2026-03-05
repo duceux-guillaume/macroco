@@ -202,6 +202,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 - `ScenarioMeta::default()` generates a random hex ID via `scenario_id()`. Preset scenarios in the store are keyed by this hash, not by human-readable names like `"collapse"`. Tests needing to run a simulation should use inline `params` rather than looking up by scenario ID.
 - `init_app_state()` loads historical CSVs from `HISTORICAL_DATA_DIR` (default `./data/historical`). Integration tests using it must run from the repo root or set the env var.
 - Historical calibration tests: `cargo test -p world3-core --test historical_calibration -- --nocapture` to see the summary report. Uses `OnceLock` to share one Collapse sim across all tests.
+- Calibration test helpers (CSV loader, RMSE%, max-year-error, match_years) live in `crates/world3-core/tests/common/mod.rs`. Reuse them for new scenario calibration tests (e.g., Ecotopia REQ-036).
 
 ### Debugging Workflow
 - For simulation debugging, use `cargo run --bin world3-cli -- diagnose` instead of visual chart inspection.
@@ -217,6 +218,7 @@ Plan files (`docs/plans/`) are gitignored. They are working documents for Claude
 ### Traceability
 - Every test file/module must have a `// REQ: REQ-NNN` comment linking to the requirements it validates. Rust: place before `#[cfg(test)]`. TypeScript: first line of `.test.ts` file.
 - Run `python3 scripts/traceability.py` locally to regenerate `docs/traceability-matrix.md`, then commit it. CI runs `--check` mode and fails if the matrix is stale. The script exits non-zero when any Done REQ lacks test coverage — this is a coverage gate, not a script error; the matrix is still written.
+- The traceability script determines REQ status from section headers (`## Done`, `## Planned`, etc.), NOT from checkbox markers (`[x]`). Moving a REQ between sections is required to change its status.
 - When adding a new `#[test]` or `describe()` block, include the `// REQ:` annotation.
 - Docs-only and infrastructure requirements can be exempted with `- *Exempt:* <reason>` in `product-requirements.md`.
 - Impact analysis: `grep -r '// REQ:.*REQ-005' crates/ frontend/` finds all tests covering a given requirement.
@@ -229,6 +231,7 @@ Population · Industrial Capital · Agriculture · Non-Renewable Resources · Po
 - Collapse (preset: `collapse`) = **Collapse** — default trajectory, overshoot and decline
 - Technology (preset: `technology`) = **Technotopia** — technology and resource discovery save the day
 - Stabilized (preset: `stabilized`) = **Ecotopia** — humanity progresses toward justice and moderation
+- Technotopia has NO social changes (family_planning_efficacy=0.0). Family planning belongs in Ecotopia only.
 
 Future extensions: Climate + Energy (M3 Technotopia, REQ-033) · Biodiversity + Inequality (M4 Ecotopia, REQ-034)
 
