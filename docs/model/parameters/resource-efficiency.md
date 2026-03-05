@@ -32,6 +32,24 @@ Resource efficiency interacts with the FCAOR table to determine when capital div
 - At $$r_e = 1.05$$: The 50% threshold is reached a few years later, modestly delaying the onset of collapse.
 - At $$r_e = 4.0$$: NNR remains above 70% through 2100; resource constraints never dominate. Collapse, if it occurs, is driven by pollution or food limits instead.
 
+## Info Panel
+
+**Unit:** multiplier
+
+**Beginner:** How efficiently resources are used. Higher values mean the economy gets more output per unit of resource consumed. Technology preset uses 4x.
+
+**Expert:** Divides extraction rate: extraction = pop × IOPC × coeff / resource_efficiency.
+
+**Feedback loops:** resource-collapse, population-resource
+
+**Related variables:** resources.nonrenewable_resources, resources.fraction_remaining, capital.industrial_output
+
+**Impact increase:** Resources last longer -- industrial output sustained further into the future
+
+**Impact decrease:** Faster resource depletion -- earlier industrial collapse
+
+**Sparkline variable:** resources.fraction_remaining
+
 ## References
 
 - Meadows et al. (2004), *Limits to Growth: The 30-Year Update*. Technology scenario parameters.

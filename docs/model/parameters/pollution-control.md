@@ -31,6 +31,24 @@ This parameter affects both industrial and agricultural pollution generation equ
 
 In the Collapse scenario, pollution control is zero: no policy intervention is assumed. The Technology and Ecotopia presets both set $c = 0.8$, representing aggressive but not total pollution abatement. This value was chosen to keep pollution below tipping-point levels in scenarios where industrial output continues to grow, while remaining plausible as a long-term policy target (80% reduction in pollution intensity is ambitious but within the range of historical Clean Air Act achievements for specific pollutants).
 
+## Info Panel
+
+**Unit:** fraction (0--1)
+
+**Beginner:** How much pollution is prevented at the source. 0 = no control, 0.8 = 80% of pollution eliminated before it enters the environment.
+
+**Expert:** generation = (gen_industry + gen_agriculture) × (1 -- pollution_control). Clamped to [0, 1].
+
+**Feedback loops:** pollution-food, pollution-tipping
+
+**Related variables:** pollution.persistent_pollution, pollution.pollution_index, agriculture.food_per_capita
+
+**Impact increase:** Less pollution -- protects food production and avoids pollution tipping point
+
+**Impact decrease:** More pollution accumulates -- food yields drop, pollution may spiral
+
+**Sparkline variable:** pollution.pollution_index
+
 ## References
 
 - Meadows et al. (2004), *Limits to Growth: The 30-Year Update*, Table A-1 -- Scenario parameter settings

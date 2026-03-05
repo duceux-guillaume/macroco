@@ -20,6 +20,24 @@ Collapse uses 1.0, matching the World3-03 standard run (no extraordinary agricul
 
 Doubling this parameter doubles food production at all input levels, which delays the food crisis in overshoot scenarios. However, higher yields also increase the erosion multiplier (via the [LERD](../tables/land-erosion-multiplier.md) table), partially offsetting the gain through accelerated soil loss. The net effect is a postponement rather than prevention of agricultural decline unless combined with land protection.
 
+## Info Panel
+
+**Unit:** multiplier
+
+**Beginner:** Multiplier on crop yields from improved farming techniques -- better seeds, irrigation, precision agriculture.
+
+**Expert:** Direct multiplier on land_yield: LY = 600 × LYMC × LYMAP × agri_tech.
+
+**Feedback loops:** food-population, pollution-food
+
+**Related variables:** agriculture.food_per_capita, agriculture.land_yield, agriculture.food
+
+**Impact increase:** More food per hectare -- delays food crisis, supports larger population
+
+**Impact decrease:** Lower yields -- food shortages arrive earlier
+
+**Sparkline variable:** agriculture.food_per_capita
+
 ## References
 
 - Meadows et al. (2004), technology scenarios (Chapters 6--7)

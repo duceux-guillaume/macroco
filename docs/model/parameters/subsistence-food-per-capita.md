@@ -26,6 +26,24 @@ The subsistence food level appears in three places:
 
 3. **FALM land maintenance**: perceived food ratio ($$FPC_s / \text{SFPC}$$) determines how much output goes to soil maintenance. At subsistence, only 4% goes to maintenance.
 
+## Info Panel
+
+**Unit:** kg/person/yr
+
+**Beginner:** The minimum food per person needed for basic health. Below this level, life expectancy drops sharply.
+
+**Expert:** Denominator in food_ratio = FPC / subsistence_food. Drives multiple lookup tables. Default 230 kg/yr.
+
+**Feedback loops:** food-population
+
+**Related variables:** agriculture.food_per_capita, population.life_expectancy, population.death_rate
+
+**Impact increase:** Higher bar for adequate nutrition -- more people classified as food-insecure
+
+**Impact decrease:** Lower nutrition threshold -- fewer people in food crisis at same production
+
+**Sparkline variable:** agriculture.food_per_capita
+
 ## References
 
 - Meadows et al. (2004), SFPC = 230 kg/person/yr

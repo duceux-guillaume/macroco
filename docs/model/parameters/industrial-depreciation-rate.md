@@ -26,6 +26,24 @@ This adjustment compensates for structural differences in our model's population
 
 Our Collapse value of 13 years (vs. World3-03's 14 years) was calibrated against World Bank IOPC data. The faster depreciation dampens early capital accumulation that otherwise diverges from historical data due to structural differences in population dynamics. The qualitative overshoot-and-collapse trajectory is unchanged.
 
+## Info Panel
+
+**Unit:** fraction/yr
+
+**Beginner:** How fast factories and machines wear out. Higher = capital decays faster, requiring more investment just to maintain.
+
+**Expert:** Used in d(IC)/dt = investment -- IC × depreciation_rate. Default 0.05 = 20-year average capital lifetime.
+
+**Feedback loops:** resource-collapse
+
+**Related variables:** capital.industrial_capital, capital.industrial_output, capital.industrial_output_per_capita
+
+**Impact increase:** Capital wears out faster -- economy needs more investment just to stay level
+
+**Impact decrease:** Capital lasts longer -- more output available for services and consumption
+
+**Sparkline variable:** capital.industrial_output_per_capita
+
 ## Slider Range
 
 | Min | Max | Default | Step |

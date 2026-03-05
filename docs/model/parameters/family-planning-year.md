@@ -28,6 +28,24 @@ In the Ecotopia scenario, `family_planning_year` = 1975.0 and `family_planning_e
 
 The parameter range in the UI is 1950--2100 with a step size of 5 years.
 
+## Info Panel
+
+**Unit:** year
+
+**Beginner:** The year when family planning programs become fully effective. Earlier = earlier fertility decline.
+
+**Expert:** Controls the ramp function: fp_ramp = clamp((time -- 1900) / (fp_year -- 1900), 0, 1). Multiplied by efficacy to get effective family planning input.
+
+**Feedback loops:** demographic-transition
+
+**Related variables:** population.population, population.fertility_rate, population.birth_rate
+
+**Impact increase:** Delays fertility decline -- population grows larger before stabilizing
+
+**Impact decrease:** Earlier fertility decline -- population peaks sooner and at a lower level
+
+**Sparkline variable:** population.population
+
 ## References
 
 - Meadows, D. H., Randers, J., & Meadows, D. L. (2004). *Limits to Growth: The 30-Year Update*. Chelsea Green Publishing.

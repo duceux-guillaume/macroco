@@ -18,6 +18,24 @@ Service capital is funded by a fraction of industrial output. When the economy c
 
 This parameter matches World3-03 exactly ($$alsc_1 = 20$$ years). No calibration adjustment was needed since service capital dynamics align well with historical data at this value.
 
+## Info Panel
+
+**Unit:** fraction/yr
+
+**Beginner:** How fast service infrastructure (hospitals, schools) wears out.
+
+**Expert:** Used in d(SC)/dt = service_investment -- SC × depreciation_rate. Default 0.05.
+
+**Feedback loops:** demographic-transition
+
+**Related variables:** capital.service_output_per_capita, population.life_expectancy
+
+**Impact increase:** Services decay faster -- health and education quality drops
+
+**Impact decrease:** Services last longer -- sustained life expectancy improvements
+
+**Sparkline variable:** capital.service_output_per_capita
+
 ## Slider Range
 
 | Min | Max | Default | Step |

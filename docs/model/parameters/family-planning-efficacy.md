@@ -36,6 +36,24 @@ The parameter is sensitive in scenarios where it is nonzero: changing efficacy f
 
 The parameter range in the UI is 0.0--1.0 with a step size of 0.05.
 
+## Info Panel
+
+**Unit:** 0--1
+
+**Beginner:** How effective family planning programs are at reducing birth rates. 0 = no effect, 1 = maximum effect.
+
+**Expert:** Scales the family_planning_multiplier lookup input. At efficacy=1.0 and full ramp, fertility multiplier ≈ 0.40.
+
+**Feedback loops:** demographic-transition
+
+**Related variables:** population.population, population.fertility_rate, population.birth_rate
+
+**Impact increase:** Stronger fertility reduction -- smaller peak population, less resource pressure
+
+**Impact decrease:** Weaker family planning -- higher birth rates persist longer
+
+**Sparkline variable:** population.population
+
 ## References
 
 - Meadows, D. H., Randers, J., & Meadows, D. L. (2004). *Limits to Growth: The 30-Year Update*. Chelsea Green Publishing.
