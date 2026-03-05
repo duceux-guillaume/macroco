@@ -6,8 +6,6 @@ Get Macroco running locally in 5 minutes. No prior experience required.
 
 An interactive simulation of the World 3 model from *Limits to Growth* (1972). You'll see six charts tracking population, resources, food, industrial output, pollution, and life expectancy from 1900 to 2100. You can change assumptions with sliders and compare different scenarios side by side.
 
-![BAU Standard Run](examples/bau_standard_run.png)
-
 ---
 
 ## 1. Install prerequisites
