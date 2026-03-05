@@ -20,11 +20,11 @@ World3-03 specifies an average industrial capital lifetime of 14 years ($$alic_1
 
 This adjustment compensates for structural differences in our model's population dynamics. Changes to the life expectancy formulation (particularly the Delay3 perceived-LE and EHSPC smooth) produced slightly higher population growth in the early simulation period (1900-1960), which pushed IOPC too high relative to historical data. The faster depreciation dampens early capital accumulation and brings IOPC into better alignment with World Bank historical data.
 
-**Sensitivity:** Low to moderate. The 1-year lifetime reduction shifts IOPC peak by a few percent. The qualitative BAU trajectory (overshoot and collapse) is unchanged.
+**Sensitivity:** Low to moderate. The 1-year lifetime reduction shifts IOPC peak by a few percent. The qualitative Collapse trajectory (overshoot and collapse) is unchanged.
 
 ## Calibration
 
-Our BAU value of 13 years (vs. World3-03's 14 years) was calibrated against World Bank IOPC data. The faster depreciation dampens early capital accumulation that otherwise diverges from historical data due to structural differences in population dynamics. The qualitative overshoot-and-collapse trajectory is unchanged.
+Our Collapse value of 13 years (vs. World3-03's 14 years) was calibrated against World Bank IOPC data. The faster depreciation dampens early capital accumulation that otherwise diverges from historical data due to structural differences in population dynamics. The qualitative overshoot-and-collapse trajectory is unchanged.
 
 ## Slider Range
 

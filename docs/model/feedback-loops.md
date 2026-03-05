@@ -9,7 +9,7 @@ A reinforcing loop drives exponential change: more of A causes more of B, which 
 
 **Connects:** [Resources](sectors/resources.md) --> [Capital](sectors/capital.md)
 
-This is the primary driver of collapse in the BAU scenario. Even though there are still resources in the ground, the *cost* of extracting them consumes so much capital that the economy cannot sustain itself.
+This is the primary driver of collapse in the Collapse scenario. Even though there are still resources in the ground, the *cost* of extracting them consumes so much capital that the economy cannot sustain itself.
 
 ```
 Resources deplete --> Extraction costs rise --> More capital diverted to extraction

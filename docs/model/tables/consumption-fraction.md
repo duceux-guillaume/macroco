@@ -44,7 +44,7 @@ Three deliberate changes from the World3-03 specification:
 
 3. **Smoothed above IOPC = 400.** The pyworld3 table has a sharp discontinuity at IOPC/IOPCD = 1.0, where consumption jumps from 0.43 to 0.73. This creates an "IOPC trap" — once IOPC reaches ~400, most additional output is consumed, preventing further capital accumulation. Our smoothed curve eliminates this trap while preserving the qualitative shape (rising consumption share with income).
 
-**Impact:** Moderate. Allows IOPC to continue growing through the mid-income range, producing a historical calibration RMSE below 19% for IOPC (REQ-026). The BAU collapse trajectory is preserved because resource depletion, not consumption, is the binding constraint.
+**Impact:** Moderate. Allows IOPC to continue growing through the mid-income range, producing a historical calibration RMSE below 19% for IOPC (REQ-026). The Collapse trajectory is preserved because resource depletion, not consumption, is the binding constraint.
 
 ## References
 

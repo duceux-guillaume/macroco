@@ -14,7 +14,7 @@ $$\text{food\_ratio} = \frac{FPC_{smooth}}{IFPC(IOPC)}$$
 
 $$f_{agr} = \text{FIOAA}(\text{food\_ratio})$$
 
-The smoothed FPC is an ODE stock (preserved across RK4 solver stages), while IFPC scales with industrialization to prevent zero-allocation traps at high food levels. At low IOPC (BAU scenario), IFPC approximates subsistence food (230 kg/person/yr), so the allocation behaves like the original World3-03 formulation.
+The smoothed FPC is an ODE stock (preserved across RK4 solver stages), while IFPC scales with industrialization to prevent zero-allocation traps at high food levels. At low IOPC (Collapse scenario), IFPC approximates subsistence food (230 kg/person/yr), so the allocation behaves like the original World3-03 formulation.
 
 ## Breakpoints
 
@@ -38,7 +38,7 @@ Three deliberate changes:
 
 3. **Extended x-range to 4.0.** The pyworld3 table stops at food_ratio = 2.5. In scenarios with high agricultural technology, food ratio can exceed this range. The extension ensures well-defined behavior at extreme values.
 
-**Impact:** BAU trajectory is nearly unchanged (food ratio stays below 2.0). Technology and Stabilized presets become stable without oscillation.
+**Impact:** Collapse trajectory is nearly unchanged (food ratio stays below 2.0). Technology and Stabilized presets become stable without oscillation.
 
 ## References
 

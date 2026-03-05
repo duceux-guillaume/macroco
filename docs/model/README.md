@@ -46,13 +46,13 @@ The simulator displays six charts, each tracking a key variable from 1900 to 210
 
 | Preset | What it assumes | What happens |
 |--------|----------------|--------------|
-| **BAU** (Business as Usual) | No policy changes. Current trends continue. | Economy grows, hits resource limits, contracts. Population peaks ~2030 then declines. |
+| **Collapse** (Business as Usual) | No policy changes. Current trends continue. | Economy grows, hits resource limits, contracts. Population peaks ~2030 then declines. |
 | **Technology** | 4× resource efficiency, 80% pollution control, improved agriculture. No social changes. | Buys time but doesn't prevent overshoot — pollution and food limits catch up. |
 | **Stabilized** | Technology improvements + aggressive family planning (95% from 1975), land protection, investment restraint. | Closest to a sustainable trajectory. Population stabilizes, resources last longer. |
 
 ### What each chart shows
 
-1. **Population** — Total world population in billions. In BAU, it peaks around 8 billion near 2030 then falls as death rates rise from food shortages and pollution.
+1. **Population** — Total world population in billions. In the Collapse scenario, it peaks around 8 billion near 2030 then falls as death rates rise from food shortages and pollution.
 
 2. **Resources Remaining** — Fraction of initial non-renewable resources (oil, minerals, etc.) still available. Falls faster as industrial output grows. When it gets low, the cost of extraction rises sharply.
 

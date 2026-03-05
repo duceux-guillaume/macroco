@@ -41,10 +41,10 @@ World3-03's FRSN table uses the family income expectation difference (negative =
 Our implementation uses a simpler 0--1 effectiveness scale controlled by the `family_planning_efficacy` parameter and a linear ramp-in over time. This structural change was made because:
 
 1. The income-expectation mechanism requires additional state (expected income, adaptation rate) not present in our model structure.
-2. In BAU, family planning efficacy is 0.0, so FRSN = 1.0 regardless of table shape --- the table only matters in the Stabilized scenario.
+2. In Collapse, family planning efficacy is 0.0, so FRSN = 1.0 regardless of table shape --- the table only matters in the Stabilized scenario.
 3. The 0--1 scale provides a more intuitive policy lever for the interactive UI.
 
-At BAU settings (efficacy = 0), both implementations produce FRSN = 1.0, so the deviation has no effect on the standard run.
+At Collapse settings (efficacy = 0), both implementations produce FRSN = 1.0, so the deviation has no effect on the standard run.
 
 ## References
 

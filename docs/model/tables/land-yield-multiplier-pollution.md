@@ -9,7 +9,7 @@
 
 Maps the persistent pollution index to a yield multiplier. Pollution degrades crop yields through acid rain, soil contamination, and ozone damage. At low pollution levels (index < 10), yield is unaffected. Beyond index 10, degradation accelerates: yields fall to 70% at index 20 and 40% at index 30.
 
-In the BAU scenario, pollution index remains below 10 until the mid-21st century, so this table has little effect during the historical period. Its impact becomes severe during the overshoot phase when pollution peaks.
+In the Collapse scenario, pollution index remains below 10 until the mid-21st century, so this table has little effect during the historical period. Its impact becomes severe during the overshoot phase when pollution peaks.
 
 ## Breakpoints
 

@@ -22,7 +22,7 @@ where $t_{\text{fp}}$ is this parameter and $e_{\text{max}}$ is the [family plan
 
 ## Calibration
 
-In the BAU scenario, this parameter is set to 2000.0, but since family planning efficacy is 0.0, the year has no effect --- the ramp multiplied by zero is always zero. The parameter only becomes active in scenarios with nonzero efficacy.
+In the Collapse scenario, this parameter is set to 2000.0, but since family planning efficacy is 0.0, the year has no effect --- the ramp multiplied by zero is always zero. The parameter only becomes active in scenarios with nonzero efficacy.
 
 In the Stabilized World scenario, `family_planning_year` = 1975.0 and `family_planning_efficacy` = 0.95, meaning full family planning effectiveness is reached by 1975, consistent with the historical timing of major family planning programs in developing nations (1960s--1970s).
 

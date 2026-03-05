@@ -12,7 +12,7 @@ The RK4 solver advances all 21 ODE stocks by `time_step` at each iteration. With
 
 ## Calibration
 
-Default of 1.0 year provides stable results for all presets (BAU, Technology, Stabilized). dt-sensitivity testing (`diagnose --stability-check`) confirms all variables converge within 3% between dt=1.0 and dt=0.25. Pollution peak is the most dt-sensitive variable (~2.4% drift).
+Default of 1.0 year provides stable results for all presets (Collapse, Technology, Stabilized). dt-sensitivity testing (`diagnose --stability-check`) confirms all variables converge within 3% between dt=1.0 and dt=0.25. Pollution peak is the most dt-sensitive variable (~2.4% drift).
 
 World3-03 Vensim uses TIME STEP = 0.5 with Euler integration. Our RK4 solver allows larger steps for equivalent accuracy.
 

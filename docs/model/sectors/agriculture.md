@@ -50,7 +50,7 @@ where:
 
 - [LYMC](../tables/land-yield-multiplier-capital.md) maps capital inputs to a yield multiplier (1.0 at zero inputs, up to 10.0 at 1000 $/ha/yr)
 - [LYMAP](../tables/land-yield-multiplier-pollution.md) degrades yield under pollution stress (1.0 at low pollution, 0.4 at index 30)
-- `agricultural_technology` is a scenario parameter (BAU: 1.0, Technology/Stabilized: 2.0)
+- `agricultural_technology` is a scenario parameter (Collapse: 1.0, Technology/Stabilized: 2.0)
 
 Note that $$LFERT$$ replaces the constant base yield of 600 kg/ha/yr used in simpler formulations. As fertility degrades, base yield falls even before capital or pollution effects.
 
@@ -132,7 +132,7 @@ $$\frac{dFPC_s}{dt} = \frac{FPC - FPC_s}{2}$$
 
 ## Feedback Loops
 
-**Pollution-yield loop (balancing).** Industrial output generates pollution (via the pollution sector). Rising pollution degrades crop yields through LYMAP, reducing food production. Lower food triggers higher agricultural allocation (FIOAA), diverting output from industry. This is the central mechanism through which pollution causes agricultural collapse in the BAU scenario.
+**Pollution-yield loop (balancing).** Industrial output generates pollution (via the pollution sector). Rising pollution degrades crop yields through LYMAP, reducing food production. Lower food triggers higher agricultural allocation (FIOAA), diverting output from industry. This is the central mechanism through which pollution causes agricultural collapse in the Collapse scenario.
 
 **Food-population loop (balancing).** Food per capita affects life expectancy (via the population sector's LMF table) and fertility (via the [FRNF](../tables/food-fertility-multiplier.md) table). When food falls below subsistence, death rates rise and birth rates may fall, reducing population and thus food demand. This loop delays but does not prevent collapse when food production declines.
 
@@ -150,7 +150,7 @@ $$\frac{dFPC_s}{dt} = \frac{FPC - FPC_s}{2}$$
 
 4. **Custom development cost table (LDCO).** pyworld3 uses DCPH (Development Cost Per Hectare) indexed by absolute PAL area. Our table uses fraction-developed as the independent variable with an exponential cost curve.
 
-5. **FIOAA with IFPC normalization.** The agricultural allocation fraction uses $$FPC_s / \mathrm{IFPC}(\mathrm{IOPC})$$ rather than $$FPC / \mathrm{SFPC}$$. This dynamic normalization prevents the zero-allocation trap at high IOPC in Technology and Stabilized scenarios while preserving BAU behavior (where IFPC $$\approx$$ SFPC at low IOPC).
+5. **FIOAA with IFPC normalization.** The agricultural allocation fraction uses $$FPC_s / \mathrm{IFPC}(\mathrm{IOPC})$$ rather than $$FPC / \mathrm{SFPC}$$. This dynamic normalization prevents the zero-allocation trap at high IOPC in Technology and Stabilized scenarios while preserving Collapse behavior (where IFPC $$\approx$$ SFPC at low IOPC).
 
 6. **Food perception smoothing (FSPD).** $$FPC_s$$ is an ODE stock (preserved across RK4 stages) rather than an inline smooth, ensuring consistent inter-sector feedback during solver intermediate stages.
 

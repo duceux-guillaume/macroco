@@ -121,7 +121,7 @@ $$
 \text{pollution} \uparrow \;\longrightarrow\; T_{\text{assim}} \uparrow \;\longrightarrow\; A_{\text{assim}} \downarrow \;\longrightarrow\; \text{net accumulation} \uparrow \;\longrightarrow\; \text{pollution} \uparrow
 $$
 
-This is the sector's defining reinforcing loop. Once persistent pollution rises above the threshold where assimilation time grows faster than linearly, the system enters a self-amplifying regime. In the BAU scenario, this loop activates around 2020--2040.
+This is the sector's defining reinforcing loop. Once persistent pollution rises above the threshold where assimilation time grows faster than linearly, the system enters a self-amplifying regime. In the Collapse scenario, this loop activates around 2020--2040.
 
 ### Pollution to Agriculture (Cross-sector -- Balancing)
 

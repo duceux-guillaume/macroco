@@ -6,7 +6,7 @@
 
 The capital sector models the world economy as a stock of physical capital — factories, machines, infrastructure — that produces goods measured in constant 1975 US dollars. Industrial output is divided among four competing claims: household consumption, services (health, education), agriculture, and investment in new capital. Investment is the residual after the first three claims are satisfied, which means that under stress the economy starves its own growth to meet immediate needs.
 
-Capital accumulates when gross investment exceeds depreciation and contracts when it does not. Two feedback mechanisms dominate the sector's long-run dynamics. First, as non-renewable resources deplete, an increasing fraction of industrial capital must be diverted to extraction, leaving less for productive output. Second, the capital-output ratio worsens with depletion, so each remaining unit of capital becomes less efficient. Together, these feedbacks are the primary mechanism of economic collapse in the BAU scenario.
+Capital accumulates when gross investment exceeds depreciation and contracts when it does not. Two feedback mechanisms dominate the sector's long-run dynamics. First, as non-renewable resources deplete, an increasing fraction of industrial capital must be diverted to extraction, leaving less for productive output. Second, the capital-output ratio worsens with depletion, so each remaining unit of capital becomes less efficient. Together, these feedbacks are the primary mechanism of economic collapse in the Collapse scenario.
 
 A parallel stock of service capital provides health and education services. Service capital is funded by a fraction of industrial output and depreciates independently. Service output per capita feeds back into the population sector through life expectancy (via health services) and into the capital sector itself through the service allocation fraction.
 
@@ -90,7 +90,7 @@ where $$SAD = 20$$ years is the social adjustment delay. The perceived IOPC driv
 
 ### Resource Depletion and Economic Collapse
 
-The dominant positive (reinforcing) feedback loop in the BAU scenario:
+The dominant positive (reinforcing) feedback loop in the Collapse scenario:
 
 1. Industrial output drives resource consumption (via the resource sector).
 2. As resources deplete, $$FCAOR$$ rises — more capital is diverted to extraction.
@@ -123,7 +123,7 @@ The fraction to agriculture has a 0.005 floor at high food ratio (instead of zer
 
 ### Technology Growth Rate
 
-World3-03 has no technology progress in the BAU scenario. We add an annual TFP improvement of 1.4% post-1970 to match the historical IOPC trajectory, since the original 1972 model did not anticipate real-world productivity gains of approximately 1.5% per year. See [Technology Growth Rate](../parameters/technology-growth-rate.md).
+World3-03 has no technology progress in the Collapse scenario. We add an annual TFP improvement of 1.4% post-1970 to match the historical IOPC trajectory, since the original 1972 model did not anticipate real-world productivity gains of approximately 1.5% per year. See [Technology Growth Rate](../parameters/technology-growth-rate.md).
 
 ### Industrial Depreciation Rate
 
