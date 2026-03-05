@@ -12,7 +12,7 @@ Macroco is an online macroeconomic simulator based on the World 3 system dynamic
 |-----------|-----------|---------|------------|
 | Simulation Engine | `crates/world3-core/` | Pure simulation: WorldState, sector ODEs, RK4 solver, lookup tables | REQ-001, REQ-002, REQ-004, REQ-005 |
 | API Server | `crates/world3-api/` | Axum HTTP + WebSocket server, historical data API | REQ-007, REQ-008, REQ-012 |
-| CLI | `crates/world3-cli/` | Batch simulation, validation, debugging diagnostics, historical calibration tests | REQ-033, REQ-034, REQ-035, REQ-036, REQ-026 |
+| CLI | `crates/world3-cli/` | Batch simulation, validation, debugging diagnostics, historical calibration tests | REQ-037, REQ-038, REQ-039, REQ-040, REQ-026 |
 | Data Pipeline | `crates/world3-ingestion/` | Live data from external APIs, SQLite cache | REQ-013, REQ-014 |
 | Frontend | `frontend/` | SvelteKit + D3 interactive UI | REQ-009, REQ-020--REQ-025, REQ-037 |
 | Deployment | `/` (Dockerfile, fly.toml) | Containerized deployment on Fly.io | REQ-016 |
@@ -93,13 +93,13 @@ Implements: REQ-013, REQ-014
 
 ## CLI (`world3-cli`)
 
-Implements: REQ-033, REQ-034, REQ-035, REQ-036, REQ-026
+Implements: REQ-037, REQ-038, REQ-039, REQ-040, REQ-026
 
 The CLI serves four roles:
-1. **CI/CD validation** (REQ-033): `validate` runs headless qualitative checks against Meadows 1972.
-2. **Batch export** (REQ-034): `simulate --output` exports 22-column CSV for external analysis.
-3. **Simulation debugging** (REQ-035): `diagnose` produces structured text/JSON reports (peaks, phases, anomalies, oscillation detection, dt-sensitivity, preset comparison).
-4. **Reproducibility** (REQ-036): `simulate --preset` and `presets` provide deterministic named runs.
+1. **CI/CD validation** (REQ-037): `validate` runs headless qualitative checks against Meadows 1972.
+2. **Batch export** (REQ-038): `simulate --output` exports 25-column CSV for external analysis.
+3. **Simulation debugging** (REQ-039): `diagnose` produces structured text/JSON reports (peaks, phases, anomalies, oscillation detection, dt-sensitivity, preset comparison).
+4. **Reproducibility** (REQ-040): `simulate --preset` and `presets` provide deterministic named runs.
 
 ### Historical Calibration Tests (REQ-026)
 

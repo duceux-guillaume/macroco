@@ -21,11 +21,11 @@
   - *Components:* `world3-core`: LookupTable, `data/lookup_tables/`
   - *Done:* `LookupTable` type in `world3-core`; tables hardcoded in `world3-core/src/lookup/tables.rs`.
 
-- [x] **REQ-003: CLI batch simulation**
+- [x] **REQ-003: CLI batch simulation** *(Superseded by REQ-037..040)*
   - *Milestone:* M1
   - *Context:* Users need a command-line tool to run simulations, diagnose trajectories, and export results.
   - *Components:* `world3-cli`: simulate, diagnose, presets subcommands
-  - *Done:* `world3-cli` crate with `simulate`, `diagnose`, and `presets` subcommands; CSV output support.
+  - *Superseded:* Split into four focused requirements: REQ-037 (CI/CD validation), REQ-038 (batch export), REQ-039 (simulation debugging), REQ-040 (reproducibility).
 
 - [x] **REQ-004: Scenario presets**
   - *Milestone:* M1
@@ -36,14 +36,8 @@
 - [x] **REQ-005: Validation against Meadows 1972**
   - *Milestone:* M2
   - *Context:* The standard BAU run must reproduce the qualitative dynamics of Meadows 1972 Fig. 35.
-  - *Components:* `world3-cli`: `tests/qualitative_dynamics.rs`
-  - *Done:* `qualitative_dynamics.rs` integration test checks population peak, resource depletion, food and industrial output trajectories.
-
-- [x] **REQ-006: PNG chart output**
-  - *Milestone:* M1
-  - *Context:* Visual output of simulation results is needed for documentation and quick inspection.
-  - *Components:* `world3-cli`: `--chart` flag, plotters crate
-  - *Done:* `--chart` flag on `world3-cli simulate` renders multi-panel PNG via the `plotters` crate.
+  - *Components:* `world3-core`: `validation` module, `world3-cli`: `validate` subcommand (REQ-037)
+  - *Done:* `world3-core::validate_bau()` checks population peak, resource depletion, food and industrial output trajectories. CLI `validate` is a thin wrapper.
 
 - [x] **REQ-007: REST API server**
   - *Milestone:* M1
@@ -171,6 +165,34 @@
   - *Components:* `frontend/src/lib/charts/UnifiedChart.svelte`, `frontend/src/lib/charts/zoom-helpers.ts`
   - *Done:* Replaced no-op `d3.brushX` with `d3.zoom()`. X-axis zoom/pan on all devices (wheel, pinch, drag). SVG clip path prevents overflow. Tap-to-pin tooltip on mobile (pointer: coarse). Hover tooltip on desktop. Reset zoom button + double-click/tap + Escape key. Y-axis auto-fits visible window in compare mode. Extracted pure zoom helpers with 30 unit tests.
 
+- [x] **REQ-037: CLI — CI/CD validation**
+  - *Milestone:* M1
+  - *Context:* Automated pipelines need headless qualitative checks against Meadows 1972 reference dynamics. The CLI `validate` command runs without a browser or frontend.
+  - *Components:* `world3-cli`: `validate` subcommand
+  - *Done:* `world3-cli validate` checks population peak, resource depletion, pollution, industrial collapse, and life expectancy trajectories.
+  - *Exempt:* Organizational requirement; CLI validate tested by REQ-005 tests
+
+- [x] **REQ-038: CLI — Batch export**
+  - *Milestone:* M1
+  - *Context:* Researchers and external tools need raw simulation data in CSV format for analysis outside the webapp.
+  - *Components:* `world3-cli`: `simulate --output` subcommand
+  - *Done:* `world3-cli simulate --output <file>` exports 25-column CSV covering all World 3 stocks and derived variables.
+  - *Exempt:* Organizational requirement; CSV output tested by REQ-003 tests
+
+- [x] **REQ-039: CLI — Simulation debugging**
+  - *Milestone:* M1
+  - *Context:* Developers need structured analysis of simulation trajectories (peaks, phases, anomalies, oscillation detection) without starting a browser. Text/JSON output is more actionable than visual chart inspection for diagnosing model issues.
+  - *Components:* `world3-cli`: `diagnose` subcommand
+  - *Done:* `world3-cli diagnose` produces structured text/JSON reports with peak detection, phase analysis, anomaly flags, preset comparison, and dt-sensitivity stability checks.
+  - *Exempt:* Organizational requirement; diagnose tested via agent workflow tests
+
+- [x] **REQ-040: CLI — Reproducibility**
+  - *Milestone:* M1
+  - *Context:* Deterministic simulation runs from a single command ensure reproducible results across environments. Named presets provide canonical parameter sets.
+  - *Components:* `world3-cli`: `simulate`, `presets` subcommands
+  - *Done:* `world3-cli simulate --preset <name>` runs deterministic simulations; `world3-cli presets` lists available named parameter sets (BAU, Technology, Stabilized).
+  - *Exempt:* Organizational requirement; preset simulation tested by REQ-004/REQ-005 tests
+
 ---
 
 ## Abandoned
@@ -178,6 +200,11 @@
 - [ ] **REQ-011: Extension sectors — climate, energy, biodiversity, inequality**
   - *Context:* Originally a monolithic requirement for all 4 extension sectors. Split into scenario-specific requirements.
   - *Replaced by:* REQ-033 (climate + energy, M3) and REQ-034 (biodiversity + inequality, M4)
+
+- [ ] **REQ-006: PNG chart output**
+  - *Context:* Visual output of simulation results is needed for documentation and quick inspection.
+  - *Abandoned:* Superseded by the interactive D3 frontend (REQ-009). The `--chart` flag and `plotters` dependency have been removed. The `diagnose` command (REQ-039) provides superior text-based analysis for debugging.
+  - *Exempt:* Abandoned requirement; code and tests removed
 
 - [ ] **REQ-030: Multi-scenario historical calibration**
   - *Context:* Originally a monolithic requirement for calibrating all non-BAU scenarios. Split into per-scenario requirements.
