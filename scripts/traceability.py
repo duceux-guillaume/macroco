@@ -48,6 +48,8 @@ def parse_requirements(path: Path) -> dict[str, dict]:
             current_section = "In Progress"
         elif line.startswith("## Planned"):
             current_section = "Planned"
+        elif line.startswith("## Abandoned"):
+            current_section = "Abandoned"
 
         m = REQ_DEF_RE.search(line)
         if m:

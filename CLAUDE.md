@@ -6,17 +6,7 @@ Online live macroeconomic model based on World3-03 (Meadows et al., 2004 — *Li
 **Stack:** Rust backend (Axum) + SvelteKit/TypeScript frontend + D3 v7. Deployed on Fly.io.
 
 ## Current Objective
-Milestone 1: Interactive Limits to Growth. The BAU scenario must be a good fit to historical data (1960–2023) and reproduce the overshoot-and-collapse trajectory from the original study. Other scenarios (Technology, Stabilized) must also fit historical data but diverge into alternative futures based on different assumed human behaviors (e.g. pollution controls, resource efficiency, birth rate policies). The frontend must be a self-contained educational experience where users can change assumptions and immediately understand consequences.
-
-Priority order:
-1. Quick start guide (docs/quick-start.md + run.sh)
-2. Model guide documentation (docs/model-guide.md)
-3. Variable description content module (frontend/src/lib/content/)
-4. Rich chart tooltips
-5. Variable info panels
-6. Simulation controls
-7. Chart annotations
-8. Preset comparison UX
+Milestone 2: Collapse. The BAU scenario must be historically calibrated against real-world data (1960-2023) and validated to reproduce the overshoot-and-collapse trajectory from Meadows 1972. REQ-031 (scenario trajectory validation) is the remaining in-progress work.
 
 Design principles:
 - Documentation-first: every variable, parameter, and feedback loop has beginner + expert explanation
@@ -31,6 +21,7 @@ Design principles:
 
 **When to update these docs:**
 - Adding a new feature → create a new REQ-NNN in product-requirements.md first
+- Every REQ must have a `*Milestone:* MN` tag. Abandoned REQs go in the `## Abandoned` section with `*Replaced by:*` pointers.
 - Changing system design (new crate, new API endpoint, new store) → update architecture.md
 - Completing a REQ → mark it done and verify Components field is accurate
 
@@ -205,7 +196,12 @@ Run `/permissions-audit` to review and improve permission settings.
 ## Model Sectors (5 — original World 3)
 Population · Industrial Capital · Agriculture · Non-Renewable Resources · Pollution
 
-Future extensions (Milestone 2): Climate (CO₂/EBM temperature) · Energy Mix · Biodiversity (LPI) · Inequality (Gini/HDI)
+### Scenario Naming
+- BAU (Business as Usual) = **Collapse** — default trajectory, overshoot and decline
+- Technology = **Technotopia** — technology and resource discovery save the day
+- Stabilized = **Ecotopia** — humanity progresses toward justice and moderation
+
+Future extensions: Climate + Energy (M3 Technotopia, REQ-033) · Biodiversity + Inequality (M4 Ecotopia, REQ-034)
 
 ## Environment Variables
 
@@ -253,10 +249,12 @@ Run `cargo run --bin world3-cli -- validate` to check against bundled reference 
 - Ruleset on main: PR required (1 approval), rebase-only, linear history, no force push
 
 ## Product Milestones
-1. **Milestone 1 — Interactive Limits to Growth** (current): Documentation, tooltips, info panels, simulation controls, annotations, preset comparison.
-2. **Milestone 2 — Modern Extensions**: 4 extension sectors (climate, energy, biodiversity, inequality), historical CSV calibration.
-3. **Milestone 3 — Live Data Pipeline**: `world3-ingestion` crate, 7 data sources, SQLite cache, broadcast.
-4. **Milestone 4 — Production Deployment**: Fly.io, CI/CD, benchmarks, sensitivity analysis.
+1. **M1 — Foundation** (complete): Engine, UX, API, CLI, docs, CI/CD.
+2. **M2 — Collapse** (current): BAU historical calibration, trajectory validation.
+3. **M3 — Technotopia**: Climate + energy sectors, Technology scenario calibration.
+4. **M4 — Ecotopia**: Biodiversity + inequality sectors, Stabilized scenario calibration.
+5. **M5 — Living Data**: `world3-ingestion` crate, 7 data sources, SQLite cache.
+6. **M6 — Deep Exploration**: Advanced charting, benchmarks, sensitivity analysis.
 
 ## License
 GPL v3 — see LICENSE file.
