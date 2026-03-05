@@ -107,10 +107,10 @@ impl ScenarioParams {
         p
     }
 
-    /// Comprehensive technology scenario — aggressive efficiency gains.
-    pub fn comprehensive_technology() -> Self {
+    /// Technotopia scenario — aggressive efficiency gains.
+    pub fn technotopia() -> Self {
         let mut p = Self::default();
-        p.meta.name = "Comprehensive Technology".into();
+        p.meta.name = "Technotopia".into();
         p.meta.description =
             "Technology solves resource and pollution problems, but no social changes.".into();
         p.meta.color_hex = "#2a9d8f".into();
@@ -329,7 +329,7 @@ mod tests {
         let descriptors = parameter_descriptors();
         let presets = [
             ScenarioParams::collapse(),
-            ScenarioParams::comprehensive_technology(),
+            ScenarioParams::technotopia(),
             ScenarioParams::stabilized_world(),
         ];
         for preset in &presets {

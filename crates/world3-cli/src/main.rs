@@ -124,7 +124,7 @@ fn main() -> Result<()> {
         Commands::Presets => {
             println!("Available presets:");
             println!("  collapse     Collapse (original World 3 standard run, overshoot and decline)");
-            println!("  technology   Comprehensive Technology scenario");
+            println!("  technology   Technotopia scenario");
             println!("  stabilized   Stabilized World scenario");
         }
 
@@ -167,7 +167,7 @@ fn main() -> Result<()> {
 fn preset_params(name: &str) -> Result<ScenarioParams> {
     match name {
         "collapse" => Ok(ScenarioParams::collapse()),
-        "technology" => Ok(ScenarioParams::comprehensive_technology()),
+        "technology" => Ok(ScenarioParams::technotopia()),
         "stabilized" => Ok(ScenarioParams::stabilized_world()),
         other => anyhow::bail!("Unknown preset '{}'. Use: collapse, technology, stabilized", other),
     }
